@@ -50,8 +50,10 @@ private:
 	UPROPERTY(ReplicatedUsing = OnRep_OverlappingWeapon)
 	class AWeapon* OverlappingWeapon;
 
+	//rep vars can ONLY have input params of the var being repd
+	//what gets passed in? the last var, BEFORE the update to the var :)
 	UFUNCTION()
-	void OnRep_OverlappingWeapon();
+	void OnRep_OverlappingWeapon(AWeapon* LastWeapon);
 
 public:	
 	//here it is updated for all clients AND server (logic for that inside)

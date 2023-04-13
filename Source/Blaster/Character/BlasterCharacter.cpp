@@ -108,7 +108,12 @@ void ABlasterCharacter::LookUp(float Value)
 }
 
 void ABlasterCharacter::SetOverlappingWeapon(AWeapon *Weapon)
-{
+{	
+	//this exact if statement disables the widget for the server on exit. wjat
+	if (OverlappingWeapon)
+	{
+		OverlappingWeapon->ShowPickupWidget(false);
+	}
 	OverlappingWeapon = Weapon;
 	//logic to only show widget for the character controlling the pawn
 	//onsphereoverlap is only called w/in the server... what are we to do?
@@ -122,11 +127,17 @@ void ABlasterCharacter::SetOverlappingWeapon(AWeapon *Weapon)
 	}
 }
 
-void ABlasterCharacter::OnRep_OverlappingWeapon()
+//repnotify is not called on server. 
+//gosh this is gee golly hard lmao
+void ABlasterCharacter::OnRep_OverlappingWeapon(AWeapon* LastWeapon)
 {
-	if (OverlappingWeapon)
+	if (OverlappingWeapon) //this is the new var, LatWeapon is the old one
 	{
 		OverlappingWeapon->ShowPickupWidget(true);
+	}
+	if (LastWeapon)//if lastweapon is not null then it is implied it now is... this seems like overlapping weapons could cause problems
+	{
+		LastWeapon->ShowPickupWidget(false);
 	}
 }
 

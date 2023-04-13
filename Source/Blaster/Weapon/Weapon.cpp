@@ -47,10 +47,12 @@ void AWeapon::BeginPlay()
 		AreaSphere->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Overlap);
 
 		//binding overlap function on server side
-		//if you peek OnCompBegOverlap, you see FCompBegOverSignature
+		//if you peek OnCompBegOverlap, you see FCompBegOverSignature 
 		//peek it to find they dec a dyn multi sparse delegate w/ six params
-		//oh god
+		//that is where the func def args are found for the func
+		//here we bind our funcs to these events
 		AreaSphere->OnComponentBeginOverlap.AddDynamic(this, &AWeapon::OnSphereOverlap);
+		AreaSphere->OnComponentEndOverlap.AddDynamic(this, &AWeapon::OnSphereEndOverlap);
 	}
 	if (PickupWidget)
 	{
@@ -78,7 +80,17 @@ void AWeapon::OnSphereOverlap(UPrimitiveComponent *OverlappedComponent, AActor *
 	}
 }
 
-
+void AWeapon::OnSphereEndOverlap(UPrimitiveComponent *OverlappedComponent, AActor *OtherActor, UPrimitiveComponent *OtherComp, int32 OtherBodyIndex)
+{
+	//cast only works if other actor is a valid blasterchar
+	ABlasterCharacter* BlasterCharacter = Cast<ABlasterCharacter>(OtherActor);
+	UE_LOG(LogTemp, Display, TEXT("Overlap Detected"));
+	//check if otheractor was a valid blasterchar
+	if (BlasterCharacter)
+	{
+		BlasterCharacter->SetOverlappingWeapon(nullptr);
+	}
+}
 
 void AWeapon::ShowPickupWidget(bool bShowWidget)
 {
