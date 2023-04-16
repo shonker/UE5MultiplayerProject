@@ -125,8 +125,23 @@ void ABlasterCharacter::LookUp(float Value)
 
 void ABlasterCharacter::EquipButtonPressed()
 {
-	//this is done on the owner client, but needs to actually be done on authority server side
-	if (Combat && HasAuthority())
+	if (Combat)
+	{
+		if (HasAuthority()) //are we server?
+		{
+		Combat->EquipWeapon(OverlappingWeapon);
+		}
+		else
+		{
+			ServerEquipButtonPressed();
+		}
+	}
+}
+
+	//here we have the server rpc so non-authority can pickup weapon
+void ABlasterCharacter::ServerEquipButtonPressed_Implementation()
+{
+	if (Combat)
 	{
 		Combat->EquipWeapon(OverlappingWeapon);
 	}

@@ -5,6 +5,8 @@
 #include "Blaster/Weapon/Weapon.h"
 #include "Blaster/Character/BlasterCharacter.h"
 #include "Engine/SkeletalMeshSocket.h"
+#include "Components/SphereComponent.h"
+
 
 UCombatComponent::UCombatComponent()
 {
@@ -46,6 +48,6 @@ void UCombatComponent::EquipWeapon(AWeapon *WeaponToEquip)
 	//we "own" the pawn we control
 	//we "own" a weapon when we equip it
 	EquippedWeapon->SetOwner(Character);
-	EquippedWeapon->ShowPickupWidget(false);
 	
+
 }
