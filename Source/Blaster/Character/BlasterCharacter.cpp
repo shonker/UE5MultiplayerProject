@@ -167,6 +167,7 @@ void ABlasterCharacter::SetOverlappingWeapon(AWeapon *Weapon)
 	}
 }
 
+
 //repnotify is not called on server. 
 //gosh this is gee golly hard lmao
 void ABlasterCharacter::OnRep_OverlappingWeapon(AWeapon* LastWeapon)
@@ -181,3 +182,8 @@ void ABlasterCharacter::OnRep_OverlappingWeapon(AWeapon* LastWeapon)
 	}
 }
 
+//currently called by anim instance
+bool ABlasterCharacter::IsWeaponEquipped()
+{
+    return (Combat && Combat->EquippedWeapon);
+}
