@@ -37,6 +37,8 @@ ABlasterCharacter::ABlasterCharacter()
 	Combat = CreateDefaultSubobject<UCombatComponent>(TEXT("CombatComponent"));
 	Combat->SetIsReplicated(true);
 
+	//this is also checked on bp character movement comp in myblasterchar
+	GetCharacterMovement()->NavAgentProps.bCanCrouch = true;
 }
 
 //here we setup the variable replication for server to comm to clients
@@ -76,6 +78,7 @@ void ABlasterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 	PlayerInputComponent->BindAxis("LookUp", this, &ABlasterCharacter::LookUp);
 
 	PlayerInputComponent->BindAction("Equip", IE_Pressed, this, &ABlasterCharacter::EquipButtonPressed);
+	PlayerInputComponent->BindAction("Crouch", IE_Pressed, this, &ABlasterCharacter::CrouchButtonPressed);
 }
 
 
@@ -138,13 +141,26 @@ void ABlasterCharacter::EquipButtonPressed()
 	}
 }
 
-	//here we have the server rpc so non-authority can pickup weapon
+    //here we have the server rpc so non-authority can pickup weapon
 void ABlasterCharacter::ServerEquipButtonPressed_Implementation()
 {
 	if (Combat)
 	{
 		Combat->EquipWeapon(OverlappingWeapon);
 	}
+}
+
+void ABlasterCharacter::CrouchButtonPressed()
+{
+	if (bIsCrouched)
+	{
+		UnCrouch();
+	}
+	else
+	{
+		Crouch();
+	}
+
 }
 
 void ABlasterCharacter::SetOverlappingWeapon(AWeapon *Weapon)

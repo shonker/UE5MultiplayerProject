@@ -30,4 +30,5 @@ void UBlasterAnimInstance::NativeUpdateAnimation(float DeltaTime)
     //this is really checking if there is input, not acceleration
     bIsAccelerating = BlasterCharacter->GetCharacterMovement()->GetCurrentAcceleration().Size() > 0.f ? true : false;
     bWeaponEquipped = BlasterCharacter->IsWeaponEquipped();
+    bIsCrouched = BlasterCharacter->bIsCrouched;
 }
