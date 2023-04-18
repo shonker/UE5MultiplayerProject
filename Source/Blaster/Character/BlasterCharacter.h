@@ -32,6 +32,8 @@ protected:
 	void LookUp(float Value);
 	void EquipButtonPressed();
 	void CrouchButtonPressed();
+	void AimButtonPressed();
+	void AimButtonReleased();
 
 
 
@@ -67,6 +69,6 @@ private:
 public:	
 	//here it is updated for all clients AND server (logic for that inside)
 	void SetOverlappingWeapon(AWeapon* Weapon);
-
 	bool IsWeaponEquipped();
+	bool IsAiming();
 };

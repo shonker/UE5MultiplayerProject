@@ -79,6 +79,8 @@ void ABlasterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 
 	PlayerInputComponent->BindAction("Equip", IE_Pressed, this, &ABlasterCharacter::EquipButtonPressed);
 	PlayerInputComponent->BindAction("Crouch", IE_Pressed, this, &ABlasterCharacter::CrouchButtonPressed);
+	PlayerInputComponent->BindAction("Aim", IE_Pressed, this, &ABlasterCharacter::AimButtonPressed);
+	PlayerInputComponent->BindAction("Aim", IE_Released, this, &ABlasterCharacter::AimButtonReleased);
 }
 
 
@@ -150,8 +152,9 @@ void ABlasterCharacter::ServerEquipButtonPressed_Implementation()
 	}
 }
 
+//luckily, since we use the built in crouch functionality, crouching is already set up to be replicated
 void ABlasterCharacter::CrouchButtonPressed()
-{
+{ 
 	if (bIsCrouched)
 	{
 		UnCrouch();
@@ -162,6 +165,31 @@ void ABlasterCharacter::CrouchButtonPressed()
 	}
 
 }
+
+
+
+void ABlasterCharacter::AimButtonPressed()
+{
+	//replication of bAiming handled from server->client in CombatComponent.cpp DOREPLIFETIME
+	//replication of client-> server bAiming handled with RPC in 
+	if (Combat)
+	{
+		//SP imp
+		//Combat->bAiming = true;
+
+		//mp imp
+		Combat->SetAiming(true);
+
+	}
+}
+void ABlasterCharacter::AimButtonReleased()
+{
+	if (Combat)
+	{
+		//Combat->bAiming = false;
+		Combat->SetAiming(false);
+	}
+}	
 
 void ABlasterCharacter::SetOverlappingWeapon(AWeapon *Weapon)
 {	
@@ -202,4 +230,10 @@ void ABlasterCharacter::OnRep_OverlappingWeapon(AWeapon* LastWeapon)
 bool ABlasterCharacter::IsWeaponEquipped()
 {
     return (Combat && Combat->EquippedWeapon);
+}
+
+//another getter accessed by anim instance
+bool ABlasterCharacter::IsAiming()
+{
+    return (Combat && Combat->bAiming);
 }

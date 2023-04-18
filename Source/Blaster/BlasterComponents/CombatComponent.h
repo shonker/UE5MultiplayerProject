@@ -26,6 +26,11 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
+	void SetAiming(bool bIsAiming);
+
+	UFUNCTION(Server, Reliable)
+	void ServerSetAiming(bool bIsAiming);
+
 
 private:
 	//create ABC char class so we don't have to constantly cast
@@ -34,6 +39,14 @@ private:
 
 	UPROPERTY(Replicated)
 	AWeapon* EquippedWeapon;
+
+	//all you would need for single player functionality
+	//bool bAiming;
+
+	//multiplayer functional v.v
+	//note that it is "registered" in the DOREPLIFETIME in CC.cpp
+	UPROPERTY(Replicated)
+	bool bAiming;
 
 public:	
 
