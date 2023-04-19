@@ -9,6 +9,7 @@
 #include "Engine/SkeletalMeshSocket.h"
 #include "Components/SphereComponent.h"
 #include "Net/UnrealNetwork.h"
+#include "GameFramework/CharacterMovementComponent.h"
 
 UCombatComponent::UCombatComponent()
 {
@@ -27,6 +28,17 @@ void UCombatComponent::SetAiming(bool bIsAiming)
 {
 	bAiming = bIsAiming;
 	ServerSetAiming(bIsAiming);
+}
+
+void UCombatComponent::OnRep_EquippedWeapon()
+{
+	if (EquippedWeapon && Character)
+	{
+		//change character to always be oriented w/ cam view, looks appropriate because
+		//we implemented the equipped weapon blendspace into the anim BP
+		Character->GetCharacterMovement()->bOrientRotationToMovement = false;
+		Character->bUseControllerRotationYaw = true;
+	}
 }
 
 void UCombatComponent::ServerSetAiming_Implementation(bool bIsAiming)
@@ -71,5 +83,9 @@ void UCombatComponent::EquipWeapon(AWeapon *WeaponToEquip)
 	//we "own" a weapon when we equip it
     EquippedWeapon->SetOwner(Character); 
 	
-   
+	//change character to always be oriented w/ cam view, looks appropriate because
+	//we implemented the equipped weapon blendspace into the anim BP
+	Character->GetCharacterMovement()->bOrientRotationToMovement = false;
+	Character->bUseControllerRotationYaw = true;
+
 }

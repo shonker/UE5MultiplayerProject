@@ -18,7 +18,7 @@ public:
 	//called like BeginPlay, along with loading up UE% and compiling
 	virtual void NativeInitializeAnimation() override;
 	//called like the tick animation
-	virtual void NativeUpdateAnimation(float DeltaTime) override;
+	virtual void NativeUpdateAnimation(float DeltaSeconds) override;
 
 private:
 
@@ -42,4 +42,14 @@ private:
 
 	UPROPERTY(BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
 	bool bAiming;
+
+	UPROPERTY(BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
+	float YawOffset;
+
+	UPROPERTY(BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
+	float Lean;
+
+	FRotator CharacterRotationLastFrame;
+	FRotator CharacterRotation;
+	FRotator DeltaRotation;
 };
