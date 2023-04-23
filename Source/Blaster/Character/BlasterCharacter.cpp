@@ -6,6 +6,7 @@
 #include "Camera/CameraComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Components/WidgetComponent.h"
+#include "Components/CapsuleComponent.h"
 #include "Net/UnrealNetwork.h"
 #include "Blaster/Weapon/Weapon.h"
 #include "Blaster/BlasterComponents/CombatComponent.h"
@@ -39,6 +40,10 @@ ABlasterCharacter::ABlasterCharacter()
 
 	//this is also checked on bp character movement comp in myblasterchar
 	GetCharacterMovement()->NavAgentProps.bCanCrouch = true;
+
+	//this prevents the camera from moving when another player is between camera and player mesh
+	GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
+	GetMesh()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
 }
 
 //here we setup the variable replication for server to comm to clients
