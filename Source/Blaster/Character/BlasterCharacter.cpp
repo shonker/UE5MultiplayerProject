@@ -1,6 +1,5 @@
+
 // Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "BlasterCharacter.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
@@ -10,6 +9,7 @@
 #include "Net/UnrealNetwork.h"
 #include "Blaster/Weapon/Weapon.h"
 #include "Blaster/BlasterComponents/CombatComponent.h"
+#include "Kismet/KismetMathLibrary.h"
 
 // Sets default values
 ABlasterCharacter::ABlasterCharacter()
@@ -68,6 +68,8 @@ void ABlasterCharacter::BeginPlay()
 void ABlasterCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	AimOffset(DeltaTime);
 }
 // Called to bind functionality to input
 void ABlasterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -196,6 +198,35 @@ void ABlasterCharacter::AimButtonReleased()
 	}
 }	
 
+void ABlasterCharacter::AimOffset(float DeltaTime)
+{
+	if (Combat && Combat->EquippedWeapon == nullptr)
+	{
+		return;
+	}
+
+	FVector Velocity = GetVelocity();
+    Velocity.Z = 0.f;
+    float Speed = Velocity.Size();
+	bool bIsInAir = GetCharacterMovement()->IsFalling();
+
+	if (Speed == 0.f && !bIsInAir) //standing still && not jumping
+	{
+		FRotator CurrentAimRotation = FRotator(0.f, GetBaseAimRotation().Yaw, 0.f);
+		FRotator DeltaAimRotation = UKismetMathLibrary::NormalizedDeltaRotator(CurrentAimRotation, StartingAimRotation);
+		AO_Yaw = DeltaAimRotation.Yaw;
+		bUseControllerRotationYaw = false;
+	}
+	if (Speed > 0.f || bIsInAir) //running || jumping
+	{
+		bUseControllerRotationYaw = true;
+		StartingAimRotation = FRotator(0.f, GetBaseAimRotation().Yaw, 0.f);
+		AO_Yaw = 0.f;
+	}
+
+	AO_Pitch = GetBaseAimRotation().Pitch;
+}
+
 void ABlasterCharacter::SetOverlappingWeapon(AWeapon *Weapon)
 {	
 	//this exact if statement disables the widget for the server on exit. wjat
@@ -240,5 +271,5 @@ bool ABlasterCharacter::IsWeaponEquipped()
 //another getter accessed by anim instance
 bool ABlasterCharacter::IsAiming()
 {
-    return (Combat && Combat->bAiming);
+    return(Combat && Combat->bAiming);
 }

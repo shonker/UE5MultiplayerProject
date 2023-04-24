@@ -34,8 +34,7 @@ protected:
 	void CrouchButtonPressed();
 	void AimButtonPressed();
 	void AimButtonReleased();
-
-
+	void AimOffset(float DeltaTime);
 
 private:
 
@@ -66,9 +65,17 @@ private:
 	UFUNCTION(Server, Reliable)
 	void ServerEquipButtonPressed();
 
+	//protected aim offset var
+	float AO_Yaw;
+	float AO_Pitch;
+	FRotator StartingAimRotation;
+
 public:	
 	//here it is updated for all clients AND server (logic for that inside)
 	void SetOverlappingWeapon(AWeapon* Weapon);
 	bool IsWeaponEquipped();
 	bool IsAiming();
+	FORCEINLINE float GetAOYaw() const { return AO_Yaw; }
+	FORCEINLINE float GetAOPitch() const { return AO_Pitch; }
+
 };
