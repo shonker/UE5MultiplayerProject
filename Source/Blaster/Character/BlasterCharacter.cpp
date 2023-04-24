@@ -11,6 +11,20 @@
 #include "Blaster/BlasterComponents/CombatComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 
+
+/*
+hewwo!!!!
+
+heres a handy reminder of how to set server specific console loggies :)))))
+//this means the person running the code isn't the server, 
+//but they're grabbing the blaster character that is the server
+	if (HasAuthority() && !IsLocallyControlled()) 
+	{
+			UE_LOG(LogTemp, Warning, TEXT("AO_Pitch: %f"), AO_Pitch);
+	}
+
+*/
+
 // Sets default values
 ABlasterCharacter::ABlasterCharacter()
 {
@@ -225,6 +239,17 @@ void ABlasterCharacter::AimOffset(float DeltaTime)
 	}
 
 	AO_Pitch = GetBaseAimRotation().Pitch;
+	if (AO_Pitch > 90.f && !IsLocallyControlled())
+	{
+		//map pitch from [270, 360) to [-90, 0)
+		//bitwise compression for var replication takes negative numbers 
+		//and loops them back to 360 descending
+		//this is demonstrated in the CharMoveComp
+		//but for our aim offset blendspaces we must correct that
+		FVector2D InRange(270.f, 360.f);
+		FVector2D OutRange(-90.f, 0.f);
+		AO_Pitch = FMath::GetMappedRangeValueClamped(InRange, OutRange, AO_Pitch);
+	}
 }
 
 void ABlasterCharacter::SetOverlappingWeapon(AWeapon *Weapon)
