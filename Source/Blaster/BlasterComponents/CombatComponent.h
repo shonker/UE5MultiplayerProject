@@ -34,6 +34,8 @@ protected:
 	UFUNCTION()
 	void OnRep_EquippedWeapon();
 
+	void FireButtonPressed(bool bPressed);
+
 private:
 	//create ABC char class so we don't have to constantly cast
 	//has 2 b set as early as possible
@@ -55,6 +57,8 @@ private:
 
 	UPROPERTY(EditAnywhere)
 	float AimWalkSpeed;
+
+	bool bFireButtonPressed;
 
 public:	
 
