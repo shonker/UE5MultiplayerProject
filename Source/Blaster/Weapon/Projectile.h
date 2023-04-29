@@ -15,9 +15,15 @@ public:
 	AProjectile();
 	virtual void Tick(float DeltaTime) override;
 
+	virtual void Destroyed() override;
 
 protected:
 	virtual void BeginPlay() override;
+
+	//component doing the hitting (col box), actor being hit, primitive (other component being hit), the normal of the surface being hit, const ref to something?
+	//callbacks bound to hit events (oncomponenthit) have to be ufunctions to work
+	UFUNCTION()
+	virtual void OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 
 private:
 	UPROPERTY(EditAnywhere)
@@ -31,6 +37,11 @@ private:
 
 	class UParticleSystemComponent* TracerComponent;
 
+	UPROPERTY(EditAnywhere)
+	UParticleSystem* ImpactParticles;
+
+	UPROPERTY(EditAnywhere)
+	class USoundCue* ImpactSound;
 public:	
 
 };
