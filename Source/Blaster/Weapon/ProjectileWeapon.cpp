@@ -13,6 +13,7 @@ void AProjectileWeapon::Fire(const FVector& HitTarget)
     
     APawn* InstigatorPawn = Cast<APawn>(GetOwner());
     //GWM() is in weapon.h
+    //#include "Engine/SkeletalMeshSocket.h"
     const USkeletalMeshSocket* MuzzleFlashSocket = GetWeaponMesh()->GetSocketByName(FName("MuzzleFlash"));
 
     if (MuzzleFlashSocket)
