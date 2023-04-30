@@ -45,11 +45,14 @@ protected:
 
 	void TraceUnderCrosshairs(FHitResult& TraceHitResult);
 	
+	void SetHUDCrosshairs(float DeltaTime);
 
 private:
 	//create ABC char class so we don't have to constantly cast
 	//has 2 b set as early as possible
 	class ABlasterCharacter* Character;
+	class ABlasterPlayerController* Controller;
+	class ABlasterHUD* HUD;
 
 	UPROPERTY(ReplicatedUsing = OnRep_EquippedWeapon)
 	AWeapon* EquippedWeapon;

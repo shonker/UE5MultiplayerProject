@@ -3,6 +3,7 @@
 #include "Casing.h"
 #include "Kismet/GameplayStatics.h"
 #include "Sound/SoundCue.h"
+#include "Kismet/KismetMathLibrary.h"
 
 ACasing::ACasing()
 {
@@ -26,7 +27,7 @@ void ACasing::BeginPlay()
 	Super::BeginPlay();
 	
 	CasingMesh->OnComponentHit.AddDynamic(this, &ACasing::OnHit);
-	CasingMesh->AddImpulse(GetActorForwardVector() * ShellEjectionImpulse);
+	CasingMesh->AddImpulse((GetActorForwardVector()+UKismetMathLibrary::RandomUnitVector()*0.2) * ShellEjectionImpulse);
 
 	SetLifeSpan(3.f);
 }
