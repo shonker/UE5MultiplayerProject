@@ -29,7 +29,7 @@ void ACasing::BeginPlay()
 	CasingMesh->OnComponentHit.AddDynamic(this, &ACasing::OnHit);
 	CasingMesh->AddImpulse((GetActorForwardVector()+UKismetMathLibrary::RandomUnitVector()*0.2) * ShellEjectionImpulse);
 
-	SetLifeSpan(3.f);
+	//SetLifeSpan(3.f);
 }
 
 void ACasing::OnHit(UPrimitiveComponent *HitComp, AActor *OtherActor, UPrimitiveComponent *OtherComp, FVector NormalImpulse, const FHitResult &Hit)
@@ -38,7 +38,7 @@ void ACasing::OnHit(UPrimitiveComponent *HitComp, AActor *OtherActor, UPrimitive
 	{
 		UGameplayStatics::PlaySoundAtLocation(this, ShellSound, GetActorLocation());
 	}
-	//Destroy();
+	Destroy();
 }
 
 void ACasing::Tick(float DeltaTime)
