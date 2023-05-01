@@ -314,11 +314,11 @@ void ABlasterCharacter::FireButtonReleased()
 void ABlasterCharacter::TurnInPlace(float DeltaTime)
 {
 	UE_LOG(LogTemp, Warning, TEXT("AO_Yaw: %f"), AO_Yaw);
-	if (AO_Yaw > 90.f)
+	if (AO_Yaw > 45.f)
 	{
 		TurningInPlace = ETurningInPlace::ETIP_Right;
 	}
-	else if (AO_Yaw < -90.f)
+	else if (AO_Yaw < -45.f)
 	{
 		TurningInPlace = ETurningInPlace::ETIP_Left;
 	}
@@ -386,4 +386,10 @@ AWeapon* ABlasterCharacter::GetEquippedWeapon()
 {
 	if (Combat == nullptr) return nullptr;
 	return Combat->EquippedWeapon;
+}
+
+FVector ABlasterCharacter::GetHitTarget() const
+{
+	if (Combat == nullptr) return FVector();
+    return Combat->HitTarget;
 }

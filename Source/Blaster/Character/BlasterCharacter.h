@@ -90,4 +90,13 @@ public:
 	FORCEINLINE float GetAOPitch() const { return AO_Pitch; }
 	AWeapon* GetEquippedWeapon();
 	FORCEINLINE ETurningInPlace GetTurningInPlace() const {return TurningInPlace; }
+	FVector GetHitTarget() const;
+
+	//gun rotation for hands
+	UPROPERTY(EditAnywhere, Category = "Weapon Rotation Correction")
+	float RightHandRotationRoll;
+	UPROPERTY(EditAnywhere, Category = "Weapon Rotation Correction")
+	float RightHandRotationYaw;
+	UPROPERTY(EditAnywhere, Category = "Weapon Rotation Correction")
+	float RightHandRotationPitch;
 };
