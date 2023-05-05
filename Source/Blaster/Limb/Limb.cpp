@@ -9,10 +9,8 @@
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Components/SkeletalMeshComponent.h"
+#include "GameFramework/Pawn.h"
 #include "Net/UnrealNetwork.h"
-
-
-
 
 // Sets default values
 ALimb::ALimb()
@@ -20,15 +18,25 @@ ALimb::ALimb()
  	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-	
-	// CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
-	// CameraBoom->SetupAttachment(GetRoot());
-	// CameraBoom->TargetArmLength = 350.f;
-	// CameraBoom->bUsePawnControlRotation = true;
+	LimbMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Limb"));
+	//SetRootComponent(LimbMesh);
 
-	// FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
-	// FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
-	// FollowCamera->bUsePawnControlRotation = false;
+	LimbMesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Block);
+	LimbMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Ignore);
+	LimbMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
+	LimbMesh->SetSimulatePhysics(true);
+	LimbMesh->SetEnableGravity(true);
+	LimbMesh->SetNotifyRigidBodyCollision(true);
+	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
+	//CameraBoom->SetupAttachment(GetRootComponent());
+	CameraBoom->SetupAttachment(LimbMesh);
+
+	CameraBoom->TargetArmLength = 350.f;
+	CameraBoom->bUsePawnControlRotation = true;
+
+	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
+	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
+	FollowCamera->bUsePawnControlRotation = false;
 
 }
 
@@ -37,6 +45,8 @@ void ALimb::BeginPlay()
 {
 	Super::BeginPlay();
 	this->SetReplicates(true);
+
+
 }
 
 // Called every frame
@@ -46,14 +56,15 @@ void ALimb::Tick(float DeltaTime)
 
 	if (!HasAuthority()) return;
 
-	
 }
 
 // Called to bind functionality to input
 void ALimb::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
+	
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
+	UE_LOG(LogTemp, Display, TEXT("inputs being bound"));
 	//apply vertical impulse to physics body
 	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ALimb::Jump);
 
@@ -73,24 +84,20 @@ void ALimb::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 
 void ALimb::MoveForward(float Value)
 {
-	if (!IsLocallyControlled()) return;
-
-	FVector LookDirection = FollowCamera->GetForwardVector();
-	FVector FwdImpulse = LookDirection * Value * 10;
-
 	// if (Controller != nullptr && Value != 0.f)
 	// {
-	// 	const FRotator YawRotation(0.f, Controller->GetControlRotation().Yaw, 0.f);
-	// 	//Return an f vector only containing the rotation on the x axis, zero'd out on the pitch and roll
-	// 	const FVector Direction( FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X));
-	// 	//this only tells the system that movement input is applied
-	// 	//speed and direction belong in the char movement component
-	// 	AddMovementInput(Direction, Value);
+	// 	FVector LookDirection = FollowCamera->GetForwardVector();
+	// 	AddMovementInput(LookDirection, Value);
+	// 	UE_LOG(LogTemp, Display, TEXT("Your message"));
 	// }
+	FVector LookDirection = FollowCamera->GetForwardVector();
+	LimbMesh->AddImpulse(LookDirection * Value * 170);
+	UE_LOG(LogTemp, Display, TEXT("Your message"));
 }
 
 void ALimb::MoveRight(float Value)
 {
+	LimbMesh->AddTorqueInRadians(FVector(0.f,0.f,50000.f)*Value);
 	// if (Controller != nullptr && Value != 0.f)
 	// {
 	// 	//same as move forward, BUT isolate Y axis
@@ -113,7 +120,8 @@ void ALimb::LookUp(float Value)
 
 void ALimb::Jump()
 {
-	
+	FVector UpImpulse = FVector(0.f,0.f,5000);
+	LimbMesh->AddImpulse(UpImpulse);
 }
 
 void ALimb::FireButtonPressed()

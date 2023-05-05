@@ -20,7 +20,7 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	//virtual void PostInitializeComponents() override;
-
+	
     
 
 protected:
@@ -33,14 +33,20 @@ protected:
 	void Jump();
 	void FireButtonPressed();
     void EquipButtonPressed();
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	FVector ForwardImpulse;
 
 private:
+
+	UPROPERTY(VisibleAnywhere)
+	UStaticMeshComponent* LimbMesh;
+
 	UPROPERTY(VisibleAnywhere, Category = Camera)
 	class USpringArmComponent* CameraBoom;
 
 	UPROPERTY(VisibleAnywhere, Category = Camera)
 	class UCameraComponent* FollowCamera;
 
-	UPROPERTY(VisibleAnywhere, Catergory = Movement)
-	FVector FwdImpulse;
+	
 };
