@@ -45,8 +45,6 @@ void ALimb::BeginPlay()
 {
 	Super::BeginPlay();
 	this->SetReplicates(true);
-
-
 }
 
 // Called every frame
@@ -81,30 +79,47 @@ void ALimb::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 	PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &ALimb::FireButtonPressed);
 }
 
+void ALimb::GetLifetimeReplicatedProps(TArray<FLifetimeProperty> &OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+}
 
 void ALimb::MoveForward(float Value)
 {
-	// if (Controller != nullptr && Value != 0.f)
-	// {
-	// 	FVector LookDirection = FollowCamera->GetForwardVector();
-	// 	AddMovementInput(LookDirection, Value);
-	// 	UE_LOG(LogTemp, Display, TEXT("Your message"));
-	// }
-	FVector LookDirection = FollowCamera->GetForwardVector();
-	LimbMesh->AddImpulse(LookDirection * Value * 170);
-	UE_LOG(LogTemp, Display, TEXT("Your message"));
+	if (Value == 0) return;
+	FVector AimDirection = FollowCamera->GetForwardVector();
+	ServerMoveForward(Value, AimDirection);
 }
+
+void ALimb::ServerMoveForward_Implementation(float Value, FVector_NetQuantize10 AimDirection)
+{
+	MulticastMoveForward(Value, AimDirection);	
+}
+
+void ALimb::MulticastMoveForward_Implementation(float Value, FVector_NetQuantize10 AimDirection)
+{
+	if (!LimbMesh) return;
+	LimbMesh->AddImpulse(AimDirection * Value * 170);
+}
+
+
 
 void ALimb::MoveRight(float Value)
 {
+	if (Value == 0) return;
+	ServerMoveRight(Value);
+}
+
+void ALimb::ServerMoveRight_Implementation(float Value)
+{
+	MulticastMoveRight(Value);
+}
+
+void ALimb::MulticastMoveRight_Implementation(float Value)
+{
+	if (!LimbMesh) return;
 	LimbMesh->AddTorqueInRadians(FVector(0.f,0.f,50000.f)*Value);
-	// if (Controller != nullptr && Value != 0.f)
-	// {
-	// 	//same as move forward, BUT isolate Y axis
-	// 	const FRotator YawRotation(0.f, Controller->GetControlRotation().Yaw, 0.f);
-	// 	const FVector Direction(FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y));
-	// 	AddMovementInput(Direction, Value);
-	// }
 }
 
 void ALimb::Turn(float Value)
@@ -120,7 +135,18 @@ void ALimb::LookUp(float Value)
 
 void ALimb::Jump()
 {
+	ServerJump();	
+}
+
+void ALimb::ServerJump_Implementation()
+{
+	MulticastJump();
+}
+
+void ALimb::MulticastJump_Implementation()
+{
 	FVector UpImpulse = FVector(0.f,0.f,5000);
+	if (!LimbMesh) return;
 	LimbMesh->AddImpulse(UpImpulse);
 }
 
