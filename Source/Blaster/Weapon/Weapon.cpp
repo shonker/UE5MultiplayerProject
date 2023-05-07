@@ -15,6 +15,7 @@
 // Sets default values
 AWeapon::AWeapon()
 {
+	
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = false;
 	//important for server/clientcomms?
@@ -84,7 +85,7 @@ void AWeapon::OnSphereOverlap(UPrimitiveComponent *OverlappedComponent, AActor *
 {
 	//check includes to see where we included blaster char
 	ABlasterCharacter* BlasterCharacter = Cast<ABlasterCharacter>(OtherActor);
-	UE_LOG(LogTemp, Display, TEXT("Overlap Detected"));
+	//UE_LOG(LogTemp, Display, TEXT("Overlap Detected"));
 	if (BlasterCharacter)
 	{
 		BlasterCharacter->SetOverlappingWeapon(this);
@@ -95,7 +96,7 @@ void AWeapon::OnSphereEndOverlap(UPrimitiveComponent *OverlappedComponent, AActo
 {
 	//cast only works if other actor is a valid blasterchar
 	ABlasterCharacter* BlasterCharacter = Cast<ABlasterCharacter>(OtherActor);
-	UE_LOG(LogTemp, Display, TEXT("Overlap Detected"));
+	//UE_LOG(LogTemp, Display, TEXT("Overlap Detected"));
 	//check if otheractor was a valid blasterchar
 	if (BlasterCharacter)
 	{

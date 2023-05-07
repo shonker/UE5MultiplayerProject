@@ -62,7 +62,7 @@ void ALimb::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 	
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
-	UE_LOG(LogTemp, Display, TEXT("inputs being bound"));
+	//UE_LOG(LogTemp, Display, TEXT("inputs being bound"));
 	//apply vertical impulse to physics body
 	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ALimb::Jump);
 
@@ -88,6 +88,7 @@ void ALimb::GetLifetimeReplicatedProps(TArray<FLifetimeProperty> &OutLifetimePro
 void ALimb::MoveForward(float Value)
 {
 	if (Value == 0) return;
+	if (FollowCamera == nullptr) return;
 	FVector AimDirection = FollowCamera->GetForwardVector();
 	ServerMoveForward(Value, AimDirection);
 }
@@ -102,8 +103,6 @@ void ALimb::MulticastMoveForward_Implementation(float Value, FVector_NetQuantize
 	if (!LimbMesh) return;
 	LimbMesh->AddImpulse(AimDirection * Value * 170);
 }
-
-
 
 void ALimb::MoveRight(float Value)
 {

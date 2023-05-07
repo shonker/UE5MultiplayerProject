@@ -55,6 +55,7 @@ void UBlasterAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 
     AO_Yaw = BlasterCharacter->GetAOYaw();
     AO_Pitch = BlasterCharacter->GetAOPitch();
+ 
 
     //incl header for "AWeapon"
     if (bWeaponEquipped && EquippedWeapon && EquippedWeapon->GetWeaponMesh() && BlasterCharacter->GetMesh())
