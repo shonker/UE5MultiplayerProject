@@ -221,6 +221,13 @@ void UCombatComponent::TraceUnderCrosshairs(FHitResult& TraceHitResult)
 	if (bScreenToWorld)
 	{
 		FVector Start = CrosshairWorldPosition;
+
+		if (Character)
+		{
+			float DistanceToCharacter = (Character->GetActorLocation() - Start).Size();
+			Start += CrosshairWorldDirection * (DistanceToCharacter + 40.f);
+		}
+
 		//CrossWD is one unit in the direction, 80k is arbitrary to extend that reach
 		FVector End = Start + CrosshairWorldDirection * TRACE_LENGTH; 
 
