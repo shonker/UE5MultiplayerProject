@@ -59,6 +59,14 @@ ABlasterCharacter::ABlasterCharacter()
 	//this prevents the camera from moving when another player is between camera and player mesh
 	GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
 	GetMesh()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
+	if (IsLocallyControlled())
+	{
+		GetMesh()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Visibility, ECollisionResponse::ECR_Ignore);
+	}
+	else
+	{
+		GetMesh()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Visibility, ECollisionResponse::ECR_Block);
+	}
 	GetCharacterMovement()->RotationRate = FRotator(0.f, 0.f, 850);
 
 		TurningInPlace = ETurningInPlace::ETIP_NotTurning;

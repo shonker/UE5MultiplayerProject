@@ -82,13 +82,15 @@ void UBlasterAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
             LookAtRotation.Yaw += BlasterCharacter->RightHandRotationYaw;
             LookAtRotation.Pitch += BlasterCharacter->RightHandRotationPitch;
 
-            RightHandRotation = FMath::RInterpTo(RightHandRotation, LookAtRotation, DeltaSeconds, 100.f);
+            FRotator TargetRotation = FMath::RInterpTo(RightHandRotation, LookAtRotation, DeltaSeconds, 100.f);
 
 
         if (BlasterCharacter->IsLocallyControlled())
         {
             bLocallyControlled = true;    
             FTransform MuzzleTipTransform = EquippedWeapon->GetWeaponMesh()->GetSocketTransform(FName("MuzzleFlash"), ERelativeTransformSpace::RTS_World);
+            RightHandRotation = FMath::RInterpTo(RightHandRotation, TargetRotation, DeltaSeconds, 30.f);
+            
             //get direction in world space of the X axis of the muzzle
             FVector MuzzleX(FRotationMatrix(MuzzleTipTransform.GetRotation().Rotator()).GetUnitAxis(EAxis::X));
             DrawDebugLine(GetWorld(), MuzzleTipTransform.GetLocation(), MuzzleTipTransform.GetLocation()+ MuzzleX * 1000.f, FColor::Red);
