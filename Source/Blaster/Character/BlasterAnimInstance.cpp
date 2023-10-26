@@ -36,6 +36,7 @@ void UBlasterAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
     bIsCrouched = BlasterCharacter->bIsCrouched;
     bAiming = BlasterCharacter->IsAiming();
     TurningInPlace = BlasterCharacter->GetTurningInPlace();
+    bRotateRootBone = BlasterCharacter->ShouldRotateRootBone();
 
     FRotator AimRotation = BlasterCharacter->GetBaseAimRotation();
     FRotator MovementRotation = UKismetMathLibrary::MakeRotFromX(BlasterCharacter->GetVelocity());

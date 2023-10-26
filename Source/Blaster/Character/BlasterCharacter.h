@@ -27,6 +27,8 @@ public:
 	UFUNCTION(NetMulticast, Unreliable)
 	void MulticastHit();
 
+	virtual void OnRep_ReplicatedMovement() override;
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -41,6 +43,8 @@ protected:
 	void AimButtonPressed();
 	void AimButtonReleased();
 	void AimOffset(float DeltaTime);
+	void CalculateAO_Pitch();
+	void SimProxiesTurn();
 	virtual void Jump() override;
 	void FireButtonPressed();
 	void FireButtonReleased();
@@ -94,6 +98,14 @@ private:
 
 	UPROPERTY(EditAnywhere)
 	float CameraThreshold = 70.f;
+	
+	bool bRotateRootBone;
+	float TurnThreshold = 0.5f;
+	FRotator ProxyRotationLastFrame;
+	FRotator ProxyRotation;
+	float ProxyYaw;
+	float TimeSinceLastMovementReplication;
+	float CalculateSpeed();
 
 public:	
 	//here it is updated for all clients AND server (logic for that inside)
@@ -114,4 +126,6 @@ public:
 	float RightHandRotationYaw;
 	UPROPERTY(EditAnywhere, Category = "Weapon Rotation Correction")
 	float RightHandRotationPitch;
+
+	FORCEINLINE bool ShouldRotateRootBone() const { return bRotateRootBone; }
 };
