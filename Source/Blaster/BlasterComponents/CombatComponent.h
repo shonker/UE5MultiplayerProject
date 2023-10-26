@@ -38,6 +38,8 @@ protected:
 
 	void FireButtonPressed(bool bPressed);
 
+	void Fire();
+
 	UFUNCTION(Server, Reliable)
 	void ServerFire(const FVector_NetQuantize& TraceHitTarget);
 
@@ -101,6 +103,16 @@ private:
 	float ZoominterpSpeed = 20.f;
 
 	void InterpFOV(float DeltaTime);
+
+	/*
+	`	AutomaticFire
+	*/
+	FTimerHandle FireTimer;
+
+	bool bCanFire = true;
+
+	void StartFireTimer();
+	void FireTimerFinished();
 
 public:	
 
