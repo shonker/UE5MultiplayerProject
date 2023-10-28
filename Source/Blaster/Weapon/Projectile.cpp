@@ -1,6 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "Projectile.h"
 #include "Components/BoxComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
@@ -63,16 +60,14 @@ void AProjectile::BeginPlay()
 void AProjectile::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
 }
 
-
-void AProjectile::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
-{
-	/*Super::GetLifetimeReplicatedProps(OutLifetimeProps);*/
-	DOREPLIFETIME(AProjectile, ImpactParticles);
-	DOREPLIFETIME(AProjectile, bCharacterWasHit);
-}
+//I guess it still works without this?
+//void AProjectile::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+//{
+//	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+//	DOREPLIFETIME(AProjectile, bCharacterWasHit);
+//}
 
 //these were moved to Destroyed() from OnHit(), as they needed to be replicated down to clients and Destroyed already IS replicated
 //this way we utilize something already replicated, reducing total bandwidth
@@ -90,15 +85,12 @@ if (ImpactSound)
 //first must b bound to onComponentHit in BeginPlay, doing constructor is too early
 void AProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
-
-	ImpactParticles = ImpactEnvironmentParticles;
 	bCharacterWasHit = false;
 	ABlasterCharacter* BlasterCharacter = Cast<ABlasterCharacter>(OtherActor);
 	if (BlasterCharacter)
 	{
 		BlasterCharacter->MulticastHit();
 		bCharacterWasHit = true;
-		ImpactParticles = ImpactCharacterParticles;
 	} 
 	
 	Multicast_OnHit(bCharacterWasHit);
@@ -106,11 +98,8 @@ void AProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimi
 
 void AProjectile::Multicast_OnHit_Implementation(bool bCharacterHit)
 {
+	//blood splatter or environmental particle effect
 	ImpactParticles = bCharacterHit ? ImpactCharacterParticles : ImpactEnvironmentParticles;
-
-	if (bCharacterHit) {
-		UE_LOG(LogTemp, Display, TEXT("Characterhit!"), );
-	}
 
 	Destroy();
 }
@@ -129,4 +118,44 @@ void AProjectile::Destroyed()
 	}
 
 }
+/*
+
+/////////------------------------------------/////////
+/////////------------------------------------/////////
+			WRITEUP ABOUT REPLICATION
+/////////------------------------------------/////////
+/////////------------------------------------/////////
+
+
+To get the Impact particles to properly replicate server -> client:
+
+//////////////header file:
+
+UFUNCTION(NetMulticast, Reliable)
+void Multicast_OnHit(bool bCharacterHit);
+
+UPROPERTY(Replicated)
+bool bCharacterWasHit;
+
+//////////////.cpp:
+
+//in the begin play, only if HasAuthority() is OnHit bound to the bullets
+
+// When the server calls OnHit, the replicated var, bCharacterWasHit,
+// is passed into Multicast_OnHit
+
+//it is only a bool so its not very consequential to bandwidth
+//when all clients call the multicast they set the vfx client side
+
+
+/////////------------------------------------/////////
+/////////------------------------------------/////////
+					QUESTIONS
+/////////------------------------------------/////////
+/////////------------------------------------/////////
+
+Why do I not need to override GetLifetimeReplicated props?
+Or need to use DOREPLIFETIME()?
+
+*/
 

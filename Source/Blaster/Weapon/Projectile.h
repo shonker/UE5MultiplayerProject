@@ -17,10 +17,10 @@ public:
 
 	virtual void Destroyed() override;
 
-	UFUNCTION(NetMulticast, Unreliable)
-	void Multicast_OnHit(bool bCharacterHit);
+	//virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
-	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_OnHit(bool bCharacterHit);
 
 	UPROPERTY(Replicated)
 	bool bCharacterWasHit;
@@ -45,7 +45,6 @@ private:
 
 	class UParticleSystemComponent* TracerComponent;
 
-	UPROPERTY(Replicated)
 	UParticleSystem* ImpactParticles;
 
 	UPROPERTY(EditAnywhere)
