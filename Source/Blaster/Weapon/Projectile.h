@@ -17,6 +17,14 @@ public:
 
 	virtual void Destroyed() override;
 
+	UFUNCTION(NetMulticast, Unreliable)
+	void Multicast_OnHit(bool bCharacterHit);
+
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+	UPROPERTY(Replicated)
+	bool bCharacterWasHit;
+
 protected:
 	virtual void BeginPlay() override;
 
@@ -37,11 +45,18 @@ private:
 
 	class UParticleSystemComponent* TracerComponent;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(Replicated)
 	UParticleSystem* ImpactParticles;
 
 	UPROPERTY(EditAnywhere)
+	UParticleSystem* ImpactEnvironmentParticles;
+
+	UPROPERTY(EditAnywhere)
+	UParticleSystem* ImpactCharacterParticles;
+
+	UPROPERTY(EditAnywhere)
 	class USoundCue* ImpactSound;
+
 public:	
 
 };

@@ -27,6 +27,7 @@ public:
 	UFUNCTION(NetMulticast, Unreliable)
 	void MulticastHit();
 
+
 	virtual void OnRep_ReplicatedMovement() override;
 
 protected:

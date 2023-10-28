@@ -10,6 +10,7 @@
 #include "Sound/SoundCue.h"
 #include "Blaster/Character/BlasterCharacter.h"
 #include "Blaster/Blaster.h"
+#include "Net/UnrealNetwork.h"
 
 AProjectile::AProjectile()
 {
@@ -34,6 +35,7 @@ AProjectile::AProjectile()
 	ProjectileMovementComponent->bRotationFollowsVelocity = true;
 }
 
+
 void AProjectile::BeginPlay()
 {
 	Super::BeginPlay();
@@ -57,34 +59,60 @@ void AProjectile::BeginPlay()
 	}
 }
 
-//first must b bound to onComponentHit in BeginPlay, doing constructor is too early
-void AProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
-{
-	//these were moved to Destroyed(), as they needed to be replicated down to clients and Destroyed already IS replicated
-	//this way we utilize something already replicated, reducing total bandwidth
-	/*
-	if (ImpactParticles)
-	{ //include gameplaystatics
-		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ImpactParticles, GetActorTransform());
-	}
-	if (ImpactSound)
-	{ //#include "Sound/SoundCue.h"
-		UGameplayStatics::PlaySoundAtLocation(this, ImpactSound, GetActorLocation());
-	}
-	*/
-	ABlasterCharacter* BlasterCharacter = Cast<ABlasterCharacter>(OtherActor);
-	if (BlasterCharacter)
-	{
-		BlasterCharacter->MulticastHit();
-	}
-
-	Destroy();
-}
 
 void AProjectile::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+}
+
+
+void AProjectile::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	/*Super::GetLifetimeReplicatedProps(OutLifetimeProps);*/
+	DOREPLIFETIME(AProjectile, ImpactParticles);
+	DOREPLIFETIME(AProjectile, bCharacterWasHit);
+}
+
+//these were moved to Destroyed() from OnHit(), as they needed to be replicated down to clients and Destroyed already IS replicated
+//this way we utilize something already replicated, reducing total bandwidth
+/*
+if (ImpactParticles)
+{ //include gameplaystatics
+	UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ImpactParticles, GetActorTransform());
+}
+if (ImpactSound)
+{ //#include "Sound/SoundCue.h"
+	UGameplayStatics::PlaySoundAtLocation(this, ImpactSound, GetActorLocation());
+}
+*/
+
+//first must b bound to onComponentHit in BeginPlay, doing constructor is too early
+void AProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
+{
+
+	ImpactParticles = ImpactEnvironmentParticles;
+	bCharacterWasHit = false;
+	ABlasterCharacter* BlasterCharacter = Cast<ABlasterCharacter>(OtherActor);
+	if (BlasterCharacter)
+	{
+		BlasterCharacter->MulticastHit();
+		bCharacterWasHit = true;
+		ImpactParticles = ImpactCharacterParticles;
+	} 
+	
+	Multicast_OnHit(bCharacterWasHit);
+}
+
+void AProjectile::Multicast_OnHit_Implementation(bool bCharacterHit)
+{
+	ImpactParticles = bCharacterHit ? ImpactCharacterParticles : ImpactEnvironmentParticles;
+
+	if (bCharacterHit) {
+		UE_LOG(LogTemp, Display, TEXT("Characterhit!"), );
+	}
+
+	Destroy();
 }
 
 void AProjectile::Destroyed()
@@ -101,3 +129,4 @@ void AProjectile::Destroyed()
 	}
 
 }
+

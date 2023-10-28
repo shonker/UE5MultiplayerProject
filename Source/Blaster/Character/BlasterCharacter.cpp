@@ -157,6 +157,7 @@ void ABlasterCharacter::PlayFireMontage(bool bAiming)
 	}
 }
 
+
 void ABlasterCharacter::OnRep_ReplicatedMovement()
 {
 	Super::OnRep_ReplicatedMovement();
