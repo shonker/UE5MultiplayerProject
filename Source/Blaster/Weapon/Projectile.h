@@ -17,7 +17,7 @@ public:
 
 	virtual void Destroyed() override;
 
-	//virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	UFUNCTION(NetMulticast, Reliable)
 	void Multicast_OnHit(bool bCharacterHit);

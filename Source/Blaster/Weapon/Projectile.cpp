@@ -62,12 +62,12 @@ void AProjectile::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 }
 
-//I guess it still works without this?
-//void AProjectile::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
-//{
-//	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-//	DOREPLIFETIME(AProjectile, bCharacterWasHit);
-//}
+//This is behaving oddly
+void AProjectile::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(AProjectile, bCharacterWasHit);
+}
 
 //these were moved to Destroyed() from OnHit(), as they needed to be replicated down to clients and Destroyed already IS replicated
 //this way we utilize something already replicated, reducing total bandwidth
@@ -139,7 +139,7 @@ bool bCharacterWasHit;
 
 //////////////.cpp:
 
-//in the begin play, only if HasAuthority() is OnHit bound to the bullets
+//in the begin play, only if HasAuthority() is OnHit bound to the collision event
 
 // When the server calls OnHit, the replicated var, bCharacterWasHit,
 // is passed into Multicast_OnHit
@@ -156,6 +156,10 @@ bool bCharacterWasHit;
 
 Why do I not need to override GetLifetimeReplicated props?
 Or need to use DOREPLIFETIME()?
+
+--it suddenly stopped compiling until i added them in....
+i guess it was necessary but somehow was working for a while withoutem
+
 
 */
 

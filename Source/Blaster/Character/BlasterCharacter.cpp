@@ -12,11 +12,11 @@
 #include "Kismet/KismetMathLibrary.h"
 #include "BlasterAnimInstance.h"
 #include "Blaster/Blaster.h"
+#include "Blaster/PlayerController/BlasterPlayerController.h"
 
 
 /*
 hewwo!!!!
-
 heres a handy reminder of how to set server specific console loggies :)))))
 //this means the person running the code isn't the server, 
 //but they're grabbing the blaster character that is the server
@@ -78,6 +78,7 @@ void ABlasterCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 	//final argument specifies who the var is rep'd for
 	//in this case, the weapon being overlapped is only communicated to the person controlling the blaster character that overlaps the weapon
 	DOREPLIFETIME_CONDITION(ABlasterCharacter, OverlappingWeapon, COND_OwnerOnly);
+	DOREPLIFETIME(ABlasterCharacter, Health);
 }
 
 // Called when the game starts or when spawned
@@ -85,6 +86,11 @@ void ABlasterCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 	
+	BlasterPlayerController = Cast<ABlasterPlayerController>(Controller);
+	if (BlasterPlayerController)
+	{
+		BlasterPlayerController->SetHUDHealth(Health, MaxHealth);
+	}
 }
 
 // Called every frame
@@ -450,6 +456,10 @@ void ABlasterCharacter::HideCameraIfCharacterClose()
 }
 
 
+
+void ABlasterCharacter::OnRep_Health()
+{
+}
 
 void ABlasterCharacter::SetOverlappingWeapon(AWeapon *Weapon)
 {	
