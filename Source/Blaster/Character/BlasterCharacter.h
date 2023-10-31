@@ -24,15 +24,18 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual void PostInitializeComponents() override;
 	void PlayFireMontage(bool bAiming);
-	UFUNCTION(NetMulticast, Unreliable)
-	void MulticastHit();
+	/*UFUNCTION(NetMulticast, Unreliable)
+	void MulticastHit();*/
 
 
 	virtual void OnRep_ReplicatedMovement() override;
+	void Elim();
 
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+
+	void UpdateHUDHealth();
 
 	//movement funcs
 	void MoveForward(float Value);
@@ -50,6 +53,16 @@ protected:
 	void FireButtonPressed();
 	void FireButtonReleased();
 	void PlayHitReactMontage();
+	
+	//ufunc necessary for callback frunctionos
+	UFUNCTION()
+	void ReceiveDamage(
+		AActor* DamagedActor, 
+		float Damage, 
+		const UDamageType* DamageType,
+		class AController* InstigatorController,
+		AActor* DamageCauser
+	);
 
 private:
 

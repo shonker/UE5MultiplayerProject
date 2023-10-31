@@ -14,7 +14,6 @@
 #include "Blaster/Blaster.h"
 #include "Blaster/PlayerController/BlasterPlayerController.h"
 
-
 /*
 hewwo!!!!
 heres a handy reminder of how to set server specific console loggies :)))))
@@ -86,12 +85,14 @@ void ABlasterCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	BlasterPlayerController = Cast<ABlasterPlayerController>(Controller);
-	if (BlasterPlayerController)
+	UpdateHUDHealth();
+
+	if (HasAuthority())
 	{
-		BlasterPlayerController->SetHUDHealth(Health, MaxHealth);
+		OnTakeAnyDamage.AddDynamic(this, &ABlasterCharacter::ReceiveDamage);
 	}
 }
+
 
 // Called every frame
 void ABlasterCharacter::Tick(float DeltaTime)
@@ -171,6 +172,11 @@ void ABlasterCharacter::OnRep_ReplicatedMovement()
 	TimeSinceLastMovementReplication = 0.f;
 }
 
+void ABlasterCharacter::Elim()
+{
+
+}
+
 void ABlasterCharacter::PlayHitReactMontage()
 {
 	if (Combat == nullptr || Combat->EquippedWeapon == nullptr) return;
@@ -182,6 +188,19 @@ void ABlasterCharacter::PlayHitReactMontage()
 		FName SectionName("FromFront");
 		AnimInstance->Montage_JumpToSection(SectionName);
 	}
+}
+
+//only called on server
+void ABlasterCharacter::ReceiveDamage(
+	AActor* DamagedActor, 
+	float Damage, 
+	const UDamageType* DamageType, 
+	AController* InstigatorController, 
+	AActor* DamageCauser)
+{
+	Health = FMath::Clamp(Health - Damage, 0.f, MaxHealth);
+	UpdateHUDHealth();
+	PlayHitReactMontage();
 }
 
 void ABlasterCharacter::MoveForward(float Value)
@@ -429,10 +448,10 @@ void ABlasterCharacter::TurnInPlace(float DeltaTime)
 	}
 }
 
-void ABlasterCharacter::MulticastHit_Implementation()
-{
-	PlayHitReactMontage();
-}
+//void ABlasterCharacter::MulticastHit_Implementation()
+//{
+//	PlayHitReactMontage();
+//}
 
 void ABlasterCharacter::HideCameraIfCharacterClose()
 {
@@ -459,6 +478,17 @@ void ABlasterCharacter::HideCameraIfCharacterClose()
 
 void ABlasterCharacter::OnRep_Health()
 {
+	UpdateHUDHealth();
+	PlayHitReactMontage();
+}
+
+void ABlasterCharacter::UpdateHUDHealth()
+{
+	BlasterPlayerController = BlasterPlayerController == nullptr ? Cast<ABlasterPlayerController>(Controller) : BlasterPlayerController;
+	if (BlasterPlayerController)
+	{
+		BlasterPlayerController->SetHUDHealth(Health, MaxHealth);
+	}
 }
 
 void ABlasterCharacter::SetOverlappingWeapon(AWeapon *Weapon)

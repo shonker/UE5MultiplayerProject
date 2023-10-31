@@ -50,8 +50,7 @@ void AProjectile::BeginPlay()
 	}
 
 	if (HasAuthority())
-	{
-		//hit events handled only on server
+	{//hit events handled only on server
 		CollisionBox->OnComponentHit.AddDynamic(this, &AProjectile::OnHit);
 	}
 }
@@ -89,7 +88,8 @@ void AProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimi
 	ABlasterCharacter* BlasterCharacter = Cast<ABlasterCharacter>(OtherActor);
 	if (BlasterCharacter)
 	{
-		BlasterCharacter->MulticastHit();
+		//not calling an rpc?
+		//BlasterCharacter->MulticastHit();
 		bCharacterWasHit = true;
 	} 
 	
