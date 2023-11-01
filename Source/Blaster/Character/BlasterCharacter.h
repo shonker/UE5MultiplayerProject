@@ -27,7 +27,11 @@ public:
 	void PlayElimMontage();
 
 	virtual void OnRep_ReplicatedMovement() override;
+
 	void Elim();
+
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastElim();
 
 protected:
 	// Called when the game starts or when spawned
@@ -137,7 +141,14 @@ private:
 
 	class ABlasterPlayerController* BlasterPlayerController;
 
+
+
 	bool bElimmed = false;
+	FTimerHandle ElimTimer;
+	UPROPERTY(EditDefaultsOnly)
+	float ElimDelay = 1.5f;
+	void ElimTimerFinished();
+
 
 public:	
 	//here it is updated for all clients AND server (logic for that inside)
