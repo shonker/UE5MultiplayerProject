@@ -18,6 +18,6 @@ public:
 	virtual void PlayerEliminated(
 		class ABlasterCharacter* ElimmedCharacter,
 		class ABlasterPlayerController* VictimController,
-		class ABlasterPlayerController AttackerController
+		class ABlasterPlayerController* AttackerController
 	);
 };
