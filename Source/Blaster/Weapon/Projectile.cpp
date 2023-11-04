@@ -100,6 +100,7 @@ void AProjectile::Multicast_OnHit_Implementation(bool bCharacterHit)
 {
 	//blood splatter or environmental particle effect
 	ImpactParticles = bCharacterHit ? ImpactCharacterParticles : ImpactEnvironmentParticles;
+	ImpactSound = bCharacterHit ? ImpactCharacterSound : ImpactEnvironmentSound;
 
 	Destroy();
 }
@@ -116,6 +117,7 @@ void AProjectile::Destroyed()
 	{ //#include "Sound/SoundCue.h"
 		UGameplayStatics::PlaySoundAtLocation(this, ImpactSound, GetActorLocation());
 	}
+
 
 }
 /*

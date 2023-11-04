@@ -56,8 +56,13 @@ private:
 	UPROPERTY(EditAnywhere)
 	UParticleSystem* ImpactCharacterParticles;
 
-	UPROPERTY(EditAnywhere)
 	class USoundCue* ImpactSound;
+
+	UPROPERTY(EditAnywhere)
+	class USoundCue* ImpactEnvironmentSound;
+
+	UPROPERTY(EditAnywhere)
+	class USoundCue* ImpactCharacterSound;
 
 
 
