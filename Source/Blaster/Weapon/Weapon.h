@@ -31,6 +31,7 @@ public:
 	void ShowPickupWidget(bool bShowWidget);
 	//virtual allows overriding in child classees (such as ProjWeap.h)
 	virtual void Fire(const FVector& HitTarget);
+	void Dropped();
 
 	/*
 	textures for the weapon crosshairs
