@@ -10,6 +10,7 @@
 #include "Blaster/Weapon/Weapon.h"
 #include "Blaster/BlasterComponents/CombatComponent.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "Kismet/GameplayStatics.h"
 #include "BlasterAnimInstance.h"
 #include "Blaster/Blaster.h"
 #include "Blaster/PlayerController/BlasterPlayerController.h"
@@ -70,6 +71,8 @@ ABlasterCharacter::ABlasterCharacter()
 		TurningInPlace = ETurningInPlace::ETIP_NotTurning;
 		NetUpdateFrequency = 66.f;
 		MinNetUpdateFrequency = 33.f;
+
+		DissolveTimeline = CreateDefaultSubobject<UTimelineComponent>(TEXT("DissolveTimelineComponent"));
 }
 
 //here we setup the variable replication for server to comm to clients
@@ -194,6 +197,62 @@ void ABlasterCharacter::MulticastElim_Implementation()
 {
 	bElimmed = true;
 	PlayElimMontage();
+
+	if (DissolveMaterialInstance)
+	{
+		DynamicDissolveMaterialInstance = UMaterialInstanceDynamic::Create(
+			DissolveMaterialInstance,
+			this);
+
+		/// <summary>
+		/// HEY this is where you set the element index as the 0th one
+		/// so alternate indexes may be used if desired
+		/// </summary>
+		GetMesh()->SetMaterial(0, DynamicDissolveMaterialInstance);
+		DynamicDissolveMaterialInstance->SetScalarParameterValue(TEXT("Dissolve"), 0.f);
+		DynamicDissolveMaterialInstance->SetScalarParameterValue(TEXT("Glow"), 10.f);
+	}
+	StartDissolve();
+}
+
+void ABlasterCharacter::StartDissolve()
+{
+	// Create the particle system
+	if (DeathParticles)
+	{
+		USkeletalMeshComponent* MeshComponent = GetMesh(); 
+		if (MeshComponent)
+		{
+			// Use the "spine_0003Socket" socket name to attach the particle system
+			FName SocketName("spine_003Socket");
+
+			UParticleSystemComponent* ParticleComponent = UGameplayStatics::SpawnEmitterAttached(
+				DeathParticles, // The particle system you want to spawn
+				MeshComponent,        // The mesh to which you want to attach the particle system
+				SocketName,     // Replace with the socket name or empty string to attach to the mesh directly
+				FVector(0, 0, 0), // Relative location (offset) of the particle system
+				FRotator(0, 0, 0), // Relative rotation of the particle system
+				EAttachLocation::SnapToTarget, // Attachment rule
+				true // Auto destroy
+			);
+		}
+		// You can further configure the ParticleComponent here, e.g., set parameters.
+	}
+
+	DissolveTrack.BindDynamic(this, &ABlasterCharacter::UpdateDissolveMaterial);
+	if (DissolveCurve && DissolveTimeline)
+	{
+		DissolveTimeline->AddInterpFloat(DissolveCurve, DissolveTrack);
+		DissolveTimeline->Play();
+	}
+}
+
+void ABlasterCharacter::UpdateDissolveMaterial(float DissolveValue)
+{
+	if (DynamicDissolveMaterialInstance)
+	{
+		DynamicDissolveMaterialInstance->SetScalarParameterValue(TEXT("Dissolve"), DissolveValue);
+	}
 }
 
 void ABlasterCharacter::ElimTimerFinished()
@@ -537,7 +596,6 @@ void ABlasterCharacter::UpdateHUDHealth()
 		BlasterPlayerController->SetHUDHealth(Health, MaxHealth);
 	}
 }
-
 
 
 void ABlasterCharacter::SetOverlappingWeapon(AWeapon *Weapon)
