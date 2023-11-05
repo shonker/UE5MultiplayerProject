@@ -149,8 +149,6 @@ private:
 
 	class ABlasterPlayerController* BlasterPlayerController;
 
-
-
 	bool bElimmed = false;
 	FTimerHandle ElimTimer;
 	UPROPERTY(EditDefaultsOnly)
@@ -177,7 +175,14 @@ private:
 
 	//material instance set on the blueprint, used w/ the dynamic material instance
 	UPROPERTY(EditAnywhere, Category = Elim)
-	UMaterialInstance* DissolveMaterialInstance;
+	UMaterialInstance* DissolveMaterialInstance;	
+	
+	//material instance set on the blueprint, used w/ the dynamic material instance
+	UPROPERTY(EditAnywhere, Category = Elim)
+	UMaterialInstance* InvisibleMaterialInstance;
+
+	UPROPERTY(EditAnywhere, Category = Elim)
+	class USoundCue* DeathSound;
 
 public:	
 	//here it is updated for all clients AND server (logic for that inside)

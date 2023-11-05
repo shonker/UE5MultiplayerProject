@@ -11,6 +11,7 @@
 #include "Blaster/BlasterComponents/CombatComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Kismet/GameplayStatics.h"
+#include "Sound/SoundCue.h"
 #include "BlasterAnimInstance.h"
 #include "Blaster/Blaster.h"
 #include "Blaster/PlayerController/BlasterPlayerController.h"
@@ -219,6 +220,16 @@ void ABlasterCharacter::MulticastElim_Implementation()
 		DynamicDissolveMaterialInstance->SetScalarParameterValue(TEXT("Dissolve"), 0.f);
 		DynamicDissolveMaterialInstance->SetScalarParameterValue(TEXT("Glow"), 10.f);
 	}
+
+	if (InvisibleMaterialInstance)
+	{
+		GetMesh()->SetMaterial(1, InvisibleMaterialInstance);
+		GetMesh()->SetMaterial(2, InvisibleMaterialInstance);
+		GetMesh()->SetMaterial(3, InvisibleMaterialInstance);
+		GetMesh()->SetMaterial(4, InvisibleMaterialInstance);
+		
+	}
+
 	StartDissolve();
 
 
@@ -245,8 +256,11 @@ void ABlasterCharacter::MulticastElim_Implementation()
 
 void ABlasterCharacter::HandleDeathTransition()
 {
+	
+	FVector SocketLocation = GetMesh()->GetSocketLocation(FName("headSocket"));
+
 	// Spawn ALimb pawn
-	if (ALimb* LimbPawn = GetWorld()->SpawnActor<ALimb>(LimbClass, GetActorLocation(), GetActorRotation()))
+	if (ALimb* LimbPawn = GetWorld()->SpawnActor<ALimb>(LimbClass, SocketLocation, GetActorRotation()))
 	{
 		// Smooth camera transition
 		USpringArmComponent* PlayerCameraArm = CameraBoom; // Reference to your camera arm component
@@ -307,6 +321,11 @@ void ABlasterCharacter::StartDissolve() //and death particles lol
 	{
 		DissolveTimeline->AddInterpFloat(DissolveCurve, DissolveTrack);
 		DissolveTimeline->Play();
+	}
+
+	if (DeathSound)
+	{
+		UGameplayStatics::PlaySoundAtLocation(this, DeathSound, GetActorLocation());
 	}
 }
 
