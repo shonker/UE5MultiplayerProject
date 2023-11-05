@@ -16,6 +16,7 @@
 #include "Blaster/PlayerController/BlasterPlayerController.h"
 #include "Blaster/GameMode/BlasterGameMode.h"
 #include "TimerManager.h"
+#include "Blaster/Limb/Limb.h"
 
 /*
 hewwo!!!!
@@ -220,17 +221,62 @@ void ABlasterCharacter::MulticastElim_Implementation()
 	}
 	StartDissolve();
 
-	//disable char movement
-	GetCharacterMovement()->DisableMovement();
-	GetCharacterMovement()->StopMovementImmediately();
-	if (BlasterPlayerController)
-	{
-		DisableInput(BlasterPlayerController);
-	}
-	//disable collision
+
 	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	if (HasAuthority()
+		//&& GetController() != nullptr && GetController()->IsLocalController()
+		&& LimbClass != nullptr)
+	{
+		HandleDeathTransition();
+	}
+
+	//disable char movement
+	//GetCharacterMovement()->DisableMovement();
+	//GetCharacterMovement()->StopMovementImmediately();
+	//if (BlasterPlayerController)
+	//{
+	//	DisableInput(BlasterPlayerController);
+	//}
+	////disable collision
+
 }
+
+void ABlasterCharacter::HandleDeathTransition()
+{
+	// Spawn ALimb pawn
+	if (ALimb* LimbPawn = GetWorld()->SpawnActor<ALimb>(LimbClass, GetActorLocation(), GetActorRotation()))
+	{
+		// Smooth camera transition
+		USpringArmComponent* PlayerCameraArm = CameraBoom; // Reference to your camera arm component
+		USpringArmComponent* LimbCameraArm = LimbPawn->FindComponentByClass<USpringArmComponent>();
+
+		// Interpolate camera location and rotation over time
+		float CameraTransitionSpeed = 5.0f; // Adjust the speed as needed
+		PlayerCameraArm->TargetArmLength = FMath::FInterpTo(PlayerCameraArm->TargetArmLength, LimbCameraArm->TargetArmLength, GetWorld()->GetDeltaSeconds(), CameraTransitionSpeed);
+		PlayerCameraArm->SetWorldRotation(FMath::RInterpTo(PlayerCameraArm->GetComponentRotation(), LimbCameraArm->GetComponentRotation(), GetWorld()->GetDeltaSeconds(), CameraTransitionSpeed));
+
+		// Possess ALimb pawn
+		BlasterPlayerController = BlasterPlayerController == nullptr ? Cast<ABlasterPlayerController>(Controller) : BlasterPlayerController;
+		if (BlasterPlayerController)
+		{
+			BlasterPlayerController->Possess(LimbPawn);
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Log, TEXT("FailedToSpawnLimb"));
+	}
+
+	// Disable input and character movement for ABlasterCharacter
+	//DisableInput(BlasterPlayerController);
+	//GetCharacterMovement()->DisableMovement();
+	//GetCharacterMovement()->StopMovementImmediately();
+
+	// You can also disable collision for ABlasterCharacter and perform other necessary cleanup.
+}
+
 
 void ABlasterCharacter::StartDissolve() //and death particles lol
 {

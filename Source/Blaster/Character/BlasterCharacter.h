@@ -56,6 +56,7 @@ protected:
 	void FireButtonPressed();
 	void FireButtonReleased();
 	void PlayHitReactMontage();
+	void HandleDeathTransition();
 	
 	//ufunc necessary for callback frunctionos
 	UFUNCTION()
@@ -68,6 +69,9 @@ protected:
 	);
 
 private:
+
+	UPROPERTY(EditAnywhere, Category = Elim)
+	TSubclassOf<class ALimb> LimbClass;
 
 	UPROPERTY(VisibleAnywhere, Category = Camera)
 	class USpringArmComponent* CameraBoom;

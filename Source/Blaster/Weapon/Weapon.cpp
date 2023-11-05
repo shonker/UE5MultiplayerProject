@@ -166,7 +166,6 @@ void AWeapon::Fire(const FVector& HitTarget)
 	if (CasingClass)
 	{//#include "Engine/SkeletalMeshSocket.h"
 		const USkeletalMeshSocket* AmmoEjectSocket = GetWeaponMesh()->GetSocketByName(FName("AmmoEject"));
-
 		if (AmmoEjectSocket)
 		{
 			FTransform SocketTransform = AmmoEjectSocket->GetSocketTransform(GetWeaponMesh());
