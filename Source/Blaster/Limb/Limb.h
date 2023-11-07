@@ -17,6 +17,8 @@ public:
 	// Called to bind functionality to input
 	virtual void Tick(float DeltaTime) override;
 
+	void ClampLinearVelocity();
+
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	//virtual void PostInitializeComponents() override;
@@ -67,6 +69,13 @@ private:
 
 	UPROPERTY(VisibleAnywhere, Category = Camera)
 	class UCameraComponent* FollowCamera;
+
+	UPROPERTY(VisibleAnywhere, Category = Physics)
+	FVector CurrentLinearVelocity;
+
+	UPROPERTY(EditAnywhere, Category = Physics)
+	float MaxLinearVelocity = 1000.f;
+
 
 	
 };

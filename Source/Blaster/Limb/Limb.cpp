@@ -45,6 +45,7 @@ void ALimb::BeginPlay()
 {
 	Super::BeginPlay();
 	this->SetReplicates(true);
+	
 }
 
 // Called every frame
@@ -52,8 +53,22 @@ void ALimb::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if (!HasAuthority()) return;
+	ClampLinearVelocity();
 
+}
+
+void ALimb::ClampLinearVelocity()
+{
+	if (LimbMesh)
+	{
+		CurrentLinearVelocity = LimbMesh->GetPhysicsLinearVelocity(NAME_None);
+		float CurrentSpeed = CurrentLinearVelocity.Size();
+		if (CurrentSpeed > MaxLinearVelocity)
+		{
+			FVector ClampedVelocity = CurrentLinearVelocity.GetClampedToMaxSize(MaxLinearVelocity);
+			LimbMesh->SetPhysicsLinearVelocity(ClampedVelocity, false, NAME_None);
+		}
+	}
 }
 
 // Called to bind functionality to input
