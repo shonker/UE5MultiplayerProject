@@ -19,5 +19,6 @@ public:
 private:
 	class ABlasterCharacter* Character;
 	class ABlasterPlayerController* Controller;
+	float Score;
 	
 };

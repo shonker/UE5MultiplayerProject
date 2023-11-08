@@ -59,7 +59,7 @@ void ABlasterPlayerController::SetHUDScore(float Score)
 
 	if (bHUDValid)
 	{
-		FString ScoreText = FString::Printf(TEXT("%d"),FMath::CeilToInt(Score));
+		FString ScoreText = FString::Printf(TEXT("%f"),Score);
 		BlasterHUD->CharacterOverlay->ScoreAmount->SetText(FText::FromString(ScoreText));
 	}
 }

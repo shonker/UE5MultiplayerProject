@@ -38,7 +38,6 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-	void UpdateHUDHealth();
 
 	//movement funcs
 	void MoveForward(float Value);
@@ -67,6 +66,10 @@ protected:
 		class AController* InstigatorController,
 		AActor* DamageCauser
 	);
+	void UpdateHUDHealth();
+	//Poll for any relevant classes and initialize HUD
+	void PollInit();
+
 
 private:
 
@@ -184,6 +187,7 @@ private:
 	UPROPERTY(EditAnywhere, Category = Elim)
 	class USoundCue* DeathSound;
 
+	class ABlasterPlayerState* BlasterPlayerState;
 public:	
 	//here it is updated for all clients AND server (logic for that inside)
 	void SetOverlappingWeapon(AWeapon* Weapon);

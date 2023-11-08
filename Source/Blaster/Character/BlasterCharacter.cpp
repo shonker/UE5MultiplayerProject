@@ -18,6 +18,7 @@
 #include "Blaster/GameMode/BlasterGameMode.h"
 #include "TimerManager.h"
 #include "Blaster/Limb/Limb.h"
+#include "Blaster/BlasterPlayerState/BlasterPlayerState.h"
 
 /*
 hewwo!!!!
@@ -124,6 +125,7 @@ void ABlasterCharacter::Tick(float DeltaTime)
 	
 	AimOffset(DeltaTime);
 	HideCameraIfCharacterClose();
+	PollInit();
 }
 // Called to bind functionality to input
 void ABlasterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -375,16 +377,30 @@ void ABlasterCharacter::ReceiveDamage(
 	AController* InstigatorController, 
 	AActor* DamageCauser)
 {
+	//GIVE BLOOD FOR HITS
+	ABlasterPlayerController* AttackerController = Cast<ABlasterPlayerController>(InstigatorController);
+	if (!AttackerController) return;
+	ABlasterPlayerState* AttackerPlayerState =
+		AttackerController ?
+		Cast<ABlasterPlayerState>(AttackerController->PlayerState)
+		: nullptr;
+	if (AttackerPlayerState)
+	{
+			AttackerPlayerState->AddToScore(1.666f);
+	}
+
+	//UPDATE HEALTH
 	Health = FMath::Clamp(Health - Damage, 0.f, MaxHealth);
 	UpdateHUDHealth();
 	PlayHitReactMontage();
+
+	//KILL
 	if (Health <= 0.f)
 	{
 		ABlasterGameMode* BlasterGameMode = GetWorld()->GetAuthGameMode<ABlasterGameMode>();
 		if (BlasterGameMode)
 		{
 			BlasterPlayerController = BlasterPlayerController == nullptr ? Cast<ABlasterPlayerController>(Controller) : BlasterPlayerController;
-			ABlasterPlayerController* AttackerController = Cast<ABlasterPlayerController>(InstigatorController);
 			BlasterGameMode->PlayerEliminated(this, BlasterPlayerController, AttackerController);
 		}
 	}
@@ -676,6 +692,19 @@ void ABlasterCharacter::UpdateHUDHealth()
 	if (BlasterPlayerController)
 	{
 		BlasterPlayerController->SetHUDHealth(Health, MaxHealth);
+	}
+}
+
+void ABlasterCharacter::PollInit()
+{
+	if (BlasterPlayerState == nullptr)
+	{
+		//this isn't a cast? something about "templates"
+		BlasterPlayerState = GetPlayerState<ABlasterPlayerState>();
+		if (BlasterPlayerState)
+		{
+			BlasterPlayerState->AddToScore(0.f);
+		}
 	}
 }
 

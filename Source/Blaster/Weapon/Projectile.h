@@ -65,7 +65,6 @@ private:
 	class USoundCue* ImpactCharacterSound;
 
 
-
 public:	
 
 };

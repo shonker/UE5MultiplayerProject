@@ -5,11 +5,13 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "Kismet/GameplayStatics.h"
 #include "Components/WidgetComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "GameFramework/Pawn.h"
+#include "Sound/SoundCue.h"
 #include "Net/UnrealNetwork.h"
 
 // Sets default values
@@ -37,7 +39,6 @@ ALimb::ALimb()
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
 	FollowCamera->bUsePawnControlRotation = false;
-
 }
 
 // Called when the game starts or when spawned
@@ -45,7 +46,10 @@ void ALimb::BeginPlay()
 {
 	Super::BeginPlay();
 	this->SetReplicates(true);
-	
+	if (HasAuthority())
+	{
+		LimbMesh->OnComponentHit.AddDynamic(this, &ALimb::OnHit);
+	}
 }
 
 // Called every frame
@@ -54,7 +58,40 @@ void ALimb::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	ClampLinearVelocity();
+}
 
+void ALimb::OnHit(
+	UPrimitiveComponent* HitComp, 
+	AActor* OtherActor, 
+	UPrimitiveComponent* OtherComp,
+	FVector NormalImpulse, 
+	const FHitResult& Hit) 
+{
+	CurrentLinearVelocity = LimbMesh->GetPhysicsLinearVelocity(NAME_None);
+	float CurrentSpeed = CurrentLinearVelocity.Size();
+
+	if (FMath::Abs(CurrentSpeed - LastSpeed) > SplatNoiseAccelerationThreshold)
+	{
+		bSplatNoiseAccelerationThresholdExceeded = true;
+	}
+	else
+	{
+		bSplatNoiseAccelerationThresholdExceeded = false;
+	}
+
+	LastSpeed = CurrentSpeed;
+
+	bOnBeginHit = bSplatNoiseAccelerationThresholdExceeded ? true : false;
+
+	if (bOnBeginHit)
+	{
+		PlayImpactSound();
+	}
+}
+
+void ALimb::OnRep_bOnBeginHit(bool bNotOnBeginHit)
+{
+	if (bOnBeginHit) PlayImpactSound();
 }
 
 void ALimb::ClampLinearVelocity()
@@ -68,6 +105,18 @@ void ALimb::ClampLinearVelocity()
 			FVector ClampedVelocity = CurrentLinearVelocity.GetClampedToMaxSize(MaxLinearVelocity);
 			LimbMesh->SetPhysicsLinearVelocity(ClampedVelocity, false, NAME_None);
 		}
+		}
+}
+
+void ALimb::PlayImpactSound()
+{
+	if (SplatSound)
+	{
+		UGameplayStatics::PlaySoundAtLocation(this, SplatSound, GetActorLocation());
+	}
+	if (SurfaceImpactSound)
+	{
+		UGameplayStatics::PlaySoundAtLocation(this, SurfaceImpactSound, GetActorLocation());
 	}
 }
 
@@ -97,6 +146,7 @@ void ALimb::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 void ALimb::GetLifetimeReplicatedProps(TArray<FLifetimeProperty> &OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(ALimb, bOnBeginHit);
 
 }
 

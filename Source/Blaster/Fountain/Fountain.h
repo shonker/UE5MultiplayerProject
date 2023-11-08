@@ -17,8 +17,8 @@ public:
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
-	UFUNCTION(NetMulticast, Reliable)
-	void Multicast_OnFountainEntry();
+	//UFUNCTION(NetMulticast, Reliable)
+	//void Multicast_OnFountainEntry();
 
 protected:
 	// Called when the game starts or when spawned
@@ -49,6 +49,10 @@ private:
 	UPROPERTY(EditAnywhere)
 	class USoundCue* BloodSpraySound;
 
+	UPROPERTY(ReplicatedUsing = OnRep_FountainEntered)
 	bool bFountainEntered = false;
+
+	UFUNCTION()
+	void OnRep_FountainEntered();
 
 };

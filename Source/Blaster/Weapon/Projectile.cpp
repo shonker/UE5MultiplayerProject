@@ -6,6 +6,7 @@
 #include "Particles/ParticleSystem.h"
 #include "Sound/SoundCue.h"
 #include "Blaster/Character/BlasterCharacter.h"
+#include "Blaster/Limb/Limb.h"
 #include "Blaster/Blaster.h"
 #include "Net/UnrealNetwork.h"
 
@@ -92,6 +93,14 @@ void AProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimi
 		//BlasterCharacter->MulticastHit();
 		bCharacterWasHit = true;
 	} 
+	else
+	{
+		ALimb* LimbCharacter = Cast<ALimb>(OtherActor);
+		if (LimbCharacter)
+		{
+			bCharacterWasHit = true;
+		}
+	}
 	
 	Multicast_OnHit(bCharacterWasHit);
 }

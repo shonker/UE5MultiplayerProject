@@ -20,18 +20,14 @@ AFountain::AFountain()
 	PrimaryActorTick.bCanEverTick = true;
 	bReplicates = true;
 	FountainTrigger = CreateDefaultSubobject<UBoxComponent>(TEXT("FountainTrigger"));
-	FountainTrigger->SetCollisionObjectType(ECollisionChannel::ECC_WorldDynamic);
-	FountainTrigger->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	FountainTrigger->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
-	FountainTrigger->SetCollisionResponseToChannel(ECollisionChannel::ECC_Visibility, ECollisionResponse::ECR_Block);
-	FountainTrigger->SetCollisionResponseToChannel(ECollisionChannel::ECC_WorldStatic, ECollisionResponse::ECR_Block);
-	FountainTrigger->SetCollisionResponseToChannel(ECollisionChannel::ECC_WorldDynamic, ECollisionResponse::ECR_Block);
-	FountainTrigger->SetCollisionResponseToChannel(ECC_SkeletalMesh, ECollisionResponse::ECR_Block);
-}
+	FountainTrigger->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Overlap);
+	}
 
 void AFountain::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(AFountain, bFountainEntered);
 }
 
 // Called when the game starts or when spawned
@@ -54,19 +50,33 @@ void AFountain::OnFountainEntry(
 	bool bFromSweep, 
 	const FHitResult& SweepResult)
 {
-	UE_LOG(LogTemp, Log, TEXT("Collision Detected"));
+	ABlasterCharacter* BlasterCharacter = Cast<ABlasterCharacter>(OtherActor);
+	if (BlasterCharacter)
+	{
+		BlasterCharacter->Elim();
+	}
+
 	ALimb* LimbCharacter = Cast<ALimb>(OtherActor);
 	if (LimbCharacter && !bFountainEntered)
 	{
-		bFountainEntered = false;
-		Multicast_OnFountainEntry();
+		bFountainEntered = true;
+		SprayBlood();
+		//Multicast_OnFountainEntry();
 	}	
 }
 
-void AFountain::Multicast_OnFountainEntry_Implementation()
+void AFountain::OnRep_FountainEntered()
 {
+	if (bFountainEntered)
+	{
 		SprayBlood();
+	}
 }
+
+//void AFountain::Multicast_OnFountainEntry_Implementation()
+//{
+//		SprayBlood();
+//}
 
 void AFountain::SprayBlood()
 {
