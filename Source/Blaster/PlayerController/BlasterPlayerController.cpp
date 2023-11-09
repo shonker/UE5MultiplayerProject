@@ -63,3 +63,17 @@ void ABlasterPlayerController::SetHUDScore(float Score)
 		BlasterHUD->CharacterOverlay->ScoreAmount->SetText(FText::FromString(ScoreText));
 	}
 }
+
+void ABlasterPlayerController::SetHUDDebt(float Debt)
+{
+	BlasterHUD = BlasterHUD == nullptr ? Cast<ABlasterHUD>(GetHUD()) : BlasterHUD;
+	bool bHUDValid = BlasterHUD
+		&& BlasterHUD->CharacterOverlay
+		&& BlasterHUD->CharacterOverlay->DebtAmount;
+
+	if (bHUDValid)
+	{
+		FString DebtText = FString::Printf(TEXT("%f"), Debt);
+		BlasterHUD->CharacterOverlay->DebtAmount->SetText(FText::FromString(DebtText));
+	}
+}

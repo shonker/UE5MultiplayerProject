@@ -704,6 +704,7 @@ void ABlasterCharacter::PollInit()
 		if (BlasterPlayerState)
 		{
 			BlasterPlayerState->AddToScore(0.f);
+			BlasterPlayerState->AddToDebt(0.f);
 		}
 	}
 }

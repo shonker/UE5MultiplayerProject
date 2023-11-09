@@ -27,6 +27,11 @@ void ABlasterGameMode::PlayerEliminated(
 		AttackerPlayerState->AddToScore(6.66f);
 	}
 	
+	if (VictimPlayerState)
+	{
+		VictimPlayerState->AddToDebt(666);
+	}
+
 	if (ElimmedCharacter)
 	{
 		ElimmedCharacter->Elim();

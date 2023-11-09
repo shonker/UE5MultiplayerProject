@@ -18,9 +18,8 @@ class BLASTER_API ABlasterPlayerController : public APlayerController
 public:
 	void SetHUDHealth(float Health, float MaxHealth);
 	void SetHUDScore(float Score);
+	void SetHUDDebt(float Debt);
 	virtual void OnPossess(APawn* InPawn) override;
-
-
 
 protected:
 	virtual void BeginPlay() override;
