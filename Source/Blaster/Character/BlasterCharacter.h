@@ -109,6 +109,7 @@ private:
 	float AO_Pitch;
 	FRotator StartingAimRotation;
 
+	UPROPERTY()
 	ETurningInPlace TurningInPlace;
 	void TurnInPlace(float DeltaTime);
 
@@ -150,6 +151,7 @@ private:
 	UFUNCTION()
 	void OnRep_Health();
 
+	UPROPERTY()
 	class ABlasterPlayerController* BlasterPlayerController;
 
 	bool bElimmed = false;
@@ -187,6 +189,7 @@ private:
 	UPROPERTY(EditAnywhere, Category = Elim)
 	class USoundCue* DeathSound;
 
+	UPROPERTY()
 	class ABlasterPlayerState* BlasterPlayerState;
 public:	
 	//here it is updated for all clients AND server (logic for that inside)

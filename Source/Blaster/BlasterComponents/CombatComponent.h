@@ -53,8 +53,11 @@ protected:
 private:
 	//create ABC char class so we don't have to constantly cast
 	//has 2 b set as early as possible
+	UPROPERTY()
 	class ABlasterCharacter* Character;
+	UPROPERTY()
 	class ABlasterPlayerController* Controller;
+	UPROPERTY()
 	class ABlasterHUD* HUD;
 
 	UPROPERTY(ReplicatedUsing = OnRep_EquippedWeapon)

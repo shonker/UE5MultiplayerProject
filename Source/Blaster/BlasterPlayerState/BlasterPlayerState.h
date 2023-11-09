@@ -25,10 +25,10 @@ public:
 	void AddToScore(float ScoreAmount);
 	void AddToDebt(float DebtAmount);
 private:
+	UPROPERTY()
 	class ABlasterCharacter* Character;
+	UPROPERTY()
 	class ABlasterPlayerController* Controller;
-	//float Score;
-
 
 	UPROPERTY(ReplicatedUsing = OnRep_Debt)
 	int32 Debt;
