@@ -19,6 +19,7 @@ public:
 	void SetHUDHealth(float Health, float MaxHealth);
 	void SetHUDScore(float Score);
 	void SetHUDDebt(float Debt);
+	void SetHUDWeaponAmmo(float Ammo);
 	virtual void OnPossess(APawn* InPawn) override;
 
 protected:

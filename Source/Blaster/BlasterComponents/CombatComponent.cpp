@@ -137,6 +137,10 @@ void UCombatComponent::EquipWeapon(AWeapon *WeaponToEquip)
 	{
 		return;
 	}
+	if (EquippedWeapon)
+	{
+		EquippedWeapon->Dropped();
+	}
 
 	//equipped weapon is null for all but server, not replicated
 	EquippedWeapon = WeaponToEquip;
@@ -150,7 +154,7 @@ void UCombatComponent::EquipWeapon(AWeapon *WeaponToEquip)
 	//we "own" the pawn we control
 	//we "own" a weapon when we equip it
     EquippedWeapon->SetOwner(Character); 
-	
+	EquippedWeapon->SetHUDAmmo();
 	//change character to always be oriented w/ cam view, looks appropriate because
 	//we implemented the equipped weapon blendspace into the anim BP
 	Character->GetCharacterMovement()->bOrientRotationToMovement = false;

@@ -22,7 +22,8 @@ AFountain::AFountain()
 	FountainTrigger = CreateDefaultSubobject<UBoxComponent>(TEXT("FountainTrigger"));
 	FountainTrigger->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
 	FountainTrigger->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Overlap);
-	}
+	FountainTrigger->SetCollisionResponseToChannel(ECollisionChannel::ECC_WorldDynamic, ECollisionResponse::ECR_Overlap);
+}
 
 void AFountain::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
@@ -55,7 +56,7 @@ void AFountain::OnFountainEntry(
 	{
 		BlasterCharacter->Elim();
 	}
-
+	UE_LOG(LogTemp, Log, TEXT("What the fuck dude"));
 	ALimb* LimbCharacter = Cast<ALimb>(OtherActor);
 	if (LimbCharacter && !bFountainEntered)
 	{

@@ -77,3 +77,17 @@ void ABlasterPlayerController::SetHUDDebt(float Debt)
 		BlasterHUD->CharacterOverlay->DebtAmount->SetText(FText::FromString(DebtText));
 	}
 }
+
+void ABlasterPlayerController::SetHUDWeaponAmmo(float Ammo)
+{
+	BlasterHUD = BlasterHUD == nullptr ? Cast<ABlasterHUD>(GetHUD()) : BlasterHUD;
+	bool bHUDValid = BlasterHUD
+		&& BlasterHUD->CharacterOverlay
+		&& BlasterHUD->CharacterOverlay->WeaponAmmoAmount;
+
+	if (bHUDValid)
+	{
+		FString AmmoText = FString::Printf(TEXT("%d"), FMath::CeilToInt(Ammo));
+		BlasterHUD->CharacterOverlay->WeaponAmmoAmount->SetText(FText::FromString(AmmoText));
+	}
+}

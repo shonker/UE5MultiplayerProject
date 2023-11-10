@@ -27,4 +27,8 @@ public:
 	UPROPERTY(meta = (BindWidget))
 	UTextBlock* DebtAmount;
 
+	UPROPERTY(meta = (BindWidget))
+	UTextBlock* WeaponAmmoAmount;
+
+
 };
