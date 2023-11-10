@@ -44,8 +44,11 @@ void UCombatComponent::BeginPlay()
 			DefaultFOV = Character->GetFollowCamera()->FieldOfView;
 			CurrentFOV = DefaultFOV;
 		}
+		if (Character->HasAuthority())
+		{
+			InitializeCarriedAmmo();
+		}
 	}
-	
 }
 
 void UCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
@@ -80,8 +83,22 @@ bool UCombatComponent::CanFire()
 	return !EquippedWeapon->IsEmpty() || !bCanFire;
 }
 
+void UCombatComponent::InitializeCarriedAmmo()
+{
+	CarriedAmmoMap.Emplace(EWeaponType::EWT_AssaultRifle, StartingARAmmo);
+}
+
+
+
 void UCombatComponent::OnRep_CarriedAmmo()
 {
+	Controller = Controller == nullptr ?
+		Cast<ABlasterPlayerController>(Character->Controller) :
+		Controller;
+	if (Controller)
+	{
+		Controller->SetHUDCarriedAmmo(CarriedAmmo);
+	}
 }
 
 void UCombatComponent::Fire()
@@ -168,6 +185,18 @@ void UCombatComponent::EquipWeapon(AWeapon *WeaponToEquip)
 	//we "own" a weapon when we equip it
     EquippedWeapon->SetOwner(Character); 
 	EquippedWeapon->SetHUDAmmo();
+
+	if (CarriedAmmoMap.Contains(EquippedWeapon->GetWeaponType()))
+	{
+		CarriedAmmo = CarriedAmmoMap[EquippedWeapon->GetWeaponType()];
+	}
+	Controller = Controller == nullptr ?
+		Cast<ABlasterPlayerController>(Character->Controller) :
+		Controller;
+	if (Controller)
+	{
+		Controller->SetHUDCarriedAmmo(CarriedAmmo);
+	}
 	//change character to always be oriented w/ cam view, looks appropriate because
 	//we implemented the equipped weapon blendspace into the anim BP
 	Character->GetCharacterMovement()->bOrientRotationToMovement = false;
