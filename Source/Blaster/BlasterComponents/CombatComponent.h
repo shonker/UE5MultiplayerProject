@@ -27,6 +27,7 @@ public:
 
 	//often times, fwd declarations are done above UCLASS, but i don't know enough about that to have an opinion
 	void EquipWeapon(class AWeapon* WeaponToEquip);
+	void Reload();
 
 protected:
 	virtual void BeginPlay() override;
@@ -51,6 +52,9 @@ protected:
 	void TraceUnderCrosshairs(FHitResult& TraceHitResult);
 	
 	void SetHUDCrosshairs(float DeltaTime);
+
+	UFUNCTION(Server, Reliable)
+	void Server_Reload();
 
 private:
 	//create ABC char class so we don't have to constantly cast

@@ -159,6 +159,22 @@ void UCombatComponent::MulticastFire_Implementation(const FVector_NetQuantize& T
 	}
 }
 
+
+void UCombatComponent::Reload()
+{
+	if (CarriedAmmo > 0)
+	{
+		Server_Reload();
+	}
+}
+
+void UCombatComponent::Server_Reload_Implementation()
+{
+	if (Character == nullptr) return;
+
+	Character->PlayReloadMontage();
+}
+
 //include file at top
 //this is only being called on server
 void UCombatComponent::EquipWeapon(AWeapon *WeaponToEquip)

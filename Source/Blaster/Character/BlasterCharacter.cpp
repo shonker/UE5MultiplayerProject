@@ -19,6 +19,7 @@
 #include "TimerManager.h"
 #include "Blaster/Limb/Limb.h"
 #include "Blaster/BlasterPlayerState/BlasterPlayerState.h"
+#include "Blaster/Weapon/WeaponTypes.h"
 
 /*
 hewwo!!!!
@@ -144,6 +145,7 @@ void ABlasterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 
 	PlayerInputComponent->BindAction("Equip", IE_Pressed, this, &ABlasterCharacter::EquipButtonPressed);
 	PlayerInputComponent->BindAction("Crouch", IE_Pressed, this, &ABlasterCharacter::CrouchButtonPressed);
+	PlayerInputComponent->BindAction("Reload", IE_Pressed, this, &ABlasterCharacter::ReloadButtonPressed);
 	PlayerInputComponent->BindAction("Aim", IE_Pressed, this, &ABlasterCharacter::AimButtonPressed);
 	PlayerInputComponent->BindAction("Aim", IE_Released, this, &ABlasterCharacter::AimButtonReleased);
 
@@ -174,6 +176,34 @@ void ABlasterCharacter::PlayFireMontage(bool bAiming)
 		AnimInstance->Montage_JumpToSection(SectionName);
 	}
 }
+
+
+//so the way this works for the future
+//is there is a reload montage in the blueprints/character/animations folder
+//drag in an animation after the rifle animation, right click->add section (ig: "shotgun")
+//come here and add it to the switch case
+//make sure its also added the WeaponTypes.h enum as well
+void ABlasterCharacter::PlayReloadMontage()
+{
+	if (Combat == nullptr || Combat->EquippedWeapon == nullptr) return;
+
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if (AnimInstance && ReloadMontage)
+	{
+		AnimInstance->Montage_Play(ReloadMontage);
+		FName SectionName;
+		switch (Combat->EquippedWeapon->GetWeaponType())
+		{
+		case EWeaponType::EWT_AssaultRifle:
+			SectionName = FName("Rifle");
+			break;
+		}
+
+		AnimInstance->Montage_JumpToSection(SectionName);
+	}
+}
+
+
 
 void ABlasterCharacter::PlayElimMontage()
 {
@@ -481,6 +511,14 @@ void ABlasterCharacter::CrouchButtonPressed()
 		Crouch();
 	}
 
+}
+
+void ABlasterCharacter::ReloadButtonPressed()
+{
+	if (Combat)
+	{
+		Combat->Reload();
+	}
 }
 
 
