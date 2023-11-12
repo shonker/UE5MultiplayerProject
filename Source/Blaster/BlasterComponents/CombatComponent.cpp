@@ -171,9 +171,13 @@ void UCombatComponent::OnRep_CombatState()
 
 }
 
+
+//imp for anim bp: for some reason we implement the animnotify for reloadfinished
+//within the EVENT GRAPH of the blasteranimBP
+//EVENT GRAPH. Not the animation blueprint
 void UCombatComponent::Reload()
 {
-	if (CarriedAmmo > 0)
+	if (CarriedAmmo > 0 && CombatState != ECombatState::ECS_Reloading)
 	{
 		Server_Reload();
 	}
@@ -183,7 +187,16 @@ void UCombatComponent::Server_Reload_Implementation()
 {
 	if (Character == nullptr) return;
 	CombatState = ECombatState::ECS_Reloading;
-	Character->PlayReloadMontage();
+	HandleReload();
+}
+
+void UCombatComponent::FinishReloading()
+{
+	if (Character == nullptr) return;
+	if (Character->HasAuthority())
+	{
+		CombatState = ECombatState::ECS_Unoccupied;
+	}
 }
 
 

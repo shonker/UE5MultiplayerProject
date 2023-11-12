@@ -61,8 +61,27 @@ void ALimb::Tick(float DeltaTime)
 
 	if (HasAuthority())
 	{
-		if (RestAfterHitRemaining-- < 0) bOnBeginHit = false;
+		OnBeginHitTimer();
 	}
+}
+
+void ALimb::OnBeginHitTimer()
+{
+	if (RestAfterHitRemaining < 0)
+	{
+		bOnBeginHit = false;
+	}
+	else
+	{
+		RestAfterHitRemaining--;
+	}
+	//This is hideous but I'm keeping it here for prosperity
+	/*
+	bOnBeginHit = 
+	(RestAfterHitRemaining < 0) ? 
+	false : 
+	(RestAfterHitRemaining--, bOnBeginHit);
+	*/
 }
 
 void ALimb::OnHit(

@@ -17,6 +17,8 @@ public:
 	// Called to bind functionality to input
 	virtual void Tick(float DeltaTime) override;
 
+	void OnBeginHitTimer();
+
 	void ClampLinearVelocity();
 
 	void PlayImpactSound();

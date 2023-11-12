@@ -60,6 +60,8 @@ protected:
 	UFUNCTION()
 	void HandleReload();
 
+	UFUNCTION(BlueprintCallable)
+	void FinishReloading();
 private:
 	//create ABC char class so we don't have to constantly cast
 	//has 2 b set as early as possible
