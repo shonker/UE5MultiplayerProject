@@ -76,25 +76,22 @@ private:
 
 	FVector CurrentLinearVelocity;
 
-	float LastSpeed = 0;
-
 	UPROPERTY(EditAnywhere, Category = Sound)
 	class USoundCue* SplatSound;
 	UPROPERTY(EditAnywhere, Category = Sound)
 	class USoundCue* SurfaceImpactSound;
 
 	UPROPERTY(EditAnywhere, Category = Sound)
-	float	SplatNoiseAccelerationThreshold = 50.f;
+	float	SplatNoiseAccelerationThreshold = 1000.f;
 
 	UPROPERTY(EditAnywhere, Category = Physics)
 	float MaxLinearVelocity = 1000.f;
 
-	bool bSplatNoiseAccelerationThresholdExceeded = false;
-
 	UPROPERTY(ReplicatedUsing = OnRep_bOnBeginHit)
 	bool bOnBeginHit = false;
 
-	bool bStillHitting = false;
+	int RestAfterHitDuration = 10;
+	int RestAfterHitRemaining = 10;
 
 	//rep vars can ONLY have input params of the var being repd
 	//what gets passed in? the last var, BEFORE the update to the var :)

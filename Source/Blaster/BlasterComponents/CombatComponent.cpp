@@ -29,6 +29,7 @@ void UCombatComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty> &Out
 	DOREPLIFETIME(UCombatComponent, bAiming);
 	//this ensures the server only replicates to the owning client!
 	DOREPLIFETIME_CONDITION(UCombatComponent, CarriedAmmo, COND_OwnerOnly);
+	DOREPLIFETIME(UCombatComponent, CombatState);
 }
 
 void UCombatComponent::BeginPlay()
@@ -66,6 +67,7 @@ void UCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 	}
 }
 
+
 //called locally on client/server
 void UCombatComponent::FireButtonPressed(bool bPressed)
 {
@@ -87,8 +89,6 @@ void UCombatComponent::InitializeCarriedAmmo()
 {
 	CarriedAmmoMap.Emplace(EWeaponType::EWT_AssaultRifle, StartingARAmmo);
 }
-
-
 
 void UCombatComponent::OnRep_CarriedAmmo()
 {
@@ -160,6 +160,17 @@ void UCombatComponent::MulticastFire_Implementation(const FVector_NetQuantize& T
 }
 
 
+void UCombatComponent::OnRep_CombatState()
+{
+	switch (CombatState)
+	{
+	case ECombatState::ECS_Reloading :
+		HandleReload();
+		break;
+	}
+
+}
+
 void UCombatComponent::Reload()
 {
 	if (CarriedAmmo > 0)
@@ -171,7 +182,13 @@ void UCombatComponent::Reload()
 void UCombatComponent::Server_Reload_Implementation()
 {
 	if (Character == nullptr) return;
+	CombatState = ECombatState::ECS_Reloading;
+	Character->PlayReloadMontage();
+}
 
+
+void UCombatComponent::HandleReload()
+{
 	Character->PlayReloadMontage();
 }
 
@@ -364,6 +381,7 @@ void UCombatComponent::SetHUDCrosshairs(float DeltaTime)
 	}
 
 }
+
 
 void UCombatComponent::InterpFOV(float DeltaTime)
 {

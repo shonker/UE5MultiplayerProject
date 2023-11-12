@@ -8,6 +8,7 @@
 //see under UCLASS where we also inherit the interface
 #include "Blaster/Interfaces/InteractWithCrosshairsInterface.h"
 #include "Components/TimelineComponent.h"
+#include "Blaster/BlasterTypes/CombatState.h"
 #include "BlasterCharacter.generated.h"
 
 UCLASS()
@@ -226,4 +227,5 @@ public:
 	FORCEINLINE float GetHeath()  const { return Health; }
 	FORCEINLINE float GetMaxHealth()  const { return MaxHealth; }
 
+	FORCEINLINE ECombatState GetCombatState() const;
 };

@@ -58,6 +58,11 @@ void ALimb::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	ClampLinearVelocity();
+
+	if (HasAuthority())
+	{
+		if (RestAfterHitRemaining-- < 0) bOnBeginHit = false;
+	}
 }
 
 void ALimb::OnHit(
@@ -67,24 +72,13 @@ void ALimb::OnHit(
 	FVector NormalImpulse, 
 	const FHitResult& Hit) 
 {
-	CurrentLinearVelocity = LimbMesh->GetPhysicsLinearVelocity(NAME_None);
-	float CurrentSpeed = CurrentLinearVelocity.Size();
-
-	if (FMath::Abs(CurrentSpeed - LastSpeed) > SplatNoiseAccelerationThreshold)
-	{
-		bSplatNoiseAccelerationThresholdExceeded = true;
-	}
-	else
-	{
-		bSplatNoiseAccelerationThresholdExceeded = false;
-	}
-
-	LastSpeed = CurrentSpeed;
-
-	bOnBeginHit = bSplatNoiseAccelerationThresholdExceeded ? true : false;
+	if (RestAfterHitRemaining > 0) return;
+	float NormalImpulseSize = NormalImpulse.Size();
+	bOnBeginHit = NormalImpulseSize > SplatNoiseAccelerationThreshold ? true : false;
 
 	if (bOnBeginHit)
 	{
+		RestAfterHitRemaining = RestAfterHitDuration;
 		PlayImpactSound();
 	}
 }
@@ -105,7 +99,7 @@ void ALimb::ClampLinearVelocity()
 			FVector ClampedVelocity = CurrentLinearVelocity.GetClampedToMaxSize(MaxLinearVelocity);
 			LimbMesh->SetPhysicsLinearVelocity(ClampedVelocity, false, NAME_None);
 		}
-		}
+	}	
 }
 
 void ALimb::PlayImpactSound()
