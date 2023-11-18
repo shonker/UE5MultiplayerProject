@@ -57,7 +57,10 @@ private:
 
 	UPROPERTY(EditAnywhere)
 	UParticleSystem* ImpactCharacterParticles;
-	
+
+	UPROPERTY(EditAnywhere)
+	class USoundCue* FireSound;
+
 	UPROPERTY()
 	class USoundCue* ImpactSound;
 

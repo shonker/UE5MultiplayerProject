@@ -82,7 +82,7 @@ private:
 	class USoundCue* SplatSound;
 	UPROPERTY(EditAnywhere, Category = Sound)
 	class USoundCue* SurfaceImpactSound;
-
+	
 	UPROPERTY(EditAnywhere, Category = Sound)
 	float	SplatNoiseAccelerationThreshold = 1000.f;
 
