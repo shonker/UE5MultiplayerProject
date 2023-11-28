@@ -21,11 +21,15 @@ public:
 	void SetHUDDebt(float Debt);
 	void SetHUDWeaponAmmo(int32 Ammo);
 	void SetHUDCarriedAmmo(int32 Ammo);
+	void SetHUDMatchCountdownText(float CountdownTime);
 	virtual void OnPossess(APawn* InPawn) override;
+	virtual void Tick(float DeltaTime) override;
 
 protected:
 	virtual void BeginPlay() override;
-
+	void SetHUDTime();
 private:
 	class ABlasterHUD* BlasterHUD;
+
+	float MatchTime = 120.f;
 };

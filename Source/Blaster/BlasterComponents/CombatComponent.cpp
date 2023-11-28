@@ -11,6 +11,7 @@
 #include "Blaster/PlayerController/BlasterPlayerController.h"
 #include "Camera/CameraComponent.h"
 #include "TimerManager.h"
+#include "Sound/SoundCue.h"
 
 UCombatComponent::UCombatComponent()
 {
@@ -140,6 +141,16 @@ void UCombatComponent::FireTimerFinished()
 	{
 		Fire();
 	}
+	if (EquippedWeapon->IsEmpty())
+	{
+		Reload();
+		//would be nice to play an "empty clip" sound but maybe 2 much effort
+		/*UGameplayStatics::PlaySoundAtLocation(
+			this,
+			EquippedWeapon->EquipSound,
+			Character->GetActorLocation()
+		);*/
+	}
 }
 //if we are client, serFir_Imp is called on server
 //same if we are server
@@ -183,7 +194,9 @@ void UCombatComponent::OnRep_CombatState()
 //EVENT GRAPH. Not the animation blueprint
 void UCombatComponent::Reload()
 {
-	if (CarriedAmmo > 0 && CombatState != ECombatState::ECS_Reloading)
+	if (CarriedAmmo > 0 
+		&& CombatState != ECombatState::ECS_Reloading
+		&& EquippedWeapon->GetAmmo() < EquippedWeapon->GetMagCapacity())
 	{
 		Server_Reload();
 	}
@@ -192,7 +205,6 @@ void UCombatComponent::Reload()
 void UCombatComponent::Server_Reload_Implementation()
 {
 	if (Character == nullptr || EquippedWeapon == nullptr) return;
-
 	CombatState = ECombatState::ECS_Reloading;
 	HandleReload();
 }
@@ -289,6 +301,20 @@ void UCombatComponent::EquipWeapon(AWeapon *WeaponToEquip)
 	{
 		Controller->SetHUDCarriedAmmo(CarriedAmmo);
 	}
+
+	if (EquippedWeapon->EquipSound)
+	{
+		UGameplayStatics::PlaySoundAtLocation(
+			this,
+			EquippedWeapon->EquipSound,
+			Character->GetActorLocation()
+		);
+	}
+
+	if (EquippedWeapon->IsEmpty())
+	{
+		Reload();
+	}
 	//change character to always be oriented w/ cam view, looks appropriate because
 	//we implemented the equipped weapon blendspace into the anim BP
 	Character->GetCharacterMovement()->bOrientRotationToMovement = false;
@@ -306,6 +332,14 @@ void UCombatComponent::OnRep_EquippedWeapon()
 		if (HandSocket)
 		{
 			HandSocket->AttachActor(EquippedWeapon, Character->GetMesh());
+		}
+		if (EquippedWeapon->EquipSound)
+		{
+			UGameplayStatics::PlaySoundAtLocation(
+				this,
+				EquippedWeapon->EquipSound,
+				Character->GetActorLocation()
+			);
 		}
 		//change character to always be oriented w/ cam view, looks appropriate because
 		//we implemented the equipped weapon blendspace into the anim BP
