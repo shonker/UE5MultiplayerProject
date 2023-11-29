@@ -4,11 +4,13 @@
 #include "BlasterHUD.h"
 #include "GameFramework/PlayerController.h"
 #include "CharacterOverlay.h"
+#include "Announcement.h"
 
 void ABlasterHUD::BeginPlay()
 {
     Super::BeginPlay();
 }
+
 void ABlasterHUD::AddCharacterOverlay()
 {
     APlayerController* PlayerController = GetOwningPlayerController();
@@ -16,6 +18,17 @@ void ABlasterHUD::AddCharacterOverlay()
     {
         CharacterOverlay = CreateWidget<UCharacterOverlay>(PlayerController, CharacterOverlayClass);
         CharacterOverlay->AddToViewport();
+    }
+}
+
+
+void ABlasterHUD::AddAnnouncement()
+{
+    APlayerController* PlayerController = GetOwningPlayerController();
+    if (PlayerController && AnnouncementClass)
+    {
+        Announcement = CreateWidget<UAnnouncement>(PlayerController, AnnouncementClass);
+        Announcement->AddToViewport();
     }
 }
 
@@ -28,7 +41,7 @@ void ABlasterHUD::DrawHUD()
     
     //loop time
 
-    if (GEngine)
+  /* if (GEngine)
     {
         GEngine->GameViewport->GetViewportSize(ViewportSize);
         const FVector2d ViewportCenter(ViewportSize.X/2.f, ViewportSize.Y/2.f);
@@ -60,7 +73,9 @@ void ABlasterHUD::DrawHUD()
             FVector2D Spread(0.f,SpreadScaled);
             DrawCrosshair(HUDPackage.CrosshairsBottom, ViewportCenter, Spread, HUDPackage.CrosshairsColor);
         }
+       
     }
+     */
 }
 
 void ABlasterHUD::DrawCrosshair(UTexture2D* Texture, FVector2D ViewportCenter, FVector2D Spread, FLinearColor CrosshairColor)
@@ -85,3 +100,4 @@ void ABlasterHUD::DrawCrosshair(UTexture2D* Texture, FVector2D ViewportCenter, F
         CrosshairColor
     );
 }
+
