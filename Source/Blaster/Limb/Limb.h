@@ -37,7 +37,7 @@ protected:
 	UFUNCTION(Server, Unreliable)
 	void ServerMoveForward(float Value, FVector_NetQuantize10 AimDirection);
 	UFUNCTION(NetMulticast, Unreliable)
-	void MulticastMoveForward(float Value, FVector_NetQuantize10 AimDirection);
+	void MulticastMoveForward(FVector_NetQuantize10 AimDirection);
 
     void MoveRight(float Value);
 	UFUNCTION(Server, Unreliable)
@@ -64,6 +64,12 @@ protected:
 	UFUNCTION()
 	virtual void OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 
+	UPROPERTY(EditAnywhere, Category = Physics)
+	float BaseLimbAccelerationForce = 170.f;
+
+	float ActiveLimbAccelerationForce = BaseLimbAccelerationForce;
+
+	bool Accelerating = false;
 
 private:
 
@@ -88,6 +94,9 @@ private:
 
 	UPROPERTY(EditAnywhere, Category = Physics)
 	float MaxLinearVelocity = 1000.f;
+	
+	UPROPERTY(EditAnywhere, Category = Physics)
+	float MaxImpulsableSpeed = 200.f;
 
 	UPROPERTY(ReplicatedUsing = OnRep_bOnBeginHit)
 	bool bOnBeginHit = false;

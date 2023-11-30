@@ -173,13 +173,25 @@ void ALimb::MoveForward(float Value)
 
 void ALimb::ServerMoveForward_Implementation(float Value, FVector_NetQuantize10 AimDirection)
 {
-	MulticastMoveForward(Value, AimDirection);	
+	if (Value > 1 || Value < -1) return; //anti cheat
+	AimDirection.Z = 0;//prevents upward impulse
+	if (!LimbMesh) return;
+	CurrentLinearVelocity = LimbMesh->GetPhysicsLinearVelocity(NAME_None);
+	CurrentLinearVelocity.Z = 0;
+	float CurrentSpeed = CurrentLinearVelocity.Size();
+	FVector LimbImpulse = AimDirection * Value * ActiveLimbAccelerationForce;
+	float NextSpeed = (CurrentLinearVelocity + LimbImpulse).Size();
+	Accelerating = NextSpeed > CurrentSpeed;
+	if (CurrentSpeed < MaxImpulsableSpeed || !Accelerating)
+	{
+		MulticastMoveForward(LimbImpulse);
+	}
+	//UE_LOG(LogTemp, Log, TEXT("%f"),CurrentSpeed);
 }
 
-void ALimb::MulticastMoveForward_Implementation(float Value, FVector_NetQuantize10 AimDirection)
+void ALimb::MulticastMoveForward_Implementation(FVector_NetQuantize10 LimbImpulse)
 {
-	if (!LimbMesh) return;
-	LimbMesh->AddImpulse(AimDirection * Value * 170);
+	LimbMesh->AddImpulse(LimbImpulse);
 }
 
 void ALimb::MoveRight(float Value)
