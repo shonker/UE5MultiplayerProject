@@ -89,7 +89,18 @@ void ABlasterCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 	//in this case, the weapon being overlapped is only communicated to the person controlling the blaster character that overlaps the weapon
 	DOREPLIFETIME_CONDITION(ABlasterCharacter, OverlappingWeapon, COND_OwnerOnly);
 	DOREPLIFETIME(ABlasterCharacter, Health);
+	DOREPLIFETIME(ABlasterCharacter, bDisableGameplay);
 }
+
+void ABlasterCharacter::Destroyed()
+{
+	Super::Destroyed();
+	if (Combat && Combat->EquippedWeapon)
+	{
+		Combat->EquippedWeapon->Destroy();
+	}
+}
+
 
 // Called when the game starts or when spawned
 void ABlasterCharacter::BeginPlay()
@@ -104,12 +115,25 @@ void ABlasterCharacter::BeginPlay()
 	}
 }
 
-
 // Called every frame
 void ABlasterCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	RotateInPlace(DeltaTime);
+	AimOffset(DeltaTime);
+	HideCameraIfCharacterClose();
+	PollInit();
+}
+
+void ABlasterCharacter::RotateInPlace(float DeltaTime)
+{
+	if (bDisableGameplay)
+	{
+		bUseControllerRotationYaw = false;
+		TurningInPlace = ETurningInPlace::ETIP_NotTurning;
+		return;
+	}
 	if (GetLocalRole() > ENetRole::ROLE_SimulatedProxy && IsLocallyControlled())
 	{
 		AimOffset(DeltaTime);
@@ -123,10 +147,6 @@ void ABlasterCharacter::Tick(float DeltaTime)
 		}
 		CalculateAO_Pitch();
 	}
-	
-	AimOffset(DeltaTime);
-	HideCameraIfCharacterClose();
-	PollInit();
 }
 // Called to bind functionality to input
 void ABlasterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -140,6 +160,7 @@ void ABlasterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 	//bind proj settings input axes to our custom functions here
 	PlayerInputComponent->BindAxis("MoveForward", this, &ABlasterCharacter::MoveForward);
 	PlayerInputComponent->BindAxis("MoveRight", this, &ABlasterCharacter::MoveRight);
+	
 	PlayerInputComponent->BindAxis("Turn", this, &ABlasterCharacter::Turn);
 	PlayerInputComponent->BindAxis("LookUp", this, &ABlasterCharacter::LookUp);
 
@@ -279,13 +300,14 @@ void ABlasterCharacter::MulticastElim_Implementation()
 	}
 
 	//disable char movement
-	//GetCharacterMovement()->DisableMovement();
-	//GetCharacterMovement()->StopMovementImmediately();
+	GetCharacterMovement()->DisableMovement();
+	GetCharacterMovement()->StopMovementImmediately();
 	//if (BlasterPlayerController)
 	//{
 	//	DisableInput(BlasterPlayerController);
 	//}
 	////disable collision
+	bDisableGameplay = true;
 
 }
 
@@ -442,6 +464,7 @@ void ABlasterCharacter::ReceiveDamage(
 
 void ABlasterCharacter::MoveForward(float Value)
 {
+	if (bDisableGameplay) return;
 	if (Controller != nullptr && Value != 0.f)
 	{
 		const FRotator YawRotation(0.f, Controller->GetControlRotation().Yaw, 0.f);
@@ -455,6 +478,7 @@ void ABlasterCharacter::MoveForward(float Value)
 
 void ABlasterCharacter::MoveRight(float Value)
 {
+	if (bDisableGameplay) return;
 	if (Controller != nullptr && Value != 0.f)
 	{
 		//same as move forward, BUT isolate Y axis
@@ -477,6 +501,7 @@ void ABlasterCharacter::LookUp(float Value)
 
 void ABlasterCharacter::EquipButtonPressed()
 {
+	if (bDisableGameplay) return;
 	if (Combat)
 	{
 		if (HasAuthority()) //are we server?
@@ -502,6 +527,8 @@ void ABlasterCharacter::ServerEquipButtonPressed_Implementation()
 //luckily, since we use the built in crouch functionality, crouching is already set up to be replicated
 void ABlasterCharacter::CrouchButtonPressed()
 { 
+	if (bDisableGameplay) return;
+
 	if (bIsCrouched)
 	{
 		UnCrouch();
@@ -515,6 +542,8 @@ void ABlasterCharacter::CrouchButtonPressed()
 
 void ABlasterCharacter::ReloadButtonPressed()
 {
+	if (bDisableGameplay) return;
+
 	if (Combat)
 	{
 		Combat->Reload();
@@ -525,6 +554,8 @@ void ABlasterCharacter::ReloadButtonPressed()
 
 void ABlasterCharacter::AimButtonPressed()
 {
+	if (bDisableGameplay) return;
+
 	//replication of bAiming handled from server->client in CombatComponent.cpp DOREPLIFETIME
 	//replication of client-> server bAiming handled with RPC in 
 	if (Combat)
@@ -539,6 +570,8 @@ void ABlasterCharacter::AimButtonPressed()
 }
 void ABlasterCharacter::AimButtonReleased()
 {
+	if (bDisableGameplay) return;
+
 	if (Combat)
 	{
 		//Combat->bAiming = false;
@@ -643,6 +676,8 @@ void ABlasterCharacter::SimProxiesTurn()
 
 void ABlasterCharacter::Jump()
 {
+	if (bDisableGameplay) return;
+
 	if (bIsCrouched)
 	{
 		UnCrouch();
@@ -655,6 +690,8 @@ void ABlasterCharacter::Jump()
 
 void ABlasterCharacter::FireButtonPressed()
 {
+	if (bDisableGameplay) return;
+
 	if (Combat)
 	{
 		Combat->FireButtonPressed(true);
@@ -663,6 +700,8 @@ void ABlasterCharacter::FireButtonPressed()
 
 void ABlasterCharacter::FireButtonReleased()
 {
+	if (bDisableGameplay) return;
+
 	if (Combat)
 	{
 		Combat->FireButtonPressed(false);

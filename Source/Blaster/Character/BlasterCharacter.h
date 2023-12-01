@@ -29,6 +29,8 @@ public:
 	void PlayReloadMontage();
 	void PlayElimMontage();
 
+
+
 	virtual void OnRep_ReplicatedMovement() override;
 
 	void Elim();
@@ -36,11 +38,13 @@ public:
 	UFUNCTION(NetMulticast, Reliable)
 	void MulticastElim();
 
+	UPROPERTY(Replicated)
+	bool bDisableGameplay = false;
+
 protected:
+	virtual void Destroyed() override;
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
-
-
 	//movement funcs
 	void MoveForward(float Value);
 	void MoveRight(float Value);
@@ -72,7 +76,7 @@ protected:
 	void UpdateHUDHealth();
 	//Poll for any relevant classes and initialize HUD
 	void PollInit();
-
+	void RotateInPlace(float DeltaTime);
 
 private:
 
@@ -213,7 +217,6 @@ public:
 	FORCEINLINE ETurningInPlace GetTurningInPlace() const {return TurningInPlace; }
 	FVector GetHitTarget() const;
 	FORCEINLINE UCameraComponent* GetFollowCamera() const {return FollowCamera; }
-
 	//gun rotation for hands
 	UPROPERTY(EditAnywhere, Category = "Weapon Rotation Correction")
 	float RightHandRotationRoll;
@@ -221,12 +224,11 @@ public:
 	float RightHandRotationYaw;
 	UPROPERTY(EditAnywhere, Category = "Weapon Rotation Correction")
 	float RightHandRotationPitch;
-
 	FORCEINLINE bool ShouldRotateRootBone() const { return bRotateRootBone; }
 	FORCEINLINE bool IsElimmed() const { return bElimmed; }
-
 	FORCEINLINE float GetHeath()  const { return Health; }
 	FORCEINLINE float GetMaxHealth()  const { return MaxHealth; }
-
 	FORCEINLINE ECombatState GetCombatState() const;
+	FORCEINLINE UCombatComponent* GetCombat() const { return Combat; }
+	FORCEINLINE bool GetDisableGameplay() const { return bDisableGameplay; }
 };

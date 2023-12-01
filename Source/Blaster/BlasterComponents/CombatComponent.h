@@ -30,6 +30,8 @@ public:
 	void EquipWeapon(class AWeapon* WeaponToEquip);
 	void Reload();
 
+	void FireButtonPressed(bool bPressed);
+
 protected:
 	virtual void BeginPlay() override;
 	void SetAiming(bool bIsAiming);
@@ -39,8 +41,6 @@ protected:
 
 	UFUNCTION()
 	void OnRep_EquippedWeapon();
-
-	void FireButtonPressed(bool bPressed);
 
 	void Fire();
 
@@ -60,8 +60,6 @@ protected:
 	UFUNCTION()
 	void HandleReload();
 	int32 AmountToReload();
-
-
 
 	UFUNCTION(BlueprintCallable)
 	void FinishReloading();
