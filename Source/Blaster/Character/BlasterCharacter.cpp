@@ -95,7 +95,11 @@ void ABlasterCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 void ABlasterCharacter::Destroyed()
 {
 	Super::Destroyed();
-	if (Combat && Combat->EquippedWeapon)
+
+	ABlasterGameMode* BlasterGameMode = Cast<ABlasterGameMode>(UGameplayStatics::GetGameMode(this));
+	bool bMatchNotInProgress = BlasterGameMode 
+		&& BlasterGameMode->GetMatchState() != MatchState::InProgress;
+	if (Combat && Combat->EquippedWeapon && bMatchNotInProgress)
 	{
 		Combat->EquippedWeapon->Destroy();
 	}
@@ -283,7 +287,7 @@ void ABlasterCharacter::MulticastElim_Implementation()
 		GetMesh()->SetMaterial(2, InvisibleMaterialInstance);
 		GetMesh()->SetMaterial(3, InvisibleMaterialInstance);
 		GetMesh()->SetMaterial(4, InvisibleMaterialInstance);
-		
+
 	}
 
 	StartDissolve();
@@ -308,6 +312,10 @@ void ABlasterCharacter::MulticastElim_Implementation()
 	//}
 	////disable collision
 	bDisableGameplay = true;
+	if (Combat)
+	{
+		Combat->FireButtonPressed(false);
+	}
 
 }
 
