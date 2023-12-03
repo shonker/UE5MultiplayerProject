@@ -91,4 +91,11 @@ private:
 	float HUDMaxHealth;
 	float HUDScore;
 	float HUDDebt;
+
+	FTimerHandle BlinkTimer;
+	UFUNCTION()
+	void BlinkTimerFinished();
+	UFUNCTION()
+	void TimeRunningOut();
+
 }; 

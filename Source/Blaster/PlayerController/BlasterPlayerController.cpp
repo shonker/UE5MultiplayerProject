@@ -14,6 +14,7 @@
 #include "Blaster/BlasterComponents/CombatComponent.h"
 #include "Blaster/GameState/BlasterGameState.h"
 #include "Blaster/BlasterPlayerState/BlasterPlayerState.h"
+#include "TimerManager.h"
 
 void ABlasterPlayerController::BeginPlay()
 {
@@ -210,8 +211,26 @@ void ABlasterPlayerController::SetHUDMatchCountdownText(float CountdownTime)
 
 		FString CountdownText = FString::Printf(TEXT("%02d:%02d"),Minutes,Seconds);
 		BlasterHUD->CharacterOverlay->MatchCountdownText->SetText(FText::FromString(CountdownText));
+		if (CountdownTime <= 15.f)
+		{//blinking text
+			TimeRunningOut();
+		}
 	}
 }
+
+void ABlasterPlayerController::TimeRunningOut()
+{
+	BlasterHUD->CharacterOverlay->MatchCountdownText->SetColorAndOpacity(FSlateColor(FLinearColor::Red));
+	BlasterHUD->CharacterOverlay->MatchCountdownText->SetVisibility(ESlateVisibility::Visible);
+
+	GetWorldTimerManager().SetTimer(BlinkTimer, this, &ABlasterPlayerController::BlinkTimerFinished, 0.75f, false);
+}
+
+void ABlasterPlayerController::BlinkTimerFinished()
+{
+	BlasterHUD->CharacterOverlay->MatchCountdownText->SetVisibility(ESlateVisibility::Hidden);
+}
+
 
 void ABlasterPlayerController::SetHUDAnnouncementCountdown(float CountdownTime)
 {
@@ -379,15 +398,15 @@ void ABlasterPlayerController::HandleCooldown()
 				FString InfoTextString;
 				if (TopPlayers.Num() == 0)
 				{
-					InfoTextString = FString("All shall be tormented in eternity for their failure as flesh.");
+					InfoTextString = FString("TIE: All shall be tormented in eternity for their failure as flesh.");
 				}
 				else if (TopPlayers.Num() == 1 && TopPlayers[0] == BlasterPlayerState)
 				{
-					InfoTextString = FString("Your soul is damnned, but your mortal flesh shall be bathed in riches.");
+					InfoTextString = FString("WINNER: Your soul is damnned, but your mortal flesh shall be bathed in riches.");
 				}
 				else if (TopPlayers.Num() == 1)
 				{
-					InfoTextString = FString::Printf(TEXT("Winner: \n%s"), *(TopPlayers[0]->GetPlayerName()));
+					InfoTextString = FString::Printf(TEXT("YOU LOST\nWinner: \n%s"), *(TopPlayers[0]->GetPlayerName()));
 				}
 				else if (TopPlayers.Num() > 1)
 				{

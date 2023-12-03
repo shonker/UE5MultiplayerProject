@@ -596,6 +596,7 @@ float ABlasterCharacter::CalculateSpeed()
 
 void ABlasterCharacter::AimOffset(float DeltaTime)
 {
+	if (bDisableGameplay) return;
 	if (Combat && Combat->EquippedWeapon == nullptr)
 	{
 		return;
