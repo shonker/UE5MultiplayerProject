@@ -211,9 +211,13 @@ void ABlasterPlayerController::SetHUDMatchCountdownText(float CountdownTime)
 
 		FString CountdownText = FString::Printf(TEXT("%02d:%02d"),Minutes,Seconds);
 		BlasterHUD->CharacterOverlay->MatchCountdownText->SetText(FText::FromString(CountdownText));
-		if (CountdownTime <= 15.f)
+		if (CountdownTime <= 15.f && CountdownTime > 1.f)
 		{//blinking text
 			TimeRunningOut();
+		}
+		else if (CountdownTime > 1.f)
+		{
+			BlasterHUD->CharacterOverlay->MatchCountdownText->SetVisibility(ESlateVisibility::Visible);
 		}
 	}
 }
@@ -365,7 +369,7 @@ void 	ABlasterPlayerController::HandleMatchHasStarted()
 	BlasterHUD = BlasterHUD == nullptr ? Cast<ABlasterHUD>(GetHUD()) : BlasterHUD;
 	if (BlasterHUD)
 	{
-		BlasterHUD->AddCharacterOverlay();
+		if (BlasterHUD->CharacterOverlay == nullptr) BlasterHUD->AddCharacterOverlay();
 		if (BlasterHUD->Announcement)
 		{
 			BlasterHUD->Announcement->SetVisibility(ESlateVisibility::Hidden);

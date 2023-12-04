@@ -264,7 +264,7 @@ void ABlasterCharacter::MulticastElim_Implementation()
 	}
 	bElimmed = true;
 	PlayElimMontage();
-
+	
 	//start dissolve effect
 	if (DissolveMaterialInstance)
 	{
