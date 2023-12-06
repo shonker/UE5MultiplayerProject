@@ -208,6 +208,7 @@ void AWeapon::Fire(const FVector& HitTarget)
 	{
 		WeaponMesh->PlayAnimation(FireAnimation, false);
 	}
+
 	if (CasingClass)
 	{//#include "Engine/SkeletalMeshSocket.h"
 		const USkeletalMeshSocket* AmmoEjectSocket = GetWeaponMesh()->GetSocketByName(FName("AmmoEject"));

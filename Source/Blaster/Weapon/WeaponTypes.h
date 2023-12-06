@@ -5,6 +5,10 @@ enum class EWeaponType : uint8
 {
 	EWT_AssaultRifle UMETA(DisplayName = "Assault Rifle"),
 	EWT_RocketLauncher UMETA(DisplayName = "RocketLauncher"),
+	EWT_Pistol UMETA(DisplayName = "Pistol"),
 
 	EWT_MAX UMETA(DisplayName = "Default Max")
 };
+//note: this is used in:
+//blastercharacter.cpp reload montage
+//combatcomponent.cpp initialize carried ammo
