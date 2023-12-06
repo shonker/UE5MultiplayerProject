@@ -74,19 +74,6 @@ void AProjectile::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifet
 	DOREPLIFETIME(AProjectile, bCharacterWasHit);
 }
 
-//these were moved to Destroyed() from OnHit(), as they needed to be replicated down to clients and Destroyed already IS replicated
-//this way we utilize something already replicated, reducing total bandwidth
-/*
-if (ImpactParticles)
-{ //include gameplaystatics
-	UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ImpactParticles, GetActorTransform());
-}
-if (ImpactSound)
-{ //#include "Sound/SoundCue.h"
-	UGameplayStatics::PlaySoundAtLocation(this, ImpactSound, GetActorLocation());
-}
-*/
-
 //first must b bound to onComponentHit in BeginPlay, doing constructor is too early
 void AProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
@@ -134,48 +121,3 @@ void AProjectile::Destroyed()
 
 
 }
-/*
-
-/////////------------------------------------/////////
-/////////------------------------------------/////////
-			WRITEUP ABOUT REPLICATION
-/////////------------------------------------/////////
-/////////------------------------------------/////////
-
-
-To get the Impact particles to properly replicate server -> client:
-
-//////////////header file:
-
-UFUNCTION(NetMulticast, Reliable)
-void Multicast_OnHit(bool bCharacterHit);
-
-UPROPERTY(Replicated)
-bool bCharacterWasHit;
-
-//////////////.cpp:
-
-//in the begin play, only if HasAuthority() is OnHit bound to the collision event
-
-// When the server calls OnHit, the replicated var, bCharacterWasHit,
-// is passed into Multicast_OnHit
-
-//it is only a bool so its not very consequential to bandwidth
-//when all clients call the multicast they set the vfx client side
-
-
-/////////------------------------------------/////////
-/////////------------------------------------/////////
-					QUESTIONS
-/////////------------------------------------/////////
-/////////------------------------------------/////////
-
-Why do I not need to override GetLifetimeReplicated props?
-Or need to use DOREPLIFETIME()?
-
---it suddenly stopped compiling until i added them in....
-i guess it was necessary but somehow was working for a while withoutem
-
-
-*/
-

@@ -6,6 +6,7 @@
 #include "Blaster/Character/BlasterCharacter.h"
 #include "Kismet/GameplayStatics.h"
 #include "Particles/ParticleSystemComponent.h"
+#include "Sound/SoundCue.h"
 
 void AHitScanWeapon::Fire(const FVector& HitTarget)
 {
@@ -36,6 +37,7 @@ void AHitScanWeapon::Fire(const FVector& HitTarget)
 			if (FireHit.bBlockingHit)
 			{
 				BeamEnd = FireHit.ImpactPoint;
+				//is the impacted actor a player
 				ABlasterCharacter* BlasterCharacter = Cast<ABlasterCharacter>(FireHit.GetActor());
 				if (BlasterCharacter && HasAuthority() && InstigatorController)
 				{
@@ -50,6 +52,10 @@ void AHitScanWeapon::Fire(const FVector& HitTarget)
 						);
 					}
 				}
+				
+				ImpactParticles = BlasterCharacter ? ImpactCharacterParticles : ImpactEnvironmentParticles;
+				ImpactSound = BlasterCharacter ? ImpactCharacterSound : ImpactEnvironmentSound;
+
 				if (ImpactParticles)
 				{
 					UGameplayStatics::SpawnEmitterAtLocation(
@@ -71,7 +77,33 @@ void AHitScanWeapon::Fire(const FVector& HitTarget)
 						Beam->SetVectorParameter(FName("Target"), BeamEnd);
 					}
 				}
+
+				if (ImpactSound)
+				{
+					UGameplayStatics::PlaySoundAtLocation(
+						this,
+						ImpactSound,
+						FireHit.ImpactPoint
+					);
+				}
 			}
+		}
+
+		if (MuzzleFlash)
+		{
+			UGameplayStatics::SpawnEmitterAtLocation(
+				World,
+				MuzzleFlash,
+				SocketTransform
+			);
+		}
+		if (FireSound)
+		{
+			UGameplayStatics::PlaySoundAtLocation(
+				this,
+				FireSound,
+				GetActorLocation()
+			);
 		}
 	}
 }
