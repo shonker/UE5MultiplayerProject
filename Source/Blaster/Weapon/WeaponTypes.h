@@ -27,7 +27,6 @@ processs for adding a new weapon to the game:
 
 	OPTIONAL STEP: if you are creating a new weapon CLASS, 
 		not just modifying parameters of an existing type
-
 1.5: In C++/Weapons/ create new C++ class inheriting from either:
 		Weapon (base class of all weapons, assault rifle inherits this)
 			---!!!!OR!!!!---

@@ -41,6 +41,10 @@ public:
 	UPROPERTY(Replicated)
 	bool bDisableGameplay = false;
 
+	//this is defined in the myblastercharacter event graph
+	UFUNCTION(BlueprintImplementableEvent)
+	void ShowSniperScopeWidget(bool bShowScope);
+
 protected:
 	virtual void Destroyed() override;
 	// Called when the game starts or when spawned
