@@ -22,9 +22,69 @@ void AShotgun::Fire(const FVector& HitTarget)
 	{
 		FTransform SocketTransform = MuzzleFlashSocket->GetSocketTransform(GetWeaponMesh());
 		FVector Start = SocketTransform.GetLocation();
+		/*
+		LEARN WHAT TMAPS ARE -- 
+		THIS IS VERY USEFULLY MAPPING EACH
+		INDIVIDUAL PLAYER TO A VALUE (# OF TIMES HIT)
+		*/
+		TMap<ABlasterCharacter*, uint32>HitMap;
 		for (uint32 i = 0; i < NumberOfPellets; i++)
 		{
-			FVector End = TraceEndWithScatter(Start, HitTarget);
+			FHitResult FireHit;
+			WeaponTraceHit(Start, HitTarget, FireHit);
+
+			//is the impacted actor a player
+			ABlasterCharacter* BlasterCharacter = Cast<ABlasterCharacter>(FireHit.GetActor());
+			if (BlasterCharacter && HasAuthority() && InstigatorController)
+			{
+				if (HitMap.Contains(BlasterCharacter))
+				{
+					HitMap[BlasterCharacter]++;
+				}
+				else
+				{
+					HitMap.Emplace(BlasterCharacter, 1);
+				}
+			}
+
+			ImpactParticles = BlasterCharacter ? ImpactCharacterParticles : ImpactEnvironmentParticles;
+			ImpactSound = BlasterCharacter ? ImpactCharacterSound : ImpactEnvironmentSound;
+
+			if (ImpactParticles)
+			{
+				UGameplayStatics::SpawnEmitterAtLocation(
+					GetWorld(),
+					ImpactParticles,
+					FireHit.ImpactPoint,
+					FireHit.ImpactNormal.Rotation()
+				);
+			}
+			if (ImpactSound)
+			{
+				UGameplayStatics::PlaySoundAtLocation(
+					this,
+					ImpactSound,
+					FireHit.ImpactPoint,
+					0.25f,
+					FMath::FRandRange(-.5f,.5f)
+				);
+			}
+
+		}// end of for loop
+		//THIS IS HOW WE LOOP THROUGH THE TMAP JESUSTHIS IS WHAT IVE WANTED THANK YOU GOD
+		for (auto HitPair : HitMap)
+		{
+			//key returns the individual blastercharacter pointer we have looped to?
+			if (HitPair.Key && HasAuthority() && InstigatorController)
+			{
+				UGameplayStatics::ApplyDamage(
+					HitPair.Key,
+					Damage * HitPair.Value, //here is the number associated with the key (# times char hit)
+					InstigatorController,
+					this,
+					UDamageType::StaticClass()
+				);
+			}
 		}
 	}
 }

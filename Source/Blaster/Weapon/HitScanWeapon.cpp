@@ -11,7 +11,7 @@
 #include "DrawDebugHelpers.h"
 #include "WeaponTypes.h"
 
-//cut this into smaller functions
+//refactor
 void AHitScanWeapon::Fire(const FVector& HitTarget)
 {
 	Super::Fire(HitTarget);
@@ -25,78 +25,49 @@ void AHitScanWeapon::Fire(const FVector& HitTarget)
 	{
 		FTransform SocketTransform = MuzzleFlashSocket->GetSocketTransform(GetWeaponMesh());
 		FVector Start = SocketTransform.GetLocation();
-		FVector End = Start + (HitTarget - Start) * 1.05;
-
 		FHitResult FireHit;
-		UWorld* World = GetWorld();
-		if (World)
+		WeaponTraceHit(Start, HitTarget, FireHit);
+
+		//is the impacted actor a player
+		ABlasterCharacter* BlasterCharacter = Cast<ABlasterCharacter>(FireHit.GetActor());
+		if (BlasterCharacter && HasAuthority() && InstigatorController)
 		{
-			World->LineTraceSingleByChannel(
-				FireHit,
-				Start,
-				End,
-				ECollisionChannel::ECC_Visibility
-			);
-			FVector BeamEnd = End;
-			if (FireHit.bBlockingHit)
+			if (HasAuthority())
 			{
-				BeamEnd = FireHit.ImpactPoint;
-				//is the impacted actor a player
-				ABlasterCharacter* BlasterCharacter = Cast<ABlasterCharacter>(FireHit.GetActor());
-				if (BlasterCharacter && HasAuthority() && InstigatorController)
-				{
-					if (HasAuthority())
-					{
-						UGameplayStatics::ApplyDamage(
-							BlasterCharacter,
-							Damage,
-							InstigatorController,
-							this,
-							UDamageType::StaticClass()
-						);
-					}
-				}
-				
-				ImpactParticles = BlasterCharacter ? ImpactCharacterParticles : ImpactEnvironmentParticles;
-				ImpactSound = BlasterCharacter ? ImpactCharacterSound : ImpactEnvironmentSound;
-
-				if (ImpactParticles)
-				{
-					UGameplayStatics::SpawnEmitterAtLocation(
-						World,
-						ImpactParticles,
-						FireHit.ImpactPoint,
-						FireHit.ImpactNormal.Rotation()
-					);
-				}
-				if (BeamParticles)
-				{
-					UParticleSystemComponent* Beam = UGameplayStatics::SpawnEmitterAtLocation(
-						World,
-						BeamParticles,
-						SocketTransform
-					);
-					if (Beam)
-					{//endpt for beam particle system
-						Beam->SetVectorParameter(FName("Target"), BeamEnd);
-					}
-				}
-
-				if (ImpactSound)
-				{
-					UGameplayStatics::PlaySoundAtLocation(
-						this,
-						ImpactSound,
-						FireHit.ImpactPoint
-					);
-				}
+				UGameplayStatics::ApplyDamage(
+					BlasterCharacter,
+					Damage,
+					InstigatorController,
+					this,
+					UDamageType::StaticClass()
+				);
 			}
 		}
 
+		ImpactParticles = BlasterCharacter ? ImpactCharacterParticles : ImpactEnvironmentParticles;
+		ImpactSound = BlasterCharacter ? ImpactCharacterSound : ImpactEnvironmentSound;
+
+		if (ImpactParticles)
+		{
+			UGameplayStatics::SpawnEmitterAtLocation(
+				GetWorld(),
+				ImpactParticles,
+				FireHit.ImpactPoint,
+				FireHit.ImpactNormal.Rotation()
+			);
+		}
+		if (ImpactSound)
+		{
+			UGameplayStatics::PlaySoundAtLocation(
+				this,
+				ImpactSound,
+				FireHit.ImpactPoint
+			);
+		}
 		if (MuzzleFlash)
 		{
 			UGameplayStatics::SpawnEmitterAtLocation(
-				World,
+				GetWorld(),
 				MuzzleFlash,
 				SocketTransform
 			);
@@ -108,6 +79,41 @@ void AHitScanWeapon::Fire(const FVector& HitTarget)
 				FireSound,
 				GetActorLocation()
 			);
+		}
+	}
+}
+
+void AHitScanWeapon::WeaponTraceHit(const FVector& TraceStart, const FVector& HitTarget, FHitResult& OutHit)
+{
+	UWorld* World = GetWorld();
+	if (World)
+	{
+		FVector End = bUseScatter ? TraceEndWithScatter(TraceStart, HitTarget) : TraceStart + (HitTarget - TraceStart) * 1.05;
+
+		World->LineTraceSingleByChannel(
+			OutHit,
+			TraceStart,
+			End,
+			ECollisionChannel::ECC_Visibility
+		);
+		FVector BeamEnd = End;
+		if (OutHit.bBlockingHit)
+		{
+			BeamEnd = OutHit.ImpactPoint;
+		}
+		if (BeamParticles)
+		{
+			UParticleSystemComponent* Beam = UGameplayStatics::SpawnEmitterAtLocation(
+				World,
+				BeamParticles,
+				TraceStart,
+				FRotator::ZeroRotator,
+				true
+			);
+			if (Beam)
+			{//endpt for beam particle system
+				Beam->SetVectorParameter(FName("Target"), BeamEnd);
+			}
 		}
 	}
 }
@@ -126,14 +132,14 @@ FVector AHitScanWeapon::TraceEndWithScatter(const FVector& TraceStart, const FVe
 	FVector EndLoc = SphereCenter + RandVec;
 	FVector ToEndLoc = EndLoc - TraceStart;
 
-	DrawDebugSphere(GetWorld(), SphereCenter, SphereRadius, 12, FColor::Red, true);
+	/*DrawDebugSphere(GetWorld(), SphereCenter, SphereRadius, 12, FColor::Red, true);
 	DrawDebugSphere(GetWorld(), EndLoc, 4.f, 12, FColor::Green, true);
 	DrawDebugLine(
 		GetWorld(), 
 		TraceStart, 
 		FVector(TraceStart + ToEndLoc * TRACE_LENGTH / ToEndLoc.Size()),
 		FColor::Cyan,
-		true);
+		true);*/
 	return FVector(TraceStart + ToEndLoc * TRACE_LENGTH / ToEndLoc.Size());
 
 }
