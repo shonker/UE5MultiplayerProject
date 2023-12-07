@@ -17,37 +17,55 @@ class BLASTER_API AHitScanWeapon : public AWeapon
 public:
 	virtual void Fire(const FVector& HitTarget) override;
 
+protected:
+	UFUNCTION()
+		FVector TraceEndWithScatter(const FVector& TraceStart, const FVector& HitTarget);
+
+	UPROPERTY(EditAnywhere)
+		float Damage = 20.f;
+
+	UPROPERTY(EditAnywhere)
+		class UParticleSystem* ImpactParticles;
+
+	UPROPERTY(EditAnywhere)
+		UParticleSystem* ImpactEnvironmentParticles;
+
+	UPROPERTY(EditAnywhere)
+		UParticleSystem* ImpactCharacterParticles;
+
+	UPROPERTY(EditAnywhere)
+		class USoundCue* ImpactSound;
+
+	UPROPERTY(EditAnywhere)
+		class USoundCue* ImpactEnvironmentSound;
+
+	UPROPERTY(EditAnywhere)
+		class USoundCue* ImpactCharacterSound;
+
+	UPROPERTY(EditAnywhere)
+		UParticleSystem* BeamParticles;
+
+	UPROPERTY(EditAnywhere)
+		UParticleSystem* MuzzleFlash;
+
+	UPROPERTY(EditAnywhere)
+		USoundCue* FireSound;
 
 private:
-	UPROPERTY(EditAnywhere)
-	float Damage = 20.f;
 
-	UPROPERTY(EditAnywhere)
-	class UParticleSystem* ImpactParticles;
+	/*
+	Trace End W/ Scatter
+	*/
+	UPROPERTY(EditAnywhere, Category = "WeaponScatter")
+	float DistanceToSphere = 800.f;
 
-	UPROPERTY(EditAnywhere)
-	UParticleSystem* ImpactEnvironmentParticles;
+	UPROPERTY(EditAnywhere, Category = "WeaponScatter")
+	float SphereRadius = 75.f;
 
-	UPROPERTY(EditAnywhere)
-	UParticleSystem* ImpactCharacterParticles;
+	UPROPERTY(EditAnywhere, Category = "WeaponScatter")
+	bool bUseScatter = false;
 
-	UPROPERTY(EditAnywhere)
-	class USoundCue* ImpactSound;
 
-	UPROPERTY(EditAnywhere)
-	class USoundCue* ImpactEnvironmentSound;
-
-	UPROPERTY(EditAnywhere)
-	class USoundCue* ImpactCharacterSound;
-
-	UPROPERTY(EditAnywhere)
-	UParticleSystem* BeamParticles;
-
-	UPROPERTY(EditAnywhere)
-	UParticleSystem* MuzzleFlash;
-
-	UPROPERTY(EditAnywhere)
-	USoundCue* FireSound;
 
 
 };
