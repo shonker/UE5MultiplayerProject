@@ -49,6 +49,10 @@ ABlasterCharacter::ABlasterCharacter()
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
 	FollowCamera->bUsePawnControlRotation = false;
+	
+	FirstPersonCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FirstPersonCamera"));
+	//FirstPersonCamera->SetupAttachment(GetMesh(), TEXT("headSocket"));
+	FirstPersonCamera->bUsePawnControlRotation = false;
 
 	//this also has to be set in BP as BP will override them
 	bUseControllerRotationYaw = false;
@@ -117,6 +121,18 @@ void ABlasterCharacter::BeginPlay()
 	{
 		OnTakeAnyDamage.AddDynamic(this, &ABlasterCharacter::ReceiveDamage);
 	}
+
+	//if (FirstPersonCamera)
+	//{
+	//	FollowCamera->SetActive(false);
+	//	FirstPersonCamera->SetActive(true);
+	//	FirstPersonCamera->bUsePawnControlRotation = false;
+
+	//	//this also has to be set in BP as BP will override them
+	//	bUseControllerRotationYaw = true;
+	//	bUseControllerRotationPitch = true;
+	//	GetCharacterMovement()->bOrientRotationToMovement = false;
+	//}
 }
 
 // Called every frame
@@ -236,7 +252,7 @@ void ABlasterCharacter::PlayReloadMontage()
 			break;
 		
 		case EWeaponType::EWT_Shotgun:
-			SectionName = FName("Rifle");
+			SectionName = FName("Shotgun");
 			break;
 
 		case EWeaponType::EWT_SniperRifle:
@@ -789,7 +805,7 @@ void ABlasterCharacter::HideCameraIfCharacterClose()
 		GetMesh()->SetVisibility(false);
 		if (Combat && Combat->EquippedWeapon && Combat->EquippedWeapon->GetWeaponMesh())
 		{
-			Combat->EquippedWeapon->GetWeaponMesh()->bOwnerNoSee = true;
+			//Combat->EquippedWeapon->GetWeaponMesh()->bOwnerNoSee = true;
 		}
 	}
 	else

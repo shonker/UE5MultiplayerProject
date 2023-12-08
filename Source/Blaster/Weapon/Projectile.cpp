@@ -73,7 +73,6 @@ void AProjectile::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifet
 
 void AProjectile::ExplodeDamage()
 {
-
 	APawn* FiringPawn = GetInstigator();
 	if (FiringPawn && HasAuthority())
 	{
@@ -85,8 +84,8 @@ void AProjectile::ExplodeDamage()
 				Damage,//base damage
 				10.f,//minimum damage (at outer radius)
 				GetActorLocation(),//origin location
-				200.f,//inner radius
-				500.f,//outer radius
+				DamageInnerRadius,//inner radius
+				DamageOuterRadius,//outer radius
 				1.f, //damage falloff
 				UDamageType::StaticClass(),//damage type class
 				TArray<AActor*>(),//ignore actors (empty array)

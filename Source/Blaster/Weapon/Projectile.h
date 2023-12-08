@@ -74,7 +74,10 @@ protected:
 	UPROPERTY(VisibleAnywhere)
 		class UProjectileMovementComponent* ProjectileMovementComponent;
 
-
+	UPROPERTY(EditAnywhere)
+	float DamageInnerRadius = 200.f;
+	UPROPERTY(EditAnywhere)
+	float DamageOuterRadius = 500.f;
 
 	UPROPERTY(VisibleAnywhere)
 		UStaticMeshComponent* ProjectileMesh;
