@@ -28,6 +28,9 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
+	void StartDestroyTimer();
+	void DestroyTimerFinished();
+
 	//component doing the hitting (col box), actor being hit, primitive (other component being hit), the normal of the surface being hit, const ref to something?
 	//callbacks bound to hit events (oncomponenthit) have to be ufunctions to work
 	UFUNCTION()
@@ -59,10 +62,22 @@ protected:
 	UPROPERTY(EditAnywhere)
 		class UBoxComponent* CollisionBox;
 
-private:
+	UPROPERTY(EditAnywhere)
+		class UNiagaraSystem* TrailSystem;
+
+	UPROPERTY()
+		class UNiagaraComponent* TrailSystemComponent;
 
 	UPROPERTY(VisibleAnywhere)
-	class UProjectileMovementComponent* ProjectileMovementComponent;
+		class UProjectileMovementComponent* ProjectileMovementComponent;
+
+	UFUNCTION()
+		void SpawnTrailSystem();
+
+	UPROPERTY(VisibleAnywhere)
+		UStaticMeshComponent* ProjectileMesh;
+
+private:
 
 	UPROPERTY(EditAnywhere)
 	UParticleSystem* Tracer;
@@ -70,6 +85,8 @@ private:
 	UPROPERTY()
 	class UParticleSystemComponent* TracerComponent;
 
-public:	
+	FTimerHandle DestroyTimer;
 
+	UPROPERTY(EditAnywhere)
+	float DestroyTime = 3.f;
 };

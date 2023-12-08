@@ -1,6 +1,5 @@
 #include "Projectile.h"
 #include "Components/BoxComponent.h"
-#include "GameFramework/ProjectileMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Particles/ParticleSystemComponent.h"
 #include "Particles/ParticleSystem.h"
@@ -9,6 +8,8 @@
 #include "Blaster/Limb/Limb.h"
 #include "Blaster/Blaster.h"
 #include "Net/UnrealNetwork.h"
+#include "NiagaraFunctionLibrary.h"
+
 
 AProjectile::AProjectile()
 {
@@ -26,11 +27,7 @@ AProjectile::AProjectile()
 	CollisionBox->SetCollisionResponseToChannel(ECollisionChannel::ECC_WorldStatic, ECollisionResponse::ECR_Block );
 	CollisionBox->SetCollisionResponseToChannel(ECollisionChannel::ECC_WorldDynamic , ECollisionResponse::ECR_Block );
 	CollisionBox->SetCollisionResponseToChannel(ECC_SkeletalMesh, ECollisionResponse::ECR_Block);
-	//CollisionBox->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn , ECollisionResponse::ECR_Block );
-	//CollisionBox->SetCollisionResponseToChannel(ECollisionChannel::ECC_PhysicsBody , ECollisionResponse::ECR_Block );
-	 
-	ProjectileMovementComponent = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileMovementComponent"));
-	ProjectileMovementComponent->bRotationFollowsVelocity = true;
+	
 }
 
 
@@ -74,6 +71,22 @@ void AProjectile::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifet
 	DOREPLIFETIME(AProjectile, bCharacterWasHit);
 }
 
+void AProjectile::SpawnTrailSystem()
+{
+	if (TrailSystem)
+	{
+		TrailSystemComponent = UNiagaraFunctionLibrary::SpawnSystemAttached(
+			TrailSystem,
+			GetRootComponent(),
+			FName(),//bone socket attach point
+			GetActorLocation(),
+			GetActorRotation(),
+			EAttachLocation::KeepWorldPosition,
+			false//bAutoDestroy
+		);
+	}
+}
+
 //first must b bound to onComponentHit in BeginPlay, doing constructor is too early
 void AProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
@@ -103,6 +116,24 @@ void AProjectile::Multicast_OnHit_Implementation(bool bCharacterHit)
 	ImpactParticles = bCharacterHit ? ImpactCharacterParticles : ImpactEnvironmentParticles;
 	ImpactSound = bCharacterHit ? ImpactCharacterSound : ImpactEnvironmentSound;
 
+	Destroy();
+}
+
+void AProjectile::StartDestroyTimer()
+{
+	//dont want to destroy quite on hit
+	//Super::OnHit(HitComp, OtherActor, OtherComp, NormalImpulse, Hit);
+
+	GetWorldTimerManager().SetTimer(
+		DestroyTimer,
+		this,
+		&AProjectile::DestroyTimerFinished,
+		DestroyTime
+	);
+}
+
+void AProjectile::DestroyTimerFinished()
+{
 	Destroy();
 }
 

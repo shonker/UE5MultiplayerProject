@@ -21,6 +21,7 @@ AWeapon::AWeapon()
 	PrimaryActorTick.bCanEverTick = false;
 	//important for server/clientcomms?
 	bReplicates = true;
+	SetReplicateMovement(true);
 
 	WeaponMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("WeaponMesh"));
 	SetRootComponent(WeaponMesh);
