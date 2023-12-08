@@ -27,9 +27,9 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
-
 	void StartDestroyTimer();
 	void DestroyTimerFinished();
+	void SpawnTrailSystem();
 
 	//component doing the hitting (col box), actor being hit, primitive (other component being hit), the normal of the surface being hit, const ref to something?
 	//callbacks bound to hit events (oncomponenthit) have to be ufunctions to work
@@ -71,8 +71,7 @@ protected:
 	UPROPERTY(VisibleAnywhere)
 		class UProjectileMovementComponent* ProjectileMovementComponent;
 
-	UFUNCTION()
-		void SpawnTrailSystem();
+
 
 	UPROPERTY(VisibleAnywhere)
 		UStaticMeshComponent* ProjectileMesh;

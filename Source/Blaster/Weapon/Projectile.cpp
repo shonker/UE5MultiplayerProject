@@ -9,6 +9,7 @@
 #include "Blaster/Blaster.h"
 #include "Net/UnrealNetwork.h"
 #include "NiagaraFunctionLibrary.h"
+#include "NiagaraComponent.h"
 
 
 AProjectile::AProjectile()
@@ -17,7 +18,6 @@ AProjectile::AProjectile()
 	//we spawn these projectiles on the server, which is replicated down to the clients
 	//the server maintains authority over the location of the projectile
 	bReplicates = true;
-
 	CollisionBox = CreateDefaultSubobject<UBoxComponent>(TEXT("CollisionBox"));
 	SetRootComponent(CollisionBox);
 	CollisionBox->SetCollisionObjectType(ECollisionChannel::ECC_WorldDynamic);
@@ -122,8 +122,6 @@ void AProjectile::Multicast_OnHit_Implementation(bool bCharacterHit)
 void AProjectile::StartDestroyTimer()
 {
 	//dont want to destroy quite on hit
-	//Super::OnHit(HitComp, OtherActor, OtherComp, NormalImpulse, Hit);
-
 	GetWorldTimerManager().SetTimer(
 		DestroyTimer,
 		this,
