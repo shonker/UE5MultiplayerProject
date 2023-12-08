@@ -30,7 +30,10 @@ protected:
 	void StartDestroyTimer();
 	void DestroyTimerFinished();
 	void SpawnTrailSystem();
-
+	void ExplodeDamage();
+	//for explosives, they don't have a char or surfacetype distinction
+	//for bullets, they will have distinct impact particles per surface! :)
+	void ActivateImpactSoundAndParticles(AActor* OtherActor = nullptr);
 	//component doing the hitting (col box), actor being hit, primitive (other component being hit), the normal of the surface being hit, const ref to something?
 	//callbacks bound to hit events (oncomponenthit) have to be ufunctions to work
 	UFUNCTION()

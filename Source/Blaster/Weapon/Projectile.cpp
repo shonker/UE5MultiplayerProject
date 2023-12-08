@@ -71,6 +71,33 @@ void AProjectile::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifet
 	DOREPLIFETIME(AProjectile, bCharacterWasHit);
 }
 
+void AProjectile::ExplodeDamage()
+{
+
+	APawn* FiringPawn = GetInstigator();
+	if (FiringPawn && HasAuthority())
+	{
+		AController* FiringController = FiringPawn->GetController();
+		if (FiringController)
+		{
+			UGameplayStatics::ApplyRadialDamageWithFalloff(
+				this,//world context object
+				Damage,//base damage
+				10.f,//minimum damage (at outer radius)
+				GetActorLocation(),//origin location
+				200.f,//inner radius
+				500.f,//outer radius
+				1.f, //damage falloff
+				UDamageType::StaticClass(),//damage type class
+				TArray<AActor*>(),//ignore actors (empty array)
+				this,//damage causer
+				FiringController //InstigatorController
+			);
+		}
+	}
+}
+
+
 void AProjectile::SpawnTrailSystem()
 {
 	if (TrailSystem)
@@ -115,7 +142,14 @@ void AProjectile::Multicast_OnHit_Implementation(bool bCharacterHit)
 	//blood splatter or environmental particle effect
 	ImpactParticles = bCharacterHit ? ImpactCharacterParticles : ImpactEnvironmentParticles;
 	ImpactSound = bCharacterHit ? ImpactCharacterSound : ImpactEnvironmentSound;
-
+	if (ImpactParticles)
+	{ //include gameplaystatics
+		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ImpactParticles, GetActorTransform());
+	}
+	if (ImpactSound)
+	{ //#include "Sound/SoundCue.h"
+		UGameplayStatics::PlaySoundAtLocation(this, ImpactSound, GetActorLocation());
+	}
 	Destroy();
 }
 
@@ -138,6 +172,22 @@ void AProjectile::DestroyTimerFinished()
 void AProjectile::Destroyed()
 {
 	Super::Destroyed();
+}
+
+void AProjectile::ActivateImpactSoundAndParticles(AActor* OtherActor)
+{
+	bCharacterWasHit = false;
+	ABlasterCharacter* BlasterCharacter = Cast<ABlasterCharacter>(OtherActor);
+	if (BlasterCharacter)
+	{
+		//not calling an rpc?
+		//BlasterCharacter->MulticastHit();
+		bCharacterWasHit = true;
+	}
+
+	ImpactParticles = bCharacterWasHit ? ImpactCharacterParticles : ImpactEnvironmentParticles;
+	ImpactSound = bCharacterWasHit ? ImpactCharacterSound : ImpactEnvironmentSound;
+
 
 	if (ImpactParticles)
 	{ //include gameplaystatics
@@ -147,6 +197,4 @@ void AProjectile::Destroyed()
 	{ //#include "Sound/SoundCue.h"
 		UGameplayStatics::PlaySoundAtLocation(this, ImpactSound, GetActorLocation());
 	}
-
-
 }

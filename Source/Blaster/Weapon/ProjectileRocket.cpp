@@ -56,27 +56,8 @@ void AProjectileRocket::BeginPlay()
 
 void AProjectileRocket::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
-	APawn* FiringPawn = GetInstigator();
-	if (FiringPawn && HasAuthority())
-	{
-		AController* FiringController = FiringPawn->GetController();
-		if (FiringController)
-		{
-			UGameplayStatics::ApplyRadialDamageWithFalloff(
-				this,//world context object
-				Damage,//base damage
-				10.f,//minimum damage (at outer radius)
-				GetActorLocation(),//origin location
-				200.f,//inner radius
-				500.f,//outer radius
-				1.f, //damage falloff
-				UDamageType::StaticClass(),//damage type class
-				TArray<AActor*>(),//ignore actors (empty array)
-				this,//damage causer
-				FiringController //InstigatorController
-			);
-		}
-	}
+
+	ExplodeDamage();
 	StartDestroyTimer();
 	ActivateImpactSoundAndParticles(OtherActor);
 
@@ -100,30 +81,7 @@ void AProjectileRocket::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, 
 	}
 }
 
-void AProjectileRocket::ActivateImpactSoundAndParticles(AActor* OtherActor)
-{
-	bCharacterWasHit = false;
-	ABlasterCharacter* BlasterCharacter = Cast<ABlasterCharacter>(OtherActor);
-	if (BlasterCharacter)
-	{
-		//not calling an rpc?
-		//BlasterCharacter->MulticastHit();
-		bCharacterWasHit = true;
-	}
 
-	ImpactParticles = bCharacterWasHit ? ImpactCharacterParticles : ImpactEnvironmentParticles;
-	ImpactSound = bCharacterWasHit ? ImpactCharacterSound : ImpactEnvironmentSound;
-
-
-	if (ImpactParticles)
-	{ //include gameplaystatics
-		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ImpactParticles, GetActorTransform());
-	}
-	if (ImpactSound)
-	{ //#include "Sound/SoundCue.h"
-		UGameplayStatics::PlaySoundAtLocation(this, ImpactSound, GetActorLocation());
-	}
-}
 
 void AProjectileRocket::Destroyed() {
 

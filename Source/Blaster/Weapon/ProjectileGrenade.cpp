@@ -43,3 +43,10 @@ void AProjectileGrenade::OnBounce(const FHitResult& ImpactResult, const FVector&
 		);
 	}
 }
+
+void AProjectileGrenade::Destroyed()
+{
+	ActivateImpactSoundAndParticles();
+	ExplodeDamage();
+	Super::Destroyed();
+}
