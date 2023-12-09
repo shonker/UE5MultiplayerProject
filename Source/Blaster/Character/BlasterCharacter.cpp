@@ -473,7 +473,7 @@ void ABlasterCharacter::OnRep_ReplicatedMovement()
 void ABlasterCharacter::PlayHitReactMontage()
 {
 	if (Combat == nullptr || Combat->EquippedWeapon == nullptr) return;
-
+	if (!(GetCombatState() == ECombatState::ECS_Unoccupied)) return;
 	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
 	if (AnimInstance && HitReactMontage)
 	{

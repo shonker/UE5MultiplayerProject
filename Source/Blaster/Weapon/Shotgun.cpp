@@ -6,6 +6,7 @@
 #include "Blaster/Character/BlasterCharacter.h"
 #include "Kismet/GameplayStatics.h"
 #include "Particles/ParticleSystemComponent.h"
+#include "Blaster/Limb/Limb.h"
 #include "Sound/SoundCue.h"
 
 //cut this into smaller functions
@@ -47,8 +48,18 @@ void AShotgun::Fire(const FVector& HitTarget)
 				}
 			}
 
-			ImpactParticles = BlasterCharacter ? ImpactCharacterParticles : ImpactEnvironmentParticles;
-			ImpactSound = BlasterCharacter ? ImpactCharacterSound : ImpactEnvironmentSound;
+			if (BlasterCharacter || Cast<ALimb>(FireHit.GetActor()))
+			{
+
+				FleshImpact = true;
+			}
+			else
+			{
+				FleshImpact = false;
+			}
+
+			ImpactParticles = FleshImpact ? ImpactCharacterParticles : ImpactEnvironmentParticles;
+			ImpactSound = FleshImpact ? ImpactCharacterSound : ImpactEnvironmentSound;
 
 			if (ImpactParticles)
 			{

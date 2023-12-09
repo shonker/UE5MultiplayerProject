@@ -66,4 +66,6 @@ private:
 
 	UPROPERTY(EditAnywhere, Category = "WeaponScatter")
 	bool bUseScatter = false;
+
+	bool FleshImpact = false;
 };

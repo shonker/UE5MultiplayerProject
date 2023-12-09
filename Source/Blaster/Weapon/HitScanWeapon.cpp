@@ -10,6 +10,7 @@
 #include "Sound/SoundCue.h"
 #include "DrawDebugHelpers.h"
 #include "WeaponTypes.h"
+#include "Blaster/Limb/Limb.h"
 
 //refactor
 void AHitScanWeapon::Fire(const FVector& HitTarget)
@@ -43,9 +44,19 @@ void AHitScanWeapon::Fire(const FVector& HitTarget)
 				);
 			}
 		}
-
-		ImpactParticles = BlasterCharacter ? ImpactCharacterParticles : ImpactEnvironmentParticles;
-		ImpactSound = BlasterCharacter ? ImpactCharacterSound : ImpactEnvironmentSound;
+		//if its not a char, is it a limb? 
+		//doesnt seem like the right way to do this but... eh
+		if (BlasterCharacter || Cast<ALimb>(FireHit.GetActor()))
+		{
+			UE_LOG(LogTemp, Log, TEXT("limb hit"));
+			FleshImpact = true;
+		}
+		else
+		{
+			FleshImpact = false;
+		}
+		ImpactParticles = FleshImpact ? ImpactCharacterParticles : ImpactEnvironmentParticles;
+		ImpactSound = FleshImpact ? ImpactCharacterSound : ImpactEnvironmentSound;
 
 		if (ImpactParticles)
 		{
