@@ -209,6 +209,11 @@ void UCombatComponent::OnRep_CombatState()
 		{
 			Fire();
 		}
+	case ECombatState::ECS_Throwing:
+		if (Character && !Character->IsLocallyControlled())
+		{
+			Character->PlayThrowMontage();
+		}
 		break;
 	}
 
@@ -221,7 +226,7 @@ void UCombatComponent::OnRep_CombatState()
 void UCombatComponent::Reload()
 {
 	if (CarriedAmmo > 0 
-		&& CombatState != ECombatState::ECS_Reloading
+		&& CombatState == ECombatState::ECS_Unoccupied
 		&& EquippedWeapon->GetAmmo() < EquippedWeapon->GetMagCapacity())
 	{
 		Server_Reload();
@@ -247,6 +252,34 @@ void UCombatComponent::FinishReloading()
 	{
 		Fire();
 	}
+}
+
+void UCombatComponent::Throw()
+{
+	if (CombatState != ECombatState::ECS_Unoccupied) return;
+	CombatState = ECombatState::ECS_Throwing;
+	if (Character)
+	{
+		Character->PlayThrowMontage();
+	}
+	if (Character && !Character->HasAuthority())
+	{
+		ServerThrow();
+	}
+}
+
+void UCombatComponent::ServerThrow_Implementation()
+{
+	CombatState = ECombatState::ECS_Throwing;
+	if (Character)
+	{
+		Character->PlayThrowMontage();
+	}
+}
+
+void UCombatComponent::ThrowFinished()
+{
+	CombatState = ECombatState::ECS_Unoccupied;
 }
 
 void UCombatComponent::UpdateAmmoValues()
@@ -335,14 +368,13 @@ void UCombatComponent::JumpToShotgunEnd()
 		AnimInstance->Montage_JumpToSection(FName("ShotgunEnd"));
 	}
 }
+
 //include file at top
 //this is only being called on server
 void UCombatComponent::EquipWeapon(AWeapon *WeaponToEquip)
 {
-	if (Character == nullptr || WeaponToEquip == nullptr)
-	{
-		return;
-	}
+	if (Character == nullptr || WeaponToEquip == nullptr) return;
+	if (CombatState != ECombatState::ECS_Unoccupied) return;
 	if (EquippedWeapon)
 	{
 		EquippedWeapon->Dropped();

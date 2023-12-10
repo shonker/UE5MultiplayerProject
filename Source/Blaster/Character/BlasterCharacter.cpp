@@ -192,6 +192,10 @@ void ABlasterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 
 	PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &ABlasterCharacter::FireButtonPressed);
 	PlayerInputComponent->BindAction("Fire", IE_Released, this, &ABlasterCharacter::FireButtonReleased);
+	
+	PlayerInputComponent->BindAction("Throw", IE_Pressed, this, &ABlasterCharacter::ThrowButtonPressed);
+	PlayerInputComponent->BindAction("Throw", IE_Released, this, &ABlasterCharacter::ThrowButtonReleased);
+
 }
 
 
@@ -407,6 +411,19 @@ void ABlasterCharacter::HandleDeathTransition()
 	// You can also disable collision for ABlasterCharacter and perform other necessary cleanup.
 }
 
+void ABlasterCharacter::ThrowButtonPressed()
+{
+	if (Combat)
+	{
+		Combat->Throw();
+	}
+}
+
+void ABlasterCharacter::ThrowButtonReleased()
+{
+
+}
+
 
 void ABlasterCharacter::StartDissolve() //and death particles lol
 {
@@ -469,6 +486,14 @@ void ABlasterCharacter::OnRep_ReplicatedMovement()
 	TimeSinceLastMovementReplication = 0.f;
 }
 
+void ABlasterCharacter::PlayThrowMontage()
+{
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if (AnimInstance && ThrowMontage)
+	{
+		AnimInstance->Montage_Play(ThrowMontage);
+	}
+}
 
 void ABlasterCharacter::PlayHitReactMontage()
 {

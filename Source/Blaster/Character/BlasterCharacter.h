@@ -28,8 +28,7 @@ public:
 	void PlayFireMontage(bool bAiming);
 	void PlayReloadMontage();
 	void PlayElimMontage();
-
-
+	void PlayThrowMontage();
 
 	virtual void OnRep_ReplicatedMovement() override;
 
@@ -67,6 +66,8 @@ protected:
 	void FireButtonReleased();
 	void PlayHitReactMontage();
 	void HandleDeathTransition();
+	void ThrowButtonPressed();
+	void ThrowButtonReleased();
 	
 	//ufunc necessary for callback frunctionos
 	UFUNCTION()
@@ -136,13 +137,16 @@ private:
 	class UAnimMontage* ReloadMontage;
 	
 	UPROPERTY(EditAnywhere, Category = Combat)
-	class UAnimMontage* FireWeaponMontage;
+	UAnimMontage* FireWeaponMontage;
 
 	UPROPERTY(EditAnywhere, Category = Combat)
-	class UAnimMontage* HitReactMontage;
+	UAnimMontage* HitReactMontage;
 
 	UPROPERTY(EditAnywhere, Category = Combat)
-	class UAnimMontage* ElimMontage;
+	UAnimMontage* ElimMontage;
+
+	UPROPERTY(EditAnywhere, Category = Combat)
+	UAnimMontage* ThrowMontage;
 
 	UPROPERTY(EditAnywhere, Category = Elim)
 	UParticleSystem* DeathParticles;

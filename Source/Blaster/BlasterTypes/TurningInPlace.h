@@ -1,5 +1,6 @@
 #pragma once
-
+//these are replicated in CombatComp.h
+//there is a rep notify in there as well for handling state change logic
 UENUM(BlueprintType)
 enum class ETurningInPlace : uint8
 {

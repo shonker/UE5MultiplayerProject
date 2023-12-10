@@ -34,6 +34,9 @@ public:
 
 	void JumpToShotgunEnd();
 
+	UFUNCTION(BlueprintCallable)
+	void ThrowFinished();
+
 protected:
 	virtual void BeginPlay() override;
 	void SetAiming(bool bIsAiming);
@@ -65,6 +68,11 @@ protected:
 
 	UFUNCTION(BlueprintCallable)
 	void FinishReloading();
+
+	void Throw();
+
+	UFUNCTION(Server, Reliable)
+	void ServerThrow();
 private:
 	//create ABC char class so we don't have to constantly cast
 	//has 2 b set as early as possible
