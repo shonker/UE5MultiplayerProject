@@ -70,9 +70,13 @@ protected:
 	void FinishReloading();
 
 	void Throw();
+	void StartThrowCharging();
 
 	UFUNCTION(Server, Reliable)
-	void ServerThrow();
+	void ServerThrow(FVector_NetQuantize10 ProvidedThrowVector);
+
+	UFUNCTION(NetMulticast, Reliable)
+	void NetMulticastThrow(FVector_NetQuantize10 ProvidedThrowVector);
 
 	void DropEquippedWeapon();
 	void AttachActorToRightHand(AActor* ActorToAttach);
@@ -190,7 +194,13 @@ private:
 	void UpdateAmmoValues();
 	void UpdateShotgunAmmoValues();
 
-public:	
+	void ThrowCharging();
+	float ThrowForce = 0.f;
+	float ThrowForceIncrement = 100.f;
+	float ThrowForceMax = 1000.f;
+	UPROPERTY()
+	AWeapon* WeaponToThrow;
 
+public:	
 		
 };

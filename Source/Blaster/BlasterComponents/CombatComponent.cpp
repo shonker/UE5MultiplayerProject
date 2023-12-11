@@ -67,6 +67,7 @@ void UCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 		SetHUDCrosshairs(DeltaTime);
 		InterpFOV(DeltaTime);
 	}
+	ThrowCharging();
 }
 
 
@@ -200,11 +201,13 @@ void UCombatComponent::OnRep_CombatState()
 		{
 			Fire();
 		}
+	case ECombatState::ECS_ThrowCharging:
+		
+	break;
 	case ECombatState::ECS_Throwing:
 		if (Character && !Character->IsLocallyControlled())
 		{
 			Character->PlayThrowMontage();
-			//AttachActorToLeftHand(EquippedWeapon);
 		}
 		break;
 	}
@@ -246,28 +249,55 @@ void UCombatComponent::FinishReloading()
 	}
 }
 
-void UCombatComponent::Throw()
+void UCombatComponent::StartThrowCharging()
 {
 	if (CombatState != ECombatState::ECS_Unoccupied) return;
-	CombatState = ECombatState::ECS_Throwing;
-	if (Character)
+	CombatState = ECombatState::ECS_ThrowCharging;
+}
+
+void UCombatComponent::ThrowCharging()
+{
+	if (CombatState == ECombatState::ECS_ThrowCharging)
 	{
-		Character->PlayThrowMontage();
-		//AttachActorToLeftHand(EquippedWeapon);
-	}
-	if (Character && !Character->HasAuthority())
-	{
-		ServerThrow();
+		ThrowForce = FMath::Clamp(ThrowForce + ThrowForceIncrement, 0, ThrowForceMax);
 	}
 }
 
-void UCombatComponent::ServerThrow_Implementation()
+void UCombatComponent::Throw()
 {
+	CombatState = ECombatState::ECS_Throwing;
+	if (Character == nullptr) return;
+	if (Character->GetFollowCamera() == nullptr) return;
+	FVector AimDirection = Character->GetFollowCamera()->GetForwardVector();
+	FVector_NetQuantize10 ThrowVector = ThrowForce * AimDirection;
+	
+	if (Character->HasAuthority())
+	{
+		NetMulticastThrow(ThrowVector);
+	} 
+	else
+	{
+		ServerThrow(ThrowVector);
+	}
+	ThrowForce = 0;
+}
+
+void UCombatComponent::ServerThrow_Implementation(FVector_NetQuantize10 ProvidedThrowVector)
+{
+	WeaponToThrow = EquippedWeapon;
+	NetMulticastThrow(ProvidedThrowVector);
 	CombatState = ECombatState::ECS_Throwing;
 	if (Character)
 	{
 		Character->PlayThrowMontage();
 	}
+}
+
+void UCombatComponent::NetMulticastThrow_Implementation(FVector_NetQuantize10 ProvidedThrowVector)
+{
+	DropEquippedWeapon();
+	EquippedWeapon->GetWeaponMesh()->AddImpulse(ProvidedThrowVector);
+	EquippedWeapon = nullptr;
 }
 
 void UCombatComponent::ThrowFinished()

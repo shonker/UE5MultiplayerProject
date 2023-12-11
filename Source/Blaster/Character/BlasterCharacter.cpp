@@ -415,13 +415,16 @@ void ABlasterCharacter::ThrowButtonPressed()
 {
 	if (Combat)
 	{
-		Combat->Throw();
+		Combat->StartThrowCharging();
 	}
 }
 
 void ABlasterCharacter::ThrowButtonReleased()
 {
-
+	if (Combat)
+	{
+		Combat->Throw();
+	}
 }
 
 
