@@ -25,6 +25,7 @@ public:
 
 	//often times, fwd declarations are done above UCLASS, but i don't know enough about that to have an opinion
 	void EquipWeapon(class AWeapon* WeaponToEquip);
+	//void UCombatComponent::UnEquipWeapon(AWeapon* WeaponToUnEquip, FVector_NetQuantize10 ProvidedThrowVector = 0);
 	void Reload();
 
 	void FireButtonPressed(bool bPressed);

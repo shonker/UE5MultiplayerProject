@@ -220,7 +220,8 @@ void UCombatComponent::OnRep_CombatState()
 //EVENT GRAPH. Not the animation blueprint
 void UCombatComponent::Reload()
 {
-	if (CarriedAmmo > 0 
+	if (EquippedWeapon
+		&& CarriedAmmo > 0
 		&& CombatState == ECombatState::ECS_Unoccupied
 		&& EquippedWeapon->GetAmmo() < EquippedWeapon->GetMagCapacity())
 	{
@@ -284,19 +285,21 @@ void UCombatComponent::Throw()
 
 void UCombatComponent::ServerThrow_Implementation(FVector_NetQuantize10 ProvidedThrowVector)
 {
-	WeaponToThrow = EquippedWeapon;
 	NetMulticastThrow(ProvidedThrowVector);
-	CombatState = ECombatState::ECS_Throwing;
-	if (Character)
-	{
-		Character->PlayThrowMontage();
-	}
 }
 
 void UCombatComponent::NetMulticastThrow_Implementation(FVector_NetQuantize10 ProvidedThrowVector)
 {
+	CombatState = ECombatState::ECS_Throwing;
+	if (Character)
+	{
+		Character->PlayThrowMontage();
+		Character->bUseControllerRotationYaw = false;
+		Character->GetCharacterMovement()->bOrientRotationToMovement = true;
+	}
 	DropEquippedWeapon();
-	EquippedWeapon->GetWeaponMesh()->AddImpulse(ProvidedThrowVector);
+	if (EquippedWeapon == nullptr) return;
+	EquippedWeapon->GetWeaponMesh()->AddImpulse(ProvidedThrowVector,NAME_None,true);
 	EquippedWeapon = nullptr;
 }
 
@@ -418,6 +421,28 @@ void UCombatComponent::EquipWeapon(AWeapon *WeaponToEquip)
 	Character->bUseControllerRotationYaw = true;
 
 }
+
+//include file at top
+//this is only being called on server
+//void UCombatComponent::UnEquipWeapon(AWeapon *WeaponToUnEquip, FVector_NetQuantize10 ProvidedThrowVector)
+//{
+//	if (Character == nullptr || WeaponToUnEquip == nullptr) return;
+//	if (CombatState != ECombatState::ECS_Unoccupied) return;
+//	DropEquippedWeapon();
+//
+//	//equipped weapon is null for all but server, not replicated
+//
+//	EquippedWeapon->SetWeaponState(EWeaponState::EWS_Dropped);
+//	
+//	//this returns currently & does nothing
+//	UpdateCarriedAmmo();
+//	PlayEquipWeaponSound();
+//	EquippedWeapon = nullptr;
+//	//change character to always be oriented w/ cam view, looks appropriate because
+//	//we implemented the equipped weapon blendspace into the anim BP
+//	Character->GetCharacterMovement()->bOrientRotationToMovement = true;
+//	Character->bUseControllerRotationYaw = false;
+//}
 
 void UCombatComponent::OnRep_EquippedWeapon()
 {
