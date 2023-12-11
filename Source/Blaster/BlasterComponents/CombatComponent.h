@@ -73,6 +73,13 @@ protected:
 
 	UFUNCTION(Server, Reliable)
 	void ServerThrow();
+
+	void DropEquippedWeapon();
+	void AttachActorToRightHand(AActor* ActorToAttach);
+	void AttachActorToLeftHand(AActor* ActorToAttach);
+	void UpdateCarriedAmmo();
+	void PlayEquipWeaponSound();
+	void ReloadEmptyWeapon();
 private:
 	//create ABC char class so we don't have to constantly cast
 	//has 2 b set as early as possible
