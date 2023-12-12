@@ -144,22 +144,6 @@ void ABlasterCharacter::Tick(float DeltaTime)
 	AimOffset(DeltaTime);
 	HideCameraIfCharacterClose();
 	PollInit();
-
-
-	FVector2D ViewportSize;
-	if (GEngine && GEngine->GameViewport)
-	{
-		GEngine->GameViewport->GetViewportSize(ViewportSize);
-	}
-	FVector2D CrosshairLocation(ViewportSize.X / 2.f, ViewportSize.Y / 2.f);
-	FVector CrosshairWorldPosition;
-	FVector CrosshairWorldDirection;
-	bool bScreenToWorld = UGameplayStatics::DeprojectScreenToWorld(
-		UGameplayStatics::GetPlayerController(this, 0),
-		CrosshairLocation,
-		CrosshairWorldPosition,
-		CrosshairWorldDirection
-	);
 }
 
 void ABlasterCharacter::RotateInPlace(float DeltaTime)
@@ -623,7 +607,6 @@ void ABlasterCharacter::ServerEquipButtonPressed_Implementation()
 {
 	if (Combat)
 	{
-		UE_LOG(LogTemp, Log, TEXT("server sees player wants to equip"));
 		Combat->EquipWeapon(OverlappingWeapon);
 	}
 }
@@ -897,14 +880,15 @@ void ABlasterCharacter::PollInit()
 
 void ABlasterCharacter::SetOverlappingWeapon(AWeapon *Weapon)
 {	
-	UE_LOG(LogTemp, Log, TEXT("setoverlappingweapon"));
 	//this exact if statement disables the widget for the server on exit. wjat
 	if (OverlappingWeapon)
 	{
 		OverlappingWeapon->ShowPickupWidget(false);
 	}
 	OverlappingWeapon = Weapon;
-	
+	//logic to only show widget for the character controlling the pawn
+	//onsphereoverlap is only called w/in the server... what are we to do?
+	//check if THIS function being called is being called by the character being controlled
 	if (IsLocallyControlled())
 	{
 		if (OverlappingWeapon)
@@ -914,11 +898,11 @@ void ABlasterCharacter::SetOverlappingWeapon(AWeapon *Weapon)
 	}
 }
 
+
 //repnotify is not called on server. 
 //gosh this is gee golly hard lmao
 void ABlasterCharacter::OnRep_OverlappingWeapon(AWeapon* LastWeapon)
 {
-	UE_LOG(LogTemp, Log, TEXT("onrep overlapping weapon"));
 	if (OverlappingWeapon) //this is the new var, LatWeapon is the old one
 	{
 		OverlappingWeapon->ShowPickupWidget(true);

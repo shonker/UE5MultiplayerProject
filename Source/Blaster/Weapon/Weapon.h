@@ -5,7 +5,6 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "WeaponTypes.h"
-#include "Blaster/Interfaces/InteractWithItemsInterface.h"
 #include "Weapon.generated.h"
 
 UENUM(BlueprintType)
@@ -20,7 +19,7 @@ enum class EWeaponState : uint8
 };
 
 UCLASS()
-class BLASTER_API AWeapon : public AActor, public IInteractWithItemsInterface
+class BLASTER_API AWeapon : public AActor
 {
 	GENERATED_BODY()
 	
@@ -32,11 +31,8 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual void OnRep_Owner() override;
 	void SetHUDAmmo();
-
-	FTimerHandle PickupWidgetTimerHandle;
-	virtual void ShowPickupWidget(bool bShowWidget) override;
-	void HidePickupWidget();
-
+	void ShowPickupWidget(bool bShowWidget);
+	//virtual allows overriding in child classees (such as ProjWeap.h)
 	virtual void Fire(const FVector& HitTarget);
 	void Dropped();
 	void AddAmmo(int32 AmmoToAdd);
@@ -123,8 +119,6 @@ private:
 
 	UPROPERTY(VisibleAnywhere, Category = "Weapon Properties")
 	class UWidgetComponent* PickupWidget;
-
-	float ShowPickupWidgetTimer = 0.05f;
 
 	UPROPERTY(EditAnywhere, Category = "Weapon Properties")
 	class UAnimationAsset* FireAnimation;

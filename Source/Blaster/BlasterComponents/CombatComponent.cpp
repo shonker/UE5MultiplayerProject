@@ -400,11 +400,7 @@ void UCombatComponent::JumpToShotgunEnd()
 //this is only being called on server
 void UCombatComponent::EquipWeapon(AWeapon *WeaponToEquip)
 {
-	UE_LOG(LogTemp, Log, TEXT("equipweapon (called on server)"));
-
 	if (Character == nullptr || WeaponToEquip == nullptr) return;
-	UE_LOG(LogTemp, Log, TEXT("!(Character == nullptr || WeaponToEquip == nullptr)"));
-
 	if (CombatState != ECombatState::ECS_Unoccupied) return;
 	DropEquippedWeapon();
 
@@ -426,13 +422,32 @@ void UCombatComponent::EquipWeapon(AWeapon *WeaponToEquip)
 
 }
 
+//include file at top
+//this is only being called on server
+//void UCombatComponent::UnEquipWeapon(AWeapon *WeaponToUnEquip, FVector_NetQuantize10 ProvidedThrowVector)
+//{
+//	if (Character == nullptr || WeaponToUnEquip == nullptr) return;
+//	if (CombatState != ECombatState::ECS_Unoccupied) return;
+//	DropEquippedWeapon();
+//
+//	//equipped weapon is null for all but server, not replicated
+//
+//	EquippedWeapon->SetWeaponState(EWeaponState::EWS_Dropped);
+//	
+//	//this returns currently & does nothing
+//	UpdateCarriedAmmo();
+//	PlayEquipWeaponSound();
+//	EquippedWeapon = nullptr;
+//	//change character to always be oriented w/ cam view, looks appropriate because
+//	//we implemented the equipped weapon blendspace into the anim BP
+//	Character->GetCharacterMovement()->bOrientRotationToMovement = true;
+//	Character->bUseControllerRotationYaw = false;
+//}
+
 void UCombatComponent::OnRep_EquippedWeapon()
 {
-	UE_LOG(LogTemp, Log, TEXT("onrep_equippedweapon"));
 	if (EquippedWeapon && Character)
 	{
-		UE_LOG(LogTemp, Log, TEXT("onrep_equippedweapon::(EquippedWeapon && Character)"));
-
 		EquippedWeapon->SetWeaponState(EWeaponState::EWS_Equipped);
 		const USkeletalMeshSocket* HandSocket = Character->GetMesh()->GetSocketByName(FName("RightHandSocket"));
 
@@ -550,40 +565,13 @@ void UCombatComponent::TraceUnderCrosshairs(FHitResult& TraceHitResult)
 			ECollisionChannel::ECC_Visibility
 		);
 		
-		if (TraceHitResult.GetActor())
+		if (TraceHitResult.GetActor() && TraceHitResult.GetActor()->Implements<UInteractWithCrosshairsInterface>())
 		{
-
-			UE_LOG(LogTemp, Log, TEXT("Object looking at: %s"), *TraceHitResult.GetActor()->GetName());
-
-			//AWeapon* PickupWeapon = Cast<AWeapon>(TraceHitResult.GetActor());
-			//if (Character && PickupWeapon)
-			//{
-			//	Character->SetOverlappingWeapon(Cast<AWeapon>(TraceHitResult.GetActor()));
-			//	//UE_LOG(LogTemp, Display, TEXT("LookingAtWeapon"));
-			//}
-
-			if (TraceHitResult.GetActor()->Implements<UInteractWithItemsInterface>()
-				&& TraceHitResult.Distance <= InteractableDistance)
-			{
-				IInteractWithItemsInterface* InteractInterface = Cast<IInteractWithItemsInterface>(TraceHitResult.GetActor());
-				if (InteractInterface)
-				{
-					Character->SetOverlappingWeapon(Cast<AWeapon>(TraceHitResult.GetActor()));
-					
-				} 
-				else
-				{
-					UE_LOG(LogTemp, Log, TEXT("cast failed :("));
-				}
-			}
-			if (TraceHitResult.GetActor()->Implements<UInteractWithCrosshairsInterface>())
-			{
-				HUDPackage.CrosshairsColor = FLinearColor::Red;
-			}
-			else
-			{
-				HUDPackage.CrosshairsColor = FLinearColor::White;
-			}
+			HUDPackage.CrosshairsColor = FLinearColor::Red;
+		}
+		else
+		{
+			HUDPackage.CrosshairsColor = FLinearColor::White;
 		}
 		if (!TraceHitResult.bBlockingHit) {
 			TraceHitResult.ImpactPoint = End;

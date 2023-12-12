@@ -121,7 +121,6 @@ private:
 	float CrosshairInAirFactor;
 	float CrosshairAimFactor;
 	float CrosshairShootingFactor;
-	float InteractableDistance = 100.f;
 
 	FVector HitTarget;
 
