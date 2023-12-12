@@ -104,20 +104,20 @@ private:
 	//makes it so only when this is updated on server, it is repped on clients
 	//replication only works when the var is changed
 	//also repusing = onrep_overWeap sets or_ol up to be called when the var changes
-	//UPROPERTY(ReplicatedUsing = OnRep_OverlappingWeapon)
+	UPROPERTY(ReplicatedUsing = OnRep_OverlappingWeapon)
 	class AWeapon* OverlappingWeapon;
 
 	//rep vars can ONLY have input params of the var being repd
 	//what gets passed in? the last var, BEFORE the update to the var :)
-	/*UFUNCTION()
-	void OnRep_OverlappingWeapon(AWeapon* LastWeapon);*/
+	UFUNCTION()
+	void OnRep_OverlappingWeapon(AWeapon* LastWeapon);
 
 	//meta specifier allows private variables to be blueprintreadonly
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	class UCombatComponent* Combat;
 
 	UFUNCTION(Server, Reliable)
-	void ServerEquipButtonPressed(AWeapon* WeaponToEquip);
+	void ServerEquipButtonPressed();
 
 	//protected aim offset var
 	float AO_Yaw;

@@ -552,26 +552,30 @@ void UCombatComponent::TraceUnderCrosshairs(FHitResult& TraceHitResult)
 		
 		if (TraceHitResult.GetActor())
 		{
+
+			UE_LOG(LogTemp, Log, TEXT("Object looking at: %s"), *TraceHitResult.GetActor()->GetName());
+
 			//AWeapon* PickupWeapon = Cast<AWeapon>(TraceHitResult.GetActor());
 			//if (Character && PickupWeapon)
 			//{
 			//	Character->SetOverlappingWeapon(Cast<AWeapon>(TraceHitResult.GetActor()));
 			//	//UE_LOG(LogTemp, Display, TEXT("LookingAtWeapon"));
 			//}
-			if (Character->IsLocallyControlled())
-			{ 
-				if (TraceHitResult.GetActor()->Implements<UInteractWithItemsInterface>()
-					&& TraceHitResult.Distance <= InteractableDistance)
+
+			if (TraceHitResult.GetActor()->Implements<UInteractWithItemsInterface>()
+				&& TraceHitResult.Distance <= InteractableDistance)
+			{
+				IInteractWithItemsInterface* InteractInterface = Cast<IInteractWithItemsInterface>(TraceHitResult.GetActor());
+				if (InteractInterface)
 				{
-					IInteractWithItemsInterface* InteractInterface = Cast<IInteractWithItemsInterface>(TraceHitResult.GetActor());
-					if (InteractInterface)
-					{
-						Character->SetOverlappingWeapon(Cast<AWeapon>(TraceHitResult.GetActor()));
+					Character->SetOverlappingWeapon(Cast<AWeapon>(TraceHitResult.GetActor()));
 					
-					} 
+				} 
+				else
+				{
+					UE_LOG(LogTemp, Log, TEXT("cast failed :("));
 				}
 			}
-
 			if (TraceHitResult.GetActor()->Implements<UInteractWithCrosshairsInterface>())
 			{
 				HUDPackage.CrosshairsColor = FLinearColor::Red;
