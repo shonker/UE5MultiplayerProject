@@ -91,7 +91,7 @@ void ABlasterCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 	//the _condition adds a condition as to whether the var is rep'd
 	//final argument specifies who the var is rep'd for
 	//in this case, the weapon being overlapped is only communicated to the person controlling the blaster character that overlaps the weapon
-	DOREPLIFETIME_CONDITION(ABlasterCharacter, OverlappingWeapon, COND_OwnerOnly);
+	//DOREPLIFETIME_CONDITION(ABlasterCharacter, OverlappingWeapon, COND_OwnerOnly);
 	DOREPLIFETIME(ABlasterCharacter, Health);
 	DOREPLIFETIME(ABlasterCharacter, bDisableGameplay);
 }
@@ -613,18 +613,18 @@ void ABlasterCharacter::EquipButtonPressed()
 		}
 		else
 		{
-			ServerEquipButtonPressed();
+			ServerEquipButtonPressed(OverlappingWeapon);
 		}
 	}
 }
 
     //here we have the server rpc so non-authority can pickup weapon
-void ABlasterCharacter::ServerEquipButtonPressed_Implementation()
+void ABlasterCharacter::ServerEquipButtonPressed_Implementation(AWeapon* WeaponToEquip)
 {
 	if (Combat)
 	{
 		UE_LOG(LogTemp, Log, TEXT("server sees player wants to equip"));
-		Combat->EquipWeapon(OverlappingWeapon);
+		Combat->EquipWeapon(WeaponToEquip);
 	}
 }
 
@@ -897,37 +897,29 @@ void ABlasterCharacter::PollInit()
 
 void ABlasterCharacter::SetOverlappingWeapon(AWeapon *Weapon)
 {	
-	UE_LOG(LogTemp, Log, TEXT("setoverlappingweapon"));
-	//this exact if statement disables the widget for the server on exit. wjat
-	if (OverlappingWeapon)
-	{
-		OverlappingWeapon->ShowPickupWidget(false);
-	}
-	OverlappingWeapon = Weapon;
+	//UE_LOG(LogTemp, Log, TEXT("setoverlappingweapon: %s"), *Weapon->GetName());
 	
-	if (IsLocallyControlled())
-	{
-		if (OverlappingWeapon)
-		{
-			OverlappingWeapon->ShowPickupWidget(true);
-		}
-	}
-}
-
-//repnotify is not called on server. 
-//gosh this is gee golly hard lmao
-void ABlasterCharacter::OnRep_OverlappingWeapon(AWeapon* LastWeapon)
-{
-	UE_LOG(LogTemp, Log, TEXT("onrep overlapping weapon"));
-	if (OverlappingWeapon) //this is the new var, LatWeapon is the old one
+	if (OverlappingWeapon)
 	{
 		OverlappingWeapon->ShowPickupWidget(true);
 	}
-	if (LastWeapon)//if lastweapon is not null then it is implied it now is... this seems like overlapping weapons could cause problems
-	{
-		LastWeapon->ShowPickupWidget(false);
-	}
 }
+
+
+//repnotify is not called on server. 
+//gosh this is gee golly hard lmao
+//void ABlasterCharacter::OnRep_OverlappingWeapon(AWeapon* LastWeapon)
+//{
+//	UE_LOG(LogTemp, Log, TEXT("onrep overlapping weapon"));
+//	if (OverlappingWeapon) //this is the new var, LatWeapon is the old one
+//	{
+//		OverlappingWeapon->ShowPickupWidget(true);
+//	}
+//	if (LastWeapon)//if lastweapon is not null then it is implied it now is... this seems like overlapping weapons could cause problems
+//	{
+//		LastWeapon->ShowPickupWidget(false);
+//	}
+//}
 
 //currently called by anim instance
 bool ABlasterCharacter::IsWeaponEquipped()
