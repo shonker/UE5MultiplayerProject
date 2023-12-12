@@ -12,6 +12,7 @@
 #include "Casing.h"
 #include "Blaster/PlayerController/BlasterPlayerController.h"
 #include "Blaster/BlasterComponents/CombatComponent.h"
+#include "TimerManager.h"
 
 // Sets default values
 AWeapon::AWeapon()
@@ -61,18 +62,12 @@ void AWeapon::BeginPlay()
 	Super::BeginPlay();
 
 	//here we check if we are the server and enable collision for the weapons
-	if (HasAuthority())
+	if (true)//(HasAuthority())
 	{
 		AreaSphere->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-		AreaSphere->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Overlap);
-
-		//binding overlap function on server side
-		//if you peek OnCompBegOverlap, you see FCompBegOverSignature 
-		//peek it to find they dec a dyn multi sparse delegate w/ six params
-		//that is where the func def args are found for the func
-		//here we bind our funcs to these events
-		AreaSphere->OnComponentBeginOverlap.AddDynamic(this, &AWeapon::OnSphereOverlap);
-		AreaSphere->OnComponentEndOverlap.AddDynamic(this, &AWeapon::OnSphereEndOverlap);
+		AreaSphere->SetCollisionResponseToChannel(ECollisionChannel::ECC_Visibility, ECollisionResponse::ECR_Block);
+		//AreaSphere->OnComponentBeginOverlap.AddDynamic(this, &AWeapon::OnSphereOverlap);
+		//AreaSphere->OnComponentEndOverlap.AddDynamic(this, &AWeapon::OnSphereEndOverlap);
 	}
 	if (PickupWidget)
 	{
@@ -85,7 +80,6 @@ void AWeapon::BeginPlay()
 void AWeapon::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
 }
 
 void AWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty> &OutLifetimeProps) const
@@ -200,6 +194,7 @@ void AWeapon::SetWeaponState(EWeaponState State)
 		{
 			AreaSphere->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 		}
+		AreaSphere->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 		WeaponMesh->SetSimulatePhysics(true);
 		WeaponMesh->SetEnableGravity(true);
 		WeaponMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
@@ -254,6 +249,15 @@ void AWeapon::ShowPickupWidget(bool bShowWidget)
 	if(PickupWidget)
 	{
 		PickupWidget->SetVisibility(bShowWidget);
+		GetWorldTimerManager().SetTimer(PickupWidgetTimerHandle, this, &AWeapon::HidePickupWidget, ShowPickupWidgetTimer, false);
+	}
+}
+
+void AWeapon::HidePickupWidget()
+{
+	if (PickupWidget)
+	{
+		PickupWidget->SetVisibility(false);
 	}
 }
 

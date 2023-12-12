@@ -41,7 +41,7 @@ void ABlasterHUD::DrawHUD()
     
     //loop time
 
-  /* if (GEngine)
+  if (GEngine)
     {
         GEngine->GameViewport->GetViewportSize(ViewportSize);
         const FVector2d ViewportCenter(ViewportSize.X/2.f, ViewportSize.Y/2.f);
@@ -73,9 +73,8 @@ void ABlasterHUD::DrawHUD()
             FVector2D Spread(0.f,SpreadScaled);
             DrawCrosshair(HUDPackage.CrosshairsBottom, ViewportCenter, Spread, HUDPackage.CrosshairsColor);
         }
-       
     }
-     */
+     
 }
 
 void ABlasterHUD::DrawCrosshair(UTexture2D* Texture, FVector2D ViewportCenter, FVector2D Spread, FLinearColor CrosshairColor)
