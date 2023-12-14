@@ -63,7 +63,7 @@ void UCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 		FHitResult HitResult;
 		TraceUnderCrosshairs(HitResult);
 		HitTarget = HitResult.ImpactPoint;
-
+		
 		SetHUDCrosshairs(DeltaTime);
 		InterpFOV(DeltaTime);
 	}

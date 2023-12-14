@@ -20,7 +20,8 @@
 #include "Blaster/Limb/Limb.h"
 #include "Blaster/BlasterPlayerState/BlasterPlayerState.h"
 #include "Blaster/Weapon/WeaponTypes.h"
-
+#include "Components/SphereComponent.h"
+#include "DrawDebugHelpers.h"
 /*
 hewwo!!!!
 heres a handy reminder of how to set server specific console loggies :)))))
@@ -68,6 +69,11 @@ ABlasterCharacter::ABlasterCharacter()
 
 	//this is also checked on bp character movement comp in myblasterchar
 	GetCharacterMovement()->NavAgentProps.bCanCrouch = true;
+
+	InteractSphere = CreateDefaultSubobject<USphereComponent>(TEXT("InteractSphere"));
+	InteractSphere->SetupAttachment(RootComponent);
+	InteractSphere->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+	InteractSphere->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
 	//this prevents the camera from moving when another player is between camera and player mesh
 	GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
@@ -122,6 +128,12 @@ void ABlasterCharacter::BeginPlay()
 		OnTakeAnyDamage.AddDynamic(this, &ABlasterCharacter::ReceiveDamage);
 	}
 
+	if (HasAuthority())
+	{
+		InteractSphere->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+		InteractSphere->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Overlap);
+	}
+
 	//if (FirstPersonCamera)
 	//{
 	//	FollowCamera->SetActive(false);
@@ -139,7 +151,18 @@ void ABlasterCharacter::BeginPlay()
 void ABlasterCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
+	if (IsLocallyControlled())
+	{
+		ServerSetInteractTarget(GetHitTarget());
+		RedDotEmitter = UGameplayStatics::SpawnEmitterAtLocation(
+			this,
+			RedDotParticles,
+			GetHitTarget(),
+			FRotator(),
+			FVector(1),
+			true
+		);
+	}
 	RotateInPlace(DeltaTime);
 	AimOffset(DeltaTime);
 	HideCameraIfCharacterClose();
@@ -705,6 +728,41 @@ void ABlasterCharacter::AimOffset(float DeltaTime)
 		TurningInPlace = ETurningInPlace::ETIP_NotTurning;
 	}
 
+	if (Combat)
+	{
+		//InteractTargetLocation = Combat->GetHitTarget();
+		/*InteractSphere->SetWorldLocation(Combat->GetHitTarget());*/
+		FVector_NetQuantize SphereVector = InteractSphere->GetComponentLocation();
+		/*FVector InteractVector;
+		FRotator InteractRotator;
+		GetActorEyesViewPoint(InteractVector, InteractRotator);
+
+		FHitResult InteractHitResult;
+		GetWorld()->LineTraceSingleByChannel(
+			InteractHitResult,
+			InteractVector,
+			Combat->GetHitTarget(),
+			ECollisionChannel::ECC_Pawn
+		);
+		DrawDebugLine(
+			GetWorld(),
+			InteractVector,
+			Combat->GetHitTarget(),
+			FColor::Cyan,
+			true);*/
+		//FColor RangeColor = Combat->GetHitTarget() - GetActorLocation()) ?
+		DrawDebugSphere(
+			GetWorld(),
+			SphereVector,
+			12.f,
+			12,
+			FColor::Red,
+			false,
+			1.f);
+	}
+
+	
+
 	CalculateAO_Pitch();
 }
 
@@ -877,6 +935,10 @@ void ABlasterCharacter::PollInit()
 	}
 }
 
+void ABlasterCharacter::ServerSetInteractTarget_Implementation(FVector_NetQuantize InteractTarget)
+{
+		InteractSphere->SetWorldLocation(InteractTarget);
+}
 
 void ABlasterCharacter::SetOverlappingWeapon(AWeapon *Weapon)
 {	
@@ -912,6 +974,7 @@ void ABlasterCharacter::OnRep_OverlappingWeapon(AWeapon* LastWeapon)
 		LastWeapon->ShowPickupWidget(false);
 	}
 }
+
 
 //currently called by anim instance
 bool ABlasterCharacter::IsWeaponEquipped()

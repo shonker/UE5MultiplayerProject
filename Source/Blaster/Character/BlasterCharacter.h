@@ -84,7 +84,6 @@ protected:
 	void RotateInPlace(float DeltaTime);
 
 private:
-
 	UPROPERTY(EditAnywhere, Category = Elim)
 	TSubclassOf<class ALimb> LimbClass;
 
@@ -107,6 +106,9 @@ private:
 	UPROPERTY(ReplicatedUsing = OnRep_OverlappingWeapon)
 	class AWeapon* OverlappingWeapon;
 
+	UPROPERTY(VisibleAnywhere, Category = "Interaction")
+	class USphereComponent* InteractSphere;
+
 	//rep vars can ONLY have input params of the var being repd
 	//what gets passed in? the last var, BEFORE the update to the var :)
 	UFUNCTION()
@@ -116,7 +118,17 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	class UCombatComponent* Combat;
 
+	UPROPERTY(EditAnywhere, Category = Combat)
+	UParticleSystem* RedDotParticles;
+
+	class UParticleSystemComponent* RedDotEmitter;
+
+	FVector_NetQuantize InteractTargetLocation;
+
 	UFUNCTION(Server, Reliable)
+	void ServerSetInteractTarget(FVector_NetQuantize InteractTarget);
+
+	UFUNCTION(Server, Unreliable)
 	void ServerEquipButtonPressed();
 
 	//protected aim offset var

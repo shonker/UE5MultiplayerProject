@@ -51,19 +51,31 @@ void AFountain::OnFountainEntry(
 	bool bFromSweep, 
 	const FHitResult& SweepResult)
 {
-	ABlasterCharacter* BlasterCharacter = Cast<ABlasterCharacter>(OtherActor);
-	if (BlasterCharacter)
+	FString ComponentName = OtherComp->GetName();
+	if (ComponentName == FString("InteractSphere"))
 	{
-		BlasterCharacter->Elim();
+		//this is if the character is gazing into the fountain
+		UE_LOG(LogTemp, Log, TEXT("component: %s"), *OtherComp->GetName());
 	}
-	UE_LOG(LogTemp, Log, TEXT("What the fuck dude"));
-	ALimb* LimbCharacter = Cast<ALimb>(OtherActor);
-	if (LimbCharacter && !bFountainEntered)
+	if (ComponentName == FString("CollisionCylinder"))
 	{
-		bFountainEntered = true;
-		SprayBlood();
-		//Multicast_OnFountainEntry();
-	}	
+		ABlasterCharacter* BlasterCharacter = Cast<ABlasterCharacter>(OtherActor);
+		if (BlasterCharacter)
+		{
+			
+			BlasterCharacter->Elim();
+		}
+	}
+	if (ComponentName == FString("Limb"))
+	{
+		ALimb* LimbCharacter = Cast<ALimb>(OtherActor);
+		if (LimbCharacter && !bFountainEntered)
+		{
+			bFountainEntered = true;
+			SprayBlood();
+			//Multicast_OnFountainEntry();
+		}
+	}
 }
 
 void AFountain::OnRep_FountainEntered()

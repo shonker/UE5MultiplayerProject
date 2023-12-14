@@ -3,6 +3,7 @@
 
 #include "Weapon.h"
 #include "Components/SphereComponent.h"
+#include "Components/BoxComponent.h"
 #include "Components/WidgetComponent.h"
 #include "Blaster/Character/BlasterCharacter.h"
 #include "Net/UnrealNetwork.h"
@@ -34,14 +35,14 @@ AWeapon::AWeapon()
 	WeaponMesh->MarkRenderStateDirty();
 	EnableCustomDepth(true);
 
-	AreaSphere = CreateDefaultSubobject<USphereComponent>(TEXT("AreaSphere"));
-	AreaSphere->SetupAttachment(RootComponent);
+	AreaBox = CreateDefaultSubobject<UBoxComponent>(TEXT("AreaBox"));
+	AreaBox->SetupAttachment(RootComponent);
 
 	//in mp its imp for things like this do be done on server side
 	//such as detect overlap
-	AreaSphere->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+	AreaBox->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
 	//this will be enabled on the server in begin play
-	AreaSphere->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	AreaBox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
 	PickupWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("PickupWidget"));
 	PickupWidget->SetupAttachment(RootComponent);
@@ -59,21 +60,22 @@ void AWeapon::EnableCustomDepth(bool bEnable)
 void AWeapon::BeginPlay()
 {
 	Super::BeginPlay();
-
 	//here we check if we are the server and enable collision for the weapons
 	if (HasAuthority())
 	{
-		AreaSphere->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-		AreaSphere->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Overlap);
+		AreaBox->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+		AreaBox->SetCollisionResponseToChannel(ECollisionChannel::ECC_WorldDynamic, ECollisionResponse::ECR_Overlap);
 
 		//binding overlap function on server side
 		//if you peek OnCompBegOverlap, you see FCompBegOverSignature 
 		//peek it to find they dec a dyn multi sparse delegate w/ six params
 		//that is where the func def args are found for the func
 		//here we bind our funcs to these events
-		AreaSphere->OnComponentBeginOverlap.AddDynamic(this, &AWeapon::OnSphereOverlap);
-		AreaSphere->OnComponentEndOverlap.AddDynamic(this, &AWeapon::OnSphereEndOverlap);
+		AreaBox->OnComponentBeginOverlap.AddDynamic(this, &AWeapon::OnSphereOverlap);
+		AreaBox->OnComponentEndOverlap.AddDynamic(this, &AWeapon::OnSphereEndOverlap);
 	}
+	AreaBox->SetCollisionResponseToChannel(ECollisionChannel::ECC_Visibility, ECollisionResponse::ECR_Block);
+
 	if (PickupWidget)
 	{
 		PickupWidget->SetVisibility(false);
@@ -99,7 +101,9 @@ void AWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty> &OutLifetimeP
 void AWeapon::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	//check includes to see where we included blaster char
-	ABlasterCharacter* BlasterCharacter = Cast<ABlasterCharacter>(OtherActor);
+
+	ABlasterCharacter* BlasterCharacter = Cast<ABlasterCharacter>(OtherComp->GetOwner());
+	//ABlasterCharacter* BlasterCharacter = Cast<ABlasterCharacter>(OtherActor);
 	//UE_LOG(LogTemp, Display, TEXT("Overlap Detected"));
 	if (BlasterCharacter)
 	{
@@ -110,7 +114,9 @@ void AWeapon::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* 
 void AWeapon::OnSphereEndOverlap(UPrimitiveComponent *OverlappedComponent, AActor *OtherActor, UPrimitiveComponent *OtherComp, int32 OtherBodyIndex)
 {
 	//cast only works if other actor is a valid blasterchar
-	ABlasterCharacter* BlasterCharacter = Cast<ABlasterCharacter>(OtherActor);
+	ABlasterCharacter* BlasterCharacter = Cast<ABlasterCharacter>(OtherComp->GetOwner());
+
+	//ABlasterCharacter* BlasterCharacter = Cast<ABlasterCharacter>(OtherActor);
 	//UE_LOG(LogTemp, Display, TEXT("Overlap Detected"));
 	//check if otheractor was a valid blasterchar
 	if (BlasterCharacter)
@@ -182,7 +188,7 @@ void AWeapon::SetWeaponState(EWeaponState State)
 		WeaponMesh->SetSimulatePhysics(false);
 		WeaponMesh->SetEnableGravity(false);
 		WeaponMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-		AreaSphere->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		AreaBox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
 		//this is done to enable the physics on the strap, make sure done in onrep as well!
 		if (WeaponType == EWeaponType::EWT_SubmachineGun) 
@@ -198,7 +204,7 @@ void AWeapon::SetWeaponState(EWeaponState State)
 	case EWeaponState::EWS_Dropped:
 		if (HasAuthority())
 		{
-			AreaSphere->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+			AreaBox->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 		}
 		WeaponMesh->SetSimulatePhysics(true);
 		WeaponMesh->SetEnableGravity(true);

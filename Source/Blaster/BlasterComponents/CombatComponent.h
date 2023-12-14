@@ -203,5 +203,5 @@ private:
 	AWeapon* WeaponToThrow;
 
 public:	
-		
+	FORCEINLINE FVector GetHitTarget()  const { return HitTarget; }
 };
