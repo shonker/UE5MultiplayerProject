@@ -118,11 +118,6 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	class UCombatComponent* Combat;
 
-	UPROPERTY(EditAnywhere, Category = Combat)
-	UParticleSystem* RedDotParticles;
-
-	class UParticleSystemComponent* RedDotEmitter;
-
 	FVector_NetQuantize InteractTargetLocation;
 
 	UFUNCTION(Server, Reliable)

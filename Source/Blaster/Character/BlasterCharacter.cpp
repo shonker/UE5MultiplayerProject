@@ -22,17 +22,17 @@
 #include "Blaster/Weapon/WeaponTypes.h"
 #include "Components/SphereComponent.h"
 #include "DrawDebugHelpers.h"
-/*
-hewwo!!!!
-heres a handy reminder of how to set server specific console loggies :)))))
+
+//hewwo!!!!
+//heres a handy reminder of how to set server specific console loggies :)))))
 //this means the person running the code isn't the server, 
 //but they're grabbing the blaster character that is the server
-	if (HasAuthority() && !IsLocallyControlled()) 
-	{
-			UE_LOG(LogTemp, Warning, TEXT("AO_Pitch: %f"), AO_Pitch);
-	}
-
-*/
+//	if (HasAuthority() && !IsLocallyControlled()) 
+//	{
+//			UE_LOG(LogTemp, Warning, TEXT("AO_Pitch: %f"), AO_Pitch);
+//	}
+//
+//*/
 
 // Sets default values
 ABlasterCharacter::ABlasterCharacter()
@@ -154,14 +154,7 @@ void ABlasterCharacter::Tick(float DeltaTime)
 	if (IsLocallyControlled())
 	{
 		ServerSetInteractTarget(GetHitTarget());
-		RedDotEmitter = UGameplayStatics::SpawnEmitterAtLocation(
-			this,
-			RedDotParticles,
-			GetHitTarget(),
-			FRotator(),
-			FVector(1),
-			true
-		);
+		InteractSphere->SetWorldLocation(GetHitTarget());
 	}
 	RotateInPlace(DeltaTime);
 	AimOffset(DeltaTime);
@@ -727,41 +720,6 @@ void ABlasterCharacter::AimOffset(float DeltaTime)
 		AO_Yaw = 0.f;
 		TurningInPlace = ETurningInPlace::ETIP_NotTurning;
 	}
-
-	if (Combat)
-	{
-		//InteractTargetLocation = Combat->GetHitTarget();
-		/*InteractSphere->SetWorldLocation(Combat->GetHitTarget());*/
-		FVector_NetQuantize SphereVector = InteractSphere->GetComponentLocation();
-		/*FVector InteractVector;
-		FRotator InteractRotator;
-		GetActorEyesViewPoint(InteractVector, InteractRotator);
-
-		FHitResult InteractHitResult;
-		GetWorld()->LineTraceSingleByChannel(
-			InteractHitResult,
-			InteractVector,
-			Combat->GetHitTarget(),
-			ECollisionChannel::ECC_Pawn
-		);
-		DrawDebugLine(
-			GetWorld(),
-			InteractVector,
-			Combat->GetHitTarget(),
-			FColor::Cyan,
-			true);*/
-		//FColor RangeColor = Combat->GetHitTarget() - GetActorLocation()) ?
-		DrawDebugSphere(
-			GetWorld(),
-			SphereVector,
-			12.f,
-			12,
-			FColor::Red,
-			false,
-			1.f);
-	}
-
-	
 
 	CalculateAO_Pitch();
 }
