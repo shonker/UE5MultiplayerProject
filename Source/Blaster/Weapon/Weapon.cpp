@@ -74,6 +74,7 @@ void AWeapon::BeginPlay()
 		AreaBox->OnComponentBeginOverlap.AddDynamic(this, &AWeapon::OnSphereOverlap);
 		AreaBox->OnComponentEndOverlap.AddDynamic(this, &AWeapon::OnSphereEndOverlap);
 	}
+	AreaBox->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	AreaBox->SetCollisionResponseToChannel(ECollisionChannel::ECC_Visibility, ECollisionResponse::ECR_Block);
 
 	if (PickupWidget)
@@ -101,7 +102,10 @@ void AWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty> &OutLifetimeP
 void AWeapon::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	//check includes to see where we included blaster char
-
+	if (OtherComp->GetName() == FString("InteractSphere"))
+	{
+		UE_LOG(LogTemp, Log, TEXT("interact sphere overlap detected"));
+	}
 	ABlasterCharacter* BlasterCharacter = Cast<ABlasterCharacter>(OtherComp->GetOwner());
 	//ABlasterCharacter* BlasterCharacter = Cast<ABlasterCharacter>(OtherActor);
 	//UE_LOG(LogTemp, Display, TEXT("Overlap Detected"));
