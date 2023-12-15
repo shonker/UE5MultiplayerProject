@@ -106,9 +106,6 @@ private:
 	UPROPERTY(ReplicatedUsing = OnRep_OverlappingWeapon)
 	class AWeapon* OverlappingWeapon;
 
-	UPROPERTY(VisibleAnywhere, Category = "Interaction")
-	class USphereComponent* InteractSphere;
-
 	//rep vars can ONLY have input params of the var being repd
 	//what gets passed in? the last var, BEFORE the update to the var :)
 	UFUNCTION()
@@ -118,12 +115,21 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	class UCombatComponent* Combat;
 
-	FVector_NetQuantize InteractTargetLocation;
+	FVector_NetQuantize LastHitTarget = FVector();
 
-	UFUNCTION(Server, Reliable)
-	void ServerSetInteractTarget(FVector_NetQuantize InteractTarget);
+	UPROPERTY(VisibleAnywhere, Category = "Interaction")
+	class USphereComponent* InteractSphere;
 
 	UFUNCTION(Server, Unreliable)
+	void ServerSetInteractTarget(FVector_NetQuantize InteractTarget);
+
+	UPROPERTY(ReplicatedUsing = OnRep_InteractTargetLocation)
+	FVector_NetQuantize InteractTargetLocation;
+
+	UFUNCTION()
+	void OnRep_InteractTargetLocation();
+
+	UFUNCTION(Server, Reliable)
 	void ServerEquipButtonPressed();
 
 	//protected aim offset var
@@ -246,7 +252,7 @@ public:
 	FORCEINLINE bool IsElimmed() const { return bElimmed; }
 	FORCEINLINE float GetHeath()  const { return Health; }
 	FORCEINLINE float GetMaxHealth()  const { return MaxHealth; }
-	FORCEINLINE ECombatState GetCombatState() const;
+	ECombatState GetCombatState();
 	FORCEINLINE UCombatComponent* GetCombat() const { return Combat; }
 	FORCEINLINE bool GetDisableGameplay() const { return bDisableGameplay; }
 	FORCEINLINE UAnimMontage* GetReloadMontage() const { return ReloadMontage; }

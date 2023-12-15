@@ -98,7 +98,7 @@ void UBlasterAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
             //get direction in world space of the X axis of the muzzle
             FVector MuzzleX(FRotationMatrix(MuzzleTipTransform.GetRotation().Rotator()).GetUnitAxis(EAxis::X));
            // DrawDebugLine(GetWorld(), MuzzleTipTransform.GetLocation(), MuzzleTipTransform.GetLocation()+ MuzzleX * 1000.f, FColor::Red);
-            DrawDebugLine(GetWorld(), MuzzleTipTransform.GetLocation(), BlasterCharacter->GetHitTarget(), FColor::Red);
+            //DrawDebugLine(GetWorld(), MuzzleTipTransform.GetLocation(), BlasterCharacter->GetHitTarget(), FColor::Red);
         }
         
     }

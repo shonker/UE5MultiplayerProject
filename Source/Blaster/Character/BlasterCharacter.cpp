@@ -21,6 +21,7 @@
 #include "Blaster/BlasterPlayerState/BlasterPlayerState.h"
 #include "Blaster/Weapon/WeaponTypes.h"
 #include "Components/SphereComponent.h"
+#include "Blaster/BlasterTypes/CombatState.h"
 #include "DrawDebugHelpers.h"
 
 //hewwo!!!!
@@ -98,6 +99,7 @@ void ABlasterCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 	//final argument specifies who the var is rep'd for
 	//in this case, the weapon being overlapped is only communicated to the person controlling the blaster character that overlaps the weapon
 	DOREPLIFETIME_CONDITION(ABlasterCharacter, OverlappingWeapon, COND_OwnerOnly);
+	DOREPLIFETIME_CONDITION(ABlasterCharacter, InteractTargetLocation, COND_SkipOwner);
 	DOREPLIFETIME(ABlasterCharacter, Health);
 	DOREPLIFETIME(ABlasterCharacter, bDisableGameplay);
 }
@@ -153,8 +155,15 @@ void ABlasterCharacter::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 	if (IsLocallyControlled())
 	{
-		ServerSetInteractTarget(GetHitTarget());
-		InteractSphere->SetWorldLocation(GetHitTarget());
+		FVector CurrentHitTarget = GetHitTarget();
+		if (LastHitTarget != CurrentHitTarget)
+		{
+			ServerSetInteractTarget(CurrentHitTarget);
+			//move to onrep_currenthittarget
+			//actually no leave here, but add to onrep with condition to only non-owners
+			InteractSphere->SetWorldLocation(CurrentHitTarget);
+			LastHitTarget = CurrentHitTarget;
+		}
 	}
 	RotateInPlace(DeltaTime);
 	AimOffset(DeltaTime);
@@ -895,7 +904,13 @@ void ABlasterCharacter::PollInit()
 
 void ABlasterCharacter::ServerSetInteractTarget_Implementation(FVector_NetQuantize InteractTarget)
 {
-		InteractSphere->SetWorldLocation(InteractTarget);
+	InteractTargetLocation = InteractTarget;
+	InteractSphere->SetWorldLocation(InteractTarget);
+}
+
+void ABlasterCharacter::OnRep_InteractTargetLocation()
+{
+	InteractSphere->SetWorldLocation(InteractTargetLocation);
 }
 
 void ABlasterCharacter::SetOverlappingWeapon(AWeapon *Weapon)
@@ -958,8 +973,9 @@ FVector ABlasterCharacter::GetHitTarget() const
     return Combat->HitTarget;
 }
 
-ECombatState ABlasterCharacter::GetCombatState() const
+ECombatState ABlasterCharacter::GetCombatState()
 {
 	if (Combat == nullptr) return ECombatState::ECS_MAX;
 	return Combat->CombatState;
 }
+
