@@ -75,6 +75,11 @@ ABlasterCharacter::ABlasterCharacter()
 	InteractSphere->SetupAttachment(RootComponent);
 	InteractSphere->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
 	InteractSphere->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	
+	VisualTargetSphere = CreateDefaultSubobject<USphereComponent>(TEXT("VisualTargetSphere"));
+	VisualTargetSphere->SetupAttachment(RootComponent);
+	VisualTargetSphere->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+	VisualTargetSphere->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
 	//this prevents the camera from moving when another player is between camera and player mesh
 	GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
@@ -134,6 +139,8 @@ void ABlasterCharacter::BeginPlay()
 	{
 		InteractSphere->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 		InteractSphere->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Overlap);
+		VisualTargetSphere->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+		VisualTargetSphere->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Overlap);
 	}
 
 	//if (FirstPersonCamera)
@@ -155,15 +162,7 @@ void ABlasterCharacter::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 	if (IsLocallyControlled())
 	{
-		FVector CurrentHitTarget = GetHitTarget();
-		if (LastHitTarget != CurrentHitTarget)
-		{
-			ServerSetInteractTarget(CurrentHitTarget);
-			//move to onrep_currenthittarget
-			//actually no leave here, but add to onrep with condition to only non-owners
-			InteractSphere->SetWorldLocation(CurrentHitTarget);
-			LastHitTarget = CurrentHitTarget;
-		}
+		ManageVisualInteractionTargetLocations();
 	}
 	RotateInPlace(DeltaTime);
 	AimOffset(DeltaTime);
@@ -902,15 +901,46 @@ void ABlasterCharacter::PollInit()
 	}
 }
 
+void ABlasterCharacter::ManageVisualInteractionTargetLocations()
+{
+	FVector_NetQuantize CurrentHitTarget = GetHitTarget();
+	if (LastHitTarget != CurrentHitTarget)
+	{
+		ServerSetInteractTarget(CurrentHitTarget);
+		SetInteractAndVisualTargetSphereLocation(CurrentHitTarget);
+		LastHitTarget = CurrentHitTarget;
+	}
+}
+
+void ABlasterCharacter::SetInteractAndVisualTargetSphereLocation(FVector_NetQuantize Target)
+{
+	FVector_NetQuantize CharacterLocation = GetActorLocation();
+	float Distance = FVector::Dist(CharacterLocation, Target);
+	if (IsLocallyControlled() || HasAuthority())
+	{
+		UE_LOG(LogTemp, Log, TEXT("%f"), Distance);
+		if (Distance < 1560.f)
+		{
+			InteractSphere->SetWorldLocation(Target);
+		}
+		else
+		{
+			InteractSphere->SetWorldLocation(CharacterLocation);
+		}
+	}
+	VisualTargetSphere->SetWorldLocation(Target);
+}
+
+
 void ABlasterCharacter::ServerSetInteractTarget_Implementation(FVector_NetQuantize InteractTarget)
 {
 	InteractTargetLocation = InteractTarget;
-	InteractSphere->SetWorldLocation(InteractTarget);
+	SetInteractAndVisualTargetSphereLocation(InteractTarget);
 }
 
 void ABlasterCharacter::OnRep_InteractTargetLocation()
 {
-	InteractSphere->SetWorldLocation(InteractTargetLocation);
+	SetInteractAndVisualTargetSphereLocation(InteractTargetLocation);
 }
 
 void ABlasterCharacter::SetOverlappingWeapon(AWeapon *Weapon)

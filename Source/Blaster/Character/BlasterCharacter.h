@@ -21,6 +21,7 @@ public:
 	ABlasterCharacter();
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+	void ManageVisualInteractionTargetLocations();
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
@@ -119,6 +120,13 @@ private:
 
 	UPROPERTY(VisibleAnywhere, Category = "Interaction")
 	class USphereComponent* InteractSphere;
+	
+	UPROPERTY(VisibleAnywhere, Category = "Interaction")
+	class USphereComponent* VisualTargetSphere;
+
+	void SetInteractAndVisualTargetSphereLocation(FVector_NetQuantize Target);
+
+	//uint32 InteractTargetRecheckTimer = 1;
 
 	UFUNCTION(Server, Unreliable)
 	void ServerSetInteractTarget(FVector_NetQuantize InteractTarget);

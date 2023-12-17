@@ -74,6 +74,7 @@ void AWeapon::BeginPlay()
 		AreaBox->OnComponentBeginOverlap.AddDynamic(this, &AWeapon::OnSphereOverlap);
 		AreaBox->OnComponentEndOverlap.AddDynamic(this, &AWeapon::OnSphereEndOverlap);
 	}
+	SetWeaponState(EWeaponState::EWS_Dropped);
 	AreaBox->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	AreaBox->SetCollisionResponseToChannel(ECollisionChannel::ECC_Visibility, ECollisionResponse::ECR_Block);
 
@@ -104,28 +105,28 @@ void AWeapon::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* 
 	//check includes to see where we included blaster char
 	if (OtherComp->GetName() == FString("InteractSphere"))
 	{
-		UE_LOG(LogTemp, Log, TEXT("interact sphere overlap detected"));
+		ABlasterCharacter* BlasterCharacter = Cast<ABlasterCharacter>(OtherComp->GetOwner());
+		//ABlasterCharacter* BlasterCharacter = Cast<ABlasterCharacter>(OtherActor);
+		UE_LOG(LogTemp, Display, TEXT("Overlap Detected"));
+		if (BlasterCharacter)
+		{
+			BlasterCharacter->SetOverlappingWeapon(this);
+		}
 	}
-	ABlasterCharacter* BlasterCharacter = Cast<ABlasterCharacter>(OtherComp->GetOwner());
-	//ABlasterCharacter* BlasterCharacter = Cast<ABlasterCharacter>(OtherActor);
-	//UE_LOG(LogTemp, Display, TEXT("Overlap Detected"));
-	if (BlasterCharacter)
-	{
-		BlasterCharacter->SetOverlappingWeapon(this);
-	}
+	
 };
 
 void AWeapon::OnSphereEndOverlap(UPrimitiveComponent *OverlappedComponent, AActor *OtherActor, UPrimitiveComponent *OtherComp, int32 OtherBodyIndex)
 {
-	//cast only works if other actor is a valid blasterchar
-	ABlasterCharacter* BlasterCharacter = Cast<ABlasterCharacter>(OtherComp->GetOwner());
-
-	//ABlasterCharacter* BlasterCharacter = Cast<ABlasterCharacter>(OtherActor);
-	//UE_LOG(LogTemp, Display, TEXT("Overlap Detected"));
-	//check if otheractor was a valid blasterchar
-	if (BlasterCharacter)
+	if (OtherComp->GetName() == FString("InteractSphere"))
 	{
-		BlasterCharacter->SetOverlappingWeapon(nullptr);
+		ABlasterCharacter* BlasterCharacter = Cast<ABlasterCharacter>(OtherComp->GetOwner());
+		//ABlasterCharacter* BlasterCharacter = Cast<ABlasterCharacter>(OtherActor);
+		UE_LOG(LogTemp, Display, TEXT("Unoverlap Detected"));
+		if (BlasterCharacter)
+		{
+			BlasterCharacter->SetOverlappingWeapon(nullptr);
+		}
 	}
 }
 
@@ -208,7 +209,7 @@ void AWeapon::SetWeaponState(EWeaponState State)
 	case EWeaponState::EWS_Dropped:
 		if (HasAuthority())
 		{
-			AreaBox->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+			AreaBox->SetCollisionResponseToChannel(ECollisionChannel::ECC_WorldDynamic, ECollisionResponse::ECR_Overlap);
 		}
 		WeaponMesh->SetSimulatePhysics(true);
 		WeaponMesh->SetEnableGravity(true);
@@ -216,7 +217,9 @@ void AWeapon::SetWeaponState(EWeaponState State)
 		WeaponMesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Block);
 		WeaponMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Ignore);
 		WeaponMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
-		
+		AreaBox->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+		AreaBox->SetCollisionResponseToChannel(ECollisionChannel::ECC_Visibility, ECollisionResponse::ECR_Block);
+
 		WeaponMesh->SetCustomDepthStencilValue(CUSTOM_DEPTH_PURPLE);
 		WeaponMesh->MarkRenderStateDirty();
 		EnableCustomDepth(true);

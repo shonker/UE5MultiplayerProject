@@ -62,7 +62,7 @@ void UCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 	{
 		FHitResult HitResult;
 		TraceUnderCrosshairs(HitResult);
-		FVector LocationAboveImpact = HitResult.ImpactPoint + 7.f * HitResult.ImpactNormal.GetSafeNormal();
+		FVector LocationAboveImpact = HitResult.ImpactPoint + 1.f * HitResult.ImpactNormal.GetSafeNormal();
 		HitTarget = LocationAboveImpact;
 		//HitTarget = HitResult.ImpactPoint;
 		
@@ -553,7 +553,7 @@ void UCombatComponent::TraceUnderCrosshairs(FHitResult& TraceHitResult)
 		if (Character)
 		{
 			float DistanceToCharacter = (Character->GetActorLocation() - Start).Size();
-			Start += CrosshairWorldDirection * (DistanceToCharacter + 2.f);
+			Start += CrosshairWorldDirection * (DistanceToCharacter/1.2);
 		}
 
 		//CrossWD is one unit in the direction, 80k is arbitrary to extend that reach
