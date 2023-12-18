@@ -15,9 +15,18 @@ enum class EDirection : uint8
 	Right
 };
 UENUM(BlueprintType)
+enum class ERoadType: uint8
+{
+	DeadEnd, 
+	TwoWay,
+	ThreeWay,
+	FourWay
+};
+UENUM(BlueprintType)
 enum class CellType : uint8
 {
 	Empty,
+	House,
 	Road
 };
 
@@ -32,11 +41,11 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
-	static const int32 GridSize = 8;
+	static const int32 GridSize = 16;
 	static const float CellSize;
-
+	
 	UPROPERTY(EditDefaultsOnly, Category = "RoadGeneration")
-		int32 BranchingFrequency = 10; //percent
+		int32 BranchingFrequency = 4; //percent
 
 	UPROPERTY(EditDefaultsOnly, Category = "RoadGeneration")
 		int32 MinLifetime = 5;
@@ -60,5 +69,7 @@ protected:
 	void PlaceRoad(int32 Row, int32 Col);
 
 	void SpawnFinishedNeighborhood();
+	UPROPERTY(BlueprintReadOnly)
+		TArray<AActor*> SpawnedRoads;
 
 };
