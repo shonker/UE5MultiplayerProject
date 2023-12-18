@@ -918,8 +918,8 @@ void ABlasterCharacter::SetInteractAndVisualTargetSphereLocation(FVector_NetQuan
 	float Distance = FVector::Dist(CharacterLocation, Target);
 	if (IsLocallyControlled() || HasAuthority())
 	{
-		UE_LOG(LogTemp, Log, TEXT("%f"), Distance);
-		if (Distance < 1560.f)
+		//UE_LOG(LogTemp, Log, TEXT("%f"), Distance);
+		if (Distance < 156.f)
 		{
 			InteractSphere->SetWorldLocation(Target);
 		}
