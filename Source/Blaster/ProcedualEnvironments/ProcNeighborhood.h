@@ -15,12 +15,14 @@ enum class EDirection : uint8
 	Right
 };
 UENUM(BlueprintType)
-enum class ERoadType: uint8
+enum class ERoadType : uint8
 {
-	DeadEnd, 
-	TwoWay,
-	ThreeWay,
-	FourWay
+	Nothing = 0,
+	DeadEnd = 1, 
+	TwoWay = 2,
+	ThreeWay = 3,
+	FourWay = 4,
+	TwoWayTurn = 5
 };
 UENUM(BlueprintType)
 enum class CellType : uint8
@@ -28,6 +30,13 @@ enum class CellType : uint8
 	Empty,
 	House,
 	Road
+};
+enum class CellRotation : uint32
+{
+	Rotation_0DegRight = 0,
+	Rotation_90DegDown = 90,
+	Rotation_180DegLeft = 180,
+	Rotation_270DegUp = 270
 };
 
 UCLASS()
@@ -56,7 +65,24 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Road Generation")
 		TSubclassOf<AActor> RoadClass;
 
-	CellType Grid[GridSize][GridSize];
+	UPROPERTY(EditDefaultsOnly, Category = "Road Generation")
+		TSubclassOf<AActor> DeadEndBlueprint;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Road Generation")
+		TSubclassOf<AActor> TwoWayBlueprint;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Road Generation")
+		TSubclassOf<AActor> ThreeWayBlueprint;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Road Generation")
+		TSubclassOf<AActor> FourWayBlueprint;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Road Generation")
+		TSubclassOf<AActor> TwoWayTurnBlueprint;
+
+	CellType GridCellTypes[GridSize][GridSize];
+	CellRotation GridRotations[GridSize][GridSize];
+	ERoadType GridRoadTypes[GridSize][GridSize];
 
 	void InitializeGrid();
 	void GenerateRoads();
@@ -67,6 +93,8 @@ protected:
 	void ChangeDirection(EDirection& CurrentDirection);
 
 	void PlaceRoad(int32 Row, int32 Col);
+
+	void InferRoadTypesAndRotations();
 
 	void SpawnFinishedNeighborhood();
 	UPROPERTY(BlueprintReadOnly)
