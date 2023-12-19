@@ -17,11 +17,13 @@ AProcNeighborhood::AProcNeighborhood()
 void AProcNeighborhood::BeginPlay()
 {
 	Super::BeginPlay();
-
-	InitializeGrid();
-	GenerateRoads();
-	InferRoadTypesAndRotations();
-	SpawnFinishedNeighborhood();
+	if (HasAuthority())
+	{
+		InitializeGrid();
+		GenerateRoads();
+		InferRoadTypesAndRotations();
+		SpawnFinishedNeighborhood();
+	}
 }
 
 void AProcNeighborhood::InitializeGrid()
@@ -124,8 +126,8 @@ void AProcNeighborhood::MoveInDirection(EDirection Direction, int32& Row, int32&
 		break;
 	}
 
-	Row = FMath::Clamp(Row, 0, GridSize - 1);
-	Col = FMath::Clamp(Col, 0, GridSize - 1);
+	Row = FMath::Clamp(Row, 1, GridSize - 2);
+	Col = FMath::Clamp(Col, 1, GridSize - 2);
 
 	PlaceRoad(Row, Col);
 }
