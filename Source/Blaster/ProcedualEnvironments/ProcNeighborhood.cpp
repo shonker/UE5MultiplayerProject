@@ -90,6 +90,24 @@ void AProcNeighborhood::GenerateRoadBranch(int32 StartRow, int32 StartCol, int32
 
 void AProcNeighborhood::MoveInDirection(EDirection Direction, int32& Row, int32& Col)
 {
+
+	//check if walking into an unsafe border area
+	switch (Direction)
+	{
+	case EDirection::Up:
+		if (Row - 1 <= 1) ChangeDirection(Direction);
+		break;
+	case EDirection::Down:
+		if (Row + 1 >= GridSize - 2) ChangeDirection(Direction);
+		break;
+	case EDirection::Left:
+		if (Col - 1 <= 1) ChangeDirection(Direction);
+		break;
+	case EDirection::Right:
+		if (Col + 1 >= GridSize - 2) ChangeDirection(Direction);
+		break;
+	}
+
 	switch (Direction)
 	{
 	case EDirection::Up:
@@ -150,15 +168,10 @@ void AProcNeighborhood::InferRoadTypesAndRotations()
 				{
 					if (GridCellTypes[Row + 1][Col] == CellType::Road) ConnectedRight = true;
 				}
-				else
-				{
-					idk = true;
-				}
 				if (Row - 1 >= 0) //Check up
 				{
 					if (GridCellTypes[Row][Col - 1] == CellType::Road) ConnectedUp = true;
 				}
-			
 				if (Row + 1 < GridSize) //Check down
 				{
 					if (GridCellTypes[Row][Col + 1] == CellType::Road) ConnectedDown = true;
@@ -276,11 +289,6 @@ void AProcNeighborhood::SpawnFinishedNeighborhood()
 						break;
 					case ERoadType::TwoWayTurn:
 						RoadBlueprint = TwoWayTurnBlueprintClass;
-						if (!RoadBlueprint)
-						{
-							UE_LOG(LogTemp, Error, TEXT("TwoWayTurnBlueprintClass is null!"));
-						}
-						UE_LOG(LogTemp, Error, TEXT("M<akin a two way turn!~!!!!"));
 						break;
 					default:
 						RoadBlueprint = DeadEndBlueprint;
