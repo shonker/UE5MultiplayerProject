@@ -4,7 +4,7 @@
 #include "Engine/World.h"
 #include "Kismet/GameplayStatics.h"
 
-const float AProcNeighborhood::CellSize = 100.f;
+const float AProcNeighborhood::CellSize = 100.f * 20.f;
 
 // Sets default values
 AProcNeighborhood::AProcNeighborhood()
@@ -17,6 +17,7 @@ AProcNeighborhood::AProcNeighborhood()
 void AProcNeighborhood::BeginPlay()
 {
 	Super::BeginPlay();
+
 	InitializeGrid();
 	GenerateRoads();
 	InferRoadTypesAndRotations();
@@ -139,57 +140,68 @@ void AProcNeighborhood::InferRoadTypesAndRotations()
 				bool ConnectedDown = false;
 				bool ConnectedLeft = false;
 				bool ConnectedUp = false;
+				bool idk = false;
 				
 				if (Col - 1 >= 0) //Check left
 				{
-					if (GridCellTypes[Row][Col - 1] == CellType::Road) ConnectedLeft = true;
+					if (GridCellTypes[Row - 1][Col] == CellType::Road) ConnectedLeft = true;
 				}
 				if (Col + 1 < GridSize) //Check right
 				{
-					if (GridCellTypes[Row][Col + 1] == CellType::Road) ConnectedRight = true;
+					if (GridCellTypes[Row + 1][Col] == CellType::Road) ConnectedRight = true;
+				}
+				else
+				{
+					idk = true;
 				}
 				if (Row - 1 >= 0) //Check up
 				{
-					if (GridCellTypes[Row - 1][Col] == CellType::Road) ConnectedUp = true;
+					if (GridCellTypes[Row][Col - 1] == CellType::Road) ConnectedUp = true;
 				}
+			
 				if (Row + 1 < GridSize) //Check down
 				{
-					if (GridCellTypes[Row + 1][Col] == CellType::Road) ConnectedDown = true;
+					if (GridCellTypes[Row][Col + 1] == CellType::Road) ConnectedDown = true;
 				}
-				uint8 ConnectionCount = ConnectedRight + ConnectedLeft + ConnectedDown + ConnectedUp;
-				GridRoadTypes[Row][Col] = static_cast<ERoadType>(ConnectionCount);
-
-				//Straightaway or Turn?
-				if (GridRoadTypes[Row][Col] == ERoadType::TwoWay)
+				uint8 ConnectionCount = ConnectedRight + ConnectedLeft + ConnectedDown + ConnectedUp + idk;
+				
+				
+				if (ConnectionCount == 2)
 				{
 					if (!(ConnectedRight && ConnectedLeft) && !(ConnectedUp && ConnectedDown))
 					{
 						GridRoadTypes[Row][Col] = ERoadType::TwoWayTurn;
 					}
+					else
+					{
+						GridRoadTypes[Row][Col] = ERoadType::TwoWay;
+					}
 				}
+				else 
+				{
+					GridRoadTypes[Row][Col] = static_cast<ERoadType>(ConnectionCount);
+				}
+				
+
 
 				//find rotations for each individual road type
 				switch (GridRoadTypes[Row][Col])
 				{ 
 					case (ERoadType::DeadEnd):
-						if (ConnectedRight) GridRotations[Row][Col] = CellRotation::Rotation_0DegRight; break;
-						if (ConnectedLeft) GridRotations[Row][Col] = CellRotation::Rotation_180DegLeft; break;
-						if (ConnectedDown) GridRotations[Row][Col] = CellRotation::Rotation_90DegDown; break;
-						if (ConnectedUp) GridRotations[Row][Col] = CellRotation::Rotation_270DegUp; break;
-						UE_LOG(LogTemp, Error, TEXT("Logic Problem in DeadEnd Rotation"));
+						if (ConnectedRight) GridRotations[Row][Col] = CellRotation::Rotation_0DegRight; //break;
+						if (ConnectedLeft) GridRotations[Row][Col] = CellRotation::Rotation_180DegLeft;// break;
+						if (ConnectedDown) GridRotations[Row][Col] = CellRotation::Rotation_90DegDown;// break;
+						if (ConnectedUp) GridRotations[Row][Col] = CellRotation::Rotation_270DegUp;// break;
 					break;
 					case (ERoadType::TwoWay):
-						if (ConnectedRight) GridRotations[Row][Col] = CellRotation::Rotation_0DegRight; break;
-						if (ConnectedDown) GridRotations[Row][Col] = CellRotation::Rotation_90DegDown; break;
-						UE_LOG(LogTemp, Error, TEXT("Logic Problem in TwoWay Rotation"));
-
+						if (ConnectedRight) GridRotations[Row][Col] = CellRotation::Rotation_0DegRight;// break;
+						if (ConnectedDown) GridRotations[Row][Col] = CellRotation::Rotation_90DegDown;// break;
 					break;
 					case (ERoadType::TwoWayTurn):
-						if (ConnectedRight && ConnectedDown) GridRotations[Row][Col] = CellRotation::Rotation_0DegRight; break;
-						if (ConnectedDown && ConnectedLeft) GridRotations[Row][Col] = CellRotation::Rotation_90DegDown; break;
-						if (ConnectedLeft && ConnectedUp) GridRotations[Row][Col] = CellRotation::Rotation_180DegLeft; break;
-						if (ConnectedUp && ConnectedRight) GridRotations[Row][Col] = CellRotation::Rotation_270DegUp; break;
-						UE_LOG(LogTemp, Error, TEXT("Logic Problem in TwoWayTurn Rotation"));
+						if (ConnectedRight && ConnectedDown) GridRotations[Row][Col] = CellRotation::Rotation_0DegRight;// break;
+						if (ConnectedDown && ConnectedLeft) GridRotations[Row][Col] = CellRotation::Rotation_90DegDown;// break;
+						if (ConnectedLeft && ConnectedUp) GridRotations[Row][Col] = CellRotation::Rotation_180DegLeft;// break;
+						if (ConnectedUp && ConnectedRight) GridRotations[Row][Col] = CellRotation::Rotation_270DegUp; //break;
 					break;
 					case (ERoadType::ThreeWay):
 						if (ConnectedRight && ConnectedLeft)
@@ -218,13 +230,13 @@ void AProcNeighborhood::InferRoadTypesAndRotations()
 								break;
 							}
 						}
-						UE_LOG(LogTemp, Error, TEXT("Logic Problem in ThreeWay Rotation"));
 					break;
 					case (ERoadType::FourWay):
 						GridRotations[Row][Col] = CellRotation::Rotation_0DegRight;
 					break;
 					default: //shouldnt happen
 						GridRotations[Row][Col] = CellRotation::Rotation_0DegRight;
+						GridCellTypes[Row][Col] = CellType::Empty;
 						UE_LOG(LogTemp, Error, TEXT("Default GridCell Rotation Should Not Be Selected"));
 					break;
 				}
@@ -263,7 +275,12 @@ void AProcNeighborhood::SpawnFinishedNeighborhood()
 						RoadBlueprint = FourWayBlueprint;
 						break;
 					case ERoadType::TwoWayTurn:
-						RoadBlueprint = TwoWayTurnBlueprint;
+						RoadBlueprint = TwoWayTurnBlueprintClass;
+						if (!RoadBlueprint)
+						{
+							UE_LOG(LogTemp, Error, TEXT("TwoWayTurnBlueprintClass is null!"));
+						}
+						UE_LOG(LogTemp, Error, TEXT("M<akin a two way turn!~!!!!"));
 						break;
 					default:
 						RoadBlueprint = DeadEndBlueprint;
@@ -272,8 +289,8 @@ void AProcNeighborhood::SpawnFinishedNeighborhood()
 
 					if (RoadBlueprint)
 					{
-						FRotator RoadRotation = FRotator(0.0f, 0.0f, static_cast<float>(GridRotations[Row][Col]));
-						SpawnedRoad = GetWorld()->SpawnActor<AActor>(RoadClass, SpawnLocation, RoadRotation);
+						FRotator RoadRotation = FRotator(0.0f,static_cast<float>(GridRotations[Row][Col]), 0.0f);
+						SpawnedRoad = GetWorld()->SpawnActor<AActor>(RoadBlueprint, SpawnLocation, RoadRotation);
 						if (SpawnedRoad)
 						{
 							SpawnedRoads.Add(SpawnedRoad);

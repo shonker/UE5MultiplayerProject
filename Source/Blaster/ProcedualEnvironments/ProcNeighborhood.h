@@ -78,7 +78,7 @@ protected:
 		TSubclassOf<AActor> FourWayBlueprint;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Road Generation")
-		TSubclassOf<AActor> TwoWayTurnBlueprint;
+		TSubclassOf<AActor> TwoWayTurnBlueprintClass;
 
 	CellType GridCellTypes[GridSize][GridSize];
 	CellRotation GridRotations[GridSize][GridSize];
