@@ -88,6 +88,8 @@ protected:
 	void GenerateRoads();
 	void GenerateRoadBranch(int32 StartRow, int32 StartCol, int32 Lifetime, EDirection CurrentDirection);
 
+	void GenerateHouses();
+
 	void MoveInDirection(EDirection Direction, int32& Row, int32& Col);
 
 	void ChangeDirection(EDirection& CurrentDirection);

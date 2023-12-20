@@ -22,17 +22,18 @@ void AProcNeighborhood::BeginPlay()
 		InitializeGrid();
 		GenerateRoads();
 		InferRoadTypesAndRotations();
+		GenerateHouses();
 		SpawnFinishedNeighborhood();
 	}
 }
 
 void AProcNeighborhood::InitializeGrid()
 {
-	for (int32 Row = 0; Row < GridSize; ++Row)
+	for (int32 Col = 0; Col < GridSize; ++Col)
 	{
-		for (int32 Col = 0; Col < GridSize; Col++)
+		for (int32 Row = 0; Row < GridSize; Row++)
 		{
-			GridCellTypes[Row][Col] = CellType::Empty;
+			GridCellTypes[Col][Row] = CellType::Empty;
 		}
 	}
 }
@@ -40,34 +41,34 @@ void AProcNeighborhood::InitializeGrid()
 void AProcNeighborhood::GenerateRoads()
 {
 	int32 Lifetime = FMath::RandRange(MinLifetime, MaxLifetime);
-	int32 StartRow = GridSize/2;
 	int32 StartCol = GridSize/2;
-	UE_LOG(LogTemp, Display, TEXT("Seed ~ Lifetime: %i StartRow: %i StartCol: %i"), Lifetime, StartRow, StartCol);
+	int32 StartRow = GridSize/2;
+	UE_LOG(LogTemp, Display, TEXT("Seed ~ Lifetime: %i StartCol: %i StartRow: %i"), Lifetime, StartCol, StartRow);
 
 	//this is sick, we use 0-3 irand to choose one of our enum options
 	EDirection CurrentDirection = static_cast<EDirection>(FMath::RandRange(0, 3));
-	PlaceRoad(StartRow, StartCol);
+	PlaceRoad(StartCol, StartRow);
 
 	for (int32 i = 0; i < Lifetime; Lifetime--)
 	{
 		if (FMath::RandRange(1, 100) <= BranchingFrequency)
 		{
-			UE_LOG(LogTemp, Log, TEXT("Branch ~ Lifetime: %i StartRow: %i StartCol: %i"), Lifetime, StartRow, StartCol);
-			GenerateRoadBranch(StartRow, StartCol, Lifetime, CurrentDirection);
+			UE_LOG(LogTemp, Log, TEXT("Branch ~ Lifetime: %i StartCol: %i StartRow: %i"), Lifetime, StartCol, StartRow);
+			GenerateRoadBranch(StartCol, StartRow, Lifetime, CurrentDirection);
 		}
 		if (FMath::RandBool()) //50% chance cont straight
 		{
-			MoveInDirection(CurrentDirection, StartRow, StartCol);
+			MoveInDirection(CurrentDirection, StartCol, StartRow);
 		}
 		else //25% chance left, and 25% right
 		{
 			ChangeDirection(CurrentDirection);
-			MoveInDirection(CurrentDirection, StartRow, StartCol);
+			MoveInDirection(CurrentDirection, StartCol, StartRow);
 		}
 	}
 }
 
-void AProcNeighborhood::GenerateRoadBranch(int32 StartRow, int32 StartCol, int32 Lifetime, EDirection CurrentDirection)
+void AProcNeighborhood::GenerateRoadBranch(int32 StartCol, int32 StartRow, int32 Lifetime, EDirection CurrentDirection)
 {
 	//this is sick, we use 0-3 irand to choose one of our enum options
 	ChangeDirection(CurrentDirection);
@@ -75,22 +76,22 @@ void AProcNeighborhood::GenerateRoadBranch(int32 StartRow, int32 StartCol, int32
 	{
 		if (FMath::RandRange(1, 100) <= BranchingFrequency)
 		{
-			UE_LOG(LogTemp, Log, TEXT("Branch ~ Lifetime: %i StartRow: %i StartCol: %i"), Lifetime, StartRow, StartCol);
-			GenerateRoadBranch(StartRow, StartCol, Lifetime, CurrentDirection);
+			UE_LOG(LogTemp, Log, TEXT("Branch ~ Lifetime: %i StartCol: %i StartRow: %i"), Lifetime, StartCol, StartRow);
+			GenerateRoadBranch(StartCol, StartRow, Lifetime, CurrentDirection);
 		}
 		if (FMath::RandBool()) //50% chance cont straight
 		{
-			MoveInDirection(CurrentDirection, StartRow, StartCol);
+			MoveInDirection(CurrentDirection, StartCol, StartRow);
 		}
 		else //25% chance left, and 25% right
 		{
 			ChangeDirection(CurrentDirection);
-			MoveInDirection(CurrentDirection, StartRow, StartCol);
+			MoveInDirection(CurrentDirection, StartCol, StartRow);
 		}
 	}
 }
 
-void AProcNeighborhood::MoveInDirection(EDirection Direction, int32& Row, int32& Col)
+void AProcNeighborhood::MoveInDirection(EDirection Direction, int32& Col, int32& Row)
 {
 
 	//check if walking into an unsafe border area
@@ -126,10 +127,10 @@ void AProcNeighborhood::MoveInDirection(EDirection Direction, int32& Row, int32&
 		break;
 	}
 
-	Row = FMath::Clamp(Row, 1, GridSize - 2);
 	Col = FMath::Clamp(Col, 1, GridSize - 2);
+	Row = FMath::Clamp(Row, 1, GridSize - 2);
 
-	PlaceRoad(Row, Col);
+	PlaceRoad(Col, Row);
 }
 
 void AProcNeighborhood::ChangeDirection(EDirection& CurrentDirection)
@@ -142,93 +143,83 @@ void AProcNeighborhood::ChangeDirection(EDirection& CurrentDirection)
 	CurrentDirection = static_cast<EDirection>(NextRawDirection);
 }
 
-void AProcNeighborhood::PlaceRoad(int32 Row, int32 Col)
+void AProcNeighborhood::PlaceRoad(int32 Col, int32 Row)
 {
-	GridCellTypes[Row][Col] = CellType::Road;
+	GridCellTypes[Col][Row] = CellType::Road;
 }
 
 void AProcNeighborhood::InferRoadTypesAndRotations()
 {
-	for (int32 Row = 0; Row < GridSize; ++Row)
+	for (int32 Col = 0; Col < GridSize; ++Col)
 	{
-		for (int32 Col = 0; Col < GridSize; Col++)
+		for (int32 Row = 0; Row < GridSize; Row++)
 		{	
 			
-			if (GridCellTypes[Row][Col] == CellType::Road)
+			if (GridCellTypes[Col][Row] == CellType::Road)
 			{
 				bool ConnectedRight = false;
 				bool ConnectedDown = false;
 				bool ConnectedLeft = false;
 				bool ConnectedUp = false;
-				bool idk = false;
 				
 				if (Col - 1 >= 0) //Check left
 				{
-					if (GridCellTypes[Row - 1][Col] == CellType::Road) ConnectedLeft = true;
+					if (GridCellTypes[Col - 1][Row] == CellType::Road) ConnectedLeft = true;
 				}
 				if (Col + 1 < GridSize) //Check right
 				{
-					if (GridCellTypes[Row + 1][Col] == CellType::Road) ConnectedRight = true;
+					if (GridCellTypes[Col + 1][Row] == CellType::Road) ConnectedRight = true;
 				}
 				if (Row - 1 >= 0) //Check up
 				{
-					if (GridCellTypes[Row][Col - 1] == CellType::Road) ConnectedUp = true;
+					if (GridCellTypes[Col][Row - 1] == CellType::Road) ConnectedUp = true;
 				}
 				if (Row + 1 < GridSize) //Check down
 				{
-					if (GridCellTypes[Row][Col + 1] == CellType::Road) ConnectedDown = true;
+					if (GridCellTypes[Col][Row + 1] == CellType::Road) ConnectedDown = true;
 				}
-				uint8 ConnectionCount = ConnectedRight + ConnectedLeft + ConnectedDown + ConnectedUp + idk;
+				uint8 ConnectionCount = ConnectedRight + ConnectedLeft + ConnectedDown + ConnectedUp;
 				
-				
+				GridRoadTypes[Col][Row] = static_cast<ERoadType>(ConnectionCount);
+
 				if (ConnectionCount == 2)
 				{
 					if (!(ConnectedRight && ConnectedLeft) && !(ConnectedUp && ConnectedDown))
 					{
-						GridRoadTypes[Row][Col] = ERoadType::TwoWayTurn;
-					}
-					else
-					{
-						GridRoadTypes[Row][Col] = ERoadType::TwoWay;
+						GridRoadTypes[Col][Row] = ERoadType::TwoWayTurn;
 					}
 				}
-				else 
-				{
-					GridRoadTypes[Row][Col] = static_cast<ERoadType>(ConnectionCount);
-				}
-				
-
 
 				//find rotations for each individual road type
-				switch (GridRoadTypes[Row][Col])
+				switch (GridRoadTypes[Col][Row])
 				{ 
 					case (ERoadType::DeadEnd):
-						if (ConnectedRight) GridRotations[Row][Col] = CellRotation::Rotation_0DegRight; //break;
-						if (ConnectedLeft) GridRotations[Row][Col] = CellRotation::Rotation_180DegLeft;// break;
-						if (ConnectedDown) GridRotations[Row][Col] = CellRotation::Rotation_90DegDown;// break;
-						if (ConnectedUp) GridRotations[Row][Col] = CellRotation::Rotation_270DegUp;// break;
+						if (ConnectedRight) GridRotations[Col][Row] = CellRotation::Rotation_0DegRight; //break;
+						if (ConnectedLeft) GridRotations[Col][Row] = CellRotation::Rotation_180DegLeft;// break;
+						if (ConnectedDown) GridRotations[Col][Row] = CellRotation::Rotation_90DegDown;// break;
+						if (ConnectedUp) GridRotations[Col][Row] = CellRotation::Rotation_270DegUp;// break;
 					break;
 					case (ERoadType::TwoWay):
-						if (ConnectedRight) GridRotations[Row][Col] = CellRotation::Rotation_0DegRight;// break;
-						if (ConnectedDown) GridRotations[Row][Col] = CellRotation::Rotation_90DegDown;// break;
+						if (ConnectedRight) GridRotations[Col][Row] = CellRotation::Rotation_0DegRight;// break;
+						if (ConnectedDown) GridRotations[Col][Row] = CellRotation::Rotation_90DegDown;// break;
 					break;
 					case (ERoadType::TwoWayTurn):
-						if (ConnectedRight && ConnectedDown) GridRotations[Row][Col] = CellRotation::Rotation_0DegRight;// break;
-						if (ConnectedDown && ConnectedLeft) GridRotations[Row][Col] = CellRotation::Rotation_90DegDown;// break;
-						if (ConnectedLeft && ConnectedUp) GridRotations[Row][Col] = CellRotation::Rotation_180DegLeft;// break;
-						if (ConnectedUp && ConnectedRight) GridRotations[Row][Col] = CellRotation::Rotation_270DegUp; //break;
+						if (ConnectedRight && ConnectedDown) GridRotations[Col][Row] = CellRotation::Rotation_0DegRight;// break;
+						if (ConnectedDown && ConnectedLeft) GridRotations[Col][Row] = CellRotation::Rotation_90DegDown;// break;
+						if (ConnectedLeft && ConnectedUp) GridRotations[Col][Row] = CellRotation::Rotation_180DegLeft;// break;
+						if (ConnectedUp && ConnectedRight) GridRotations[Col][Row] = CellRotation::Rotation_270DegUp; //break;
 					break;
 					case (ERoadType::ThreeWay):
 						if (ConnectedRight && ConnectedLeft)
 						{
 							if (ConnectedUp)
 							{
-								GridRotations[Row][Col] = CellRotation::Rotation_180DegLeft;
+								GridRotations[Col][Row] = CellRotation::Rotation_180DegLeft;
 								break;
 							}
 							if (ConnectedDown)
 							{
-								GridRotations[Row][Col] = CellRotation::Rotation_0DegRight;
+								GridRotations[Col][Row] = CellRotation::Rotation_0DegRight;
 								break;
 							}
 						}
@@ -236,22 +227,24 @@ void AProcNeighborhood::InferRoadTypesAndRotations()
 						{
 							if (ConnectedRight)
 							{
-								GridRotations[Row][Col] = CellRotation::Rotation_270DegUp;
+								GridRotations[Col][Row] = CellRotation::Rotation_270DegUp;
 								break;
 							}
 							if (ConnectedLeft)
 							{
-								GridRotations[Row][Col] = CellRotation::Rotation_90DegDown;
+								GridRotations[Col][Row] = CellRotation::Rotation_90DegDown;
 								break;
 							}
 						}
 					break;
 					case (ERoadType::FourWay):
-						GridRotations[Row][Col] = CellRotation::Rotation_0DegRight;
+						GridRotations[Col][Row] = FMath::RandBool() ? 
+								(FMath::RandBool() ? CellRotation::Rotation_0DegRight : CellRotation::Rotation_270DegUp):
+								(FMath::RandBool() ? CellRotation::Rotation_90DegDown : CellRotation::Rotation_180DegLeft);
 					break;
 					default: //shouldnt happen
-						GridRotations[Row][Col] = CellRotation::Rotation_0DegRight;
-						GridCellTypes[Row][Col] = CellType::Empty;
+						GridRotations[Col][Row] = CellRotation::Rotation_0DegRight;
+						GridCellTypes[Col][Row] = CellType::Empty;
 						UE_LOG(LogTemp, Error, TEXT("Default GridCell Rotation Should Not Be Selected"));
 					break;
 				}
@@ -260,22 +253,33 @@ void AProcNeighborhood::InferRoadTypesAndRotations()
 	}
 }
 
+void AProcNeighborhood::GenerateHouses()
+{
+	for (int32 Col = 0; Col < GridSize; ++Col)
+	{
+		for (int32 Row = 0; Row < GridSize; Row++)
+		{
+	
+		}
+	}
+}
+
 void AProcNeighborhood::SpawnFinishedNeighborhood()
 {
-	for (int32 Row = 0; Row < GridSize; ++Row)
+	for (int32 Col = 0; Col < GridSize; ++Col)
 	{
-		for (int32 Col = 0; Col < GridSize; Col++)
+		for (int32 Row = 0; Row < GridSize; Row++)
 		{
-			FVector SpawnLocation = GetActorLocation() + FVector(Row * CellSize, Col * CellSize, 0.0f);
+			FVector SpawnLocation = GetActorLocation() + FVector(Col * CellSize, Row * CellSize, 0.0f);
 			AActor* SpawnedRoad;
-			switch (GridCellTypes[Row][Col]) 
+			switch (GridCellTypes[Col][Row]) 
 			{
 			case CellType::Road:
 				UWorld* World = GetWorld();
 				if (World)
 				{
 					TSubclassOf<AActor> RoadBlueprint = nullptr;
-					switch (GridRoadTypes[Row][Col])
+					switch (GridRoadTypes[Col][Row])
 					{
 					case ERoadType::DeadEnd:
 						RoadBlueprint = DeadEndBlueprint;
@@ -299,7 +303,7 @@ void AProcNeighborhood::SpawnFinishedNeighborhood()
 
 					if (RoadBlueprint)
 					{
-						FRotator RoadRotation = FRotator(0.0f,static_cast<float>(GridRotations[Row][Col]), 0.0f);
+						FRotator RoadRotation = FRotator(0.0f,static_cast<float>(GridRotations[Col][Row]), 0.0f);
 						SpawnedRoad = GetWorld()->SpawnActor<AActor>(RoadBlueprint, SpawnLocation, RoadRotation);
 						if (SpawnedRoad)
 						{
