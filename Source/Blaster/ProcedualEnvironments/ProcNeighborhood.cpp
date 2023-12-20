@@ -253,16 +253,79 @@ void AProcNeighborhood::InferRoadTypesAndRotations()
 	}
 }
 
+//generated in empty cells touching roads
 void AProcNeighborhood::GenerateHouses()
 {
+	TMap<FVector2D, uint8> ConnectionCounts;
+
 	for (int32 Col = 0; Col < GridSize; ++Col)
 	{
 		for (int32 Row = 0; Row < GridSize; Row++)
 		{
-	
+			if (GridCellTypes[Col][Row] == CellType::Empty)
+			{
+				bool ConnectedRight = false;
+				bool ConnectedDown = false;
+				bool ConnectedLeft = false;
+				bool ConnectedUp = false;
+
+				if (Col - 1 >= 0) //Check left
+				{
+					if (GridCellTypes[Col - 1][Row] == CellType::Road) ConnectedLeft = true;
+				}
+				if (Col + 1 < GridSize) //Check right
+				{
+					if (GridCellTypes[Col + 1][Row] == CellType::Road) ConnectedRight = true;
+				}
+				if (Row - 1 >= 0) //Check up
+				{
+					if (GridCellTypes[Col][Row - 1] == CellType::Road) ConnectedUp = true;
+				}
+				if (Row + 1 < GridSize) //Check down
+				{
+					if (GridCellTypes[Col][Row + 1] == CellType::Road) ConnectedDown = true;
+				}
+
+				uint8 ConnectionCount = ConnectedRight + ConnectedLeft + ConnectedDown + ConnectedUp;
+
+				ConnectionCounts.Add(FVector2D(Col, Row), ConnectionCount);
+
+
+				TArray<CellRotation> PossibleRotations;
+
+				if (ConnectedLeft) PossibleRotations.Add(CellRotation::Rotation_180DegLeft);
+				if (ConnectedRight) PossibleRotations.Add(CellRotation::Rotation_0DegRight);
+				if (ConnectedUp) PossibleRotations.Add(CellRotation::Rotation_270DegUp);
+				if (ConnectedDown) PossibleRotations.Add(CellRotation::Rotation_90DegDown);
+
+				if (PossibleRotations.Num() > 0)
+				{
+					int32 RandomIndex = FMath::RandRange(0, PossibleRotations.Num() - 1);
+					GridRotations[Col][Row] = PossibleRotations[RandomIndex];
+				}
+			}
+		}
+	}
+
+	uint8 HouseCount = FMath::RandRange(MinHouseCount, MaxHouseCount);
+	for (const auto& Entry : ConnectionCounts)
+	{
+		if (HouseCount <= 0) continue;
+		FVector2D CandidateLocation = Entry.Key;
+		uint8 ConnectionCount = Entry.Value;
+		int32 Col = CandidateLocation.X;
+		int32 Row = CandidateLocation.Y;
+		
+		float Chance = ConnectionCount * FMath::RandRange(0, 50);
+
+		if (Chance > 40)
+		{
+			GridCellTypes[Col][Row] = CellType::House;
+			HouseCount -= 1;
 		}
 	}
 }
+
 
 void AProcNeighborhood::SpawnFinishedNeighborhood()
 {
@@ -270,15 +333,14 @@ void AProcNeighborhood::SpawnFinishedNeighborhood()
 	{
 		for (int32 Row = 0; Row < GridSize; Row++)
 		{
+			TSubclassOf<AActor> RoadBlueprint = nullptr;
 			FVector SpawnLocation = GetActorLocation() + FVector(Col * CellSize, Row * CellSize, 0.0f);
-			AActor* SpawnedRoad;
-			switch (GridCellTypes[Col][Row]) 
+			UWorld* World = GetWorld();
+			if (World)
 			{
-			case CellType::Road:
-				UWorld* World = GetWorld();
-				if (World)
+				switch (GridCellTypes[Col][Row])
 				{
-					TSubclassOf<AActor> RoadBlueprint = nullptr;
+				case CellType::Road:
 					switch (GridRoadTypes[Col][Row])
 					{
 					case ERoadType::DeadEnd:
@@ -303,15 +365,28 @@ void AProcNeighborhood::SpawnFinishedNeighborhood()
 
 					if (RoadBlueprint)
 					{
-						FRotator RoadRotation = FRotator(0.0f,static_cast<float>(GridRotations[Col][Row]), 0.0f);
-						SpawnedRoad = GetWorld()->SpawnActor<AActor>(RoadBlueprint, SpawnLocation, RoadRotation);
+						FRotator RoadRotation = FRotator(0.0f, static_cast<float>(GridRotations[Col][Row]), 0.0f);
+						AActor* SpawnedRoad = GetWorld()->SpawnActor<AActor>(RoadBlueprint, SpawnLocation, RoadRotation);
 						if (SpawnedRoad)
 						{
 							SpawnedRoads.Add(SpawnedRoad);
 						}
 					}
+					break;
+				case CellType::House:
+					if (World)
+					{
+						if (HouseBlueprintClass)
+						{
+							FRotator HouseRotation = FRotator(0.0f, static_cast<float>(GridRotations[Col][Row]), 0.0f);
+							AActor* SpawnedHouse = GetWorld()->SpawnActor<AActor>(HouseBlueprintClass, SpawnLocation, HouseRotation);
+							if (SpawnedHouse)
+							{
+								SpawnedHouses.Add(SpawnedHouse);
+							}
+						}
+					}
 				}
-			break;
 			}
 		}
 	}	

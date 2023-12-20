@@ -52,11 +52,14 @@ protected:
 
 	static const int32 GridSize = 16;
 	static const float CellSize;
-	
-	UPROPERTY(EditDefaultsOnly, Category = "RoadGeneration")
+
+	/*
+		ROADS
+	*/
+	UPROPERTY(EditDefaultsOnly, Category = "Road Generation")
 		int32 BranchingFrequency = 4; //percent
 
-	UPROPERTY(EditDefaultsOnly, Category = "RoadGeneration")
+	UPROPERTY(EditDefaultsOnly, Category = "Road Generation")
 		int32 MinLifetime = 5;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Road Generation")
@@ -79,6 +82,18 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Road Generation")
 		TSubclassOf<AActor> TwoWayTurnBlueprintClass;
+	/*
+		HOUSES
+	*/
+	UPROPERTY(EditDefaultsOnly, Category = "House Generation")
+		TSubclassOf<AActor> HouseBlueprintClass;
+	
+	UPROPERTY(EditDefaultsOnly, Category = "House Generation")
+		int32 MinHouseCount = 5;
+
+	UPROPERTY(EditDefaultsOnly, Category = "House Generation")
+		int32 MaxHouseCount = 10;
+
 
 	CellType GridCellTypes[GridSize][GridSize];
 	CellRotation GridRotations[GridSize][GridSize];
@@ -101,5 +116,6 @@ protected:
 	void SpawnFinishedNeighborhood();
 	UPROPERTY(BlueprintReadOnly)
 		TArray<AActor*> SpawnedRoads;
-
+	UPROPERTY(BlueprintReadOnly)
+		TArray<AActor*> SpawnedHouses;
 };
