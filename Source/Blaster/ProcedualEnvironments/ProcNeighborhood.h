@@ -31,6 +31,7 @@ enum class CellType : uint8
 	House,
 	Road
 };
+
 enum class CellRotation : uint32
 {
 	Rotation_0DegRight = 0,
