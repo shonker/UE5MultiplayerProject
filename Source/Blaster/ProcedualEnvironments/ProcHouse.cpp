@@ -35,12 +35,64 @@ void AProcHouse::InitializeFirstFloor()
 	{
 		for (int32 Row = 0; Row < GridSize; ++Row)
 		{
-			for (int32 WallDir = 0; WallDir < 4; ++WallDir)
+			for (int32 WallDir = 0; WallDir < 3; ++WallDir)
 			{
-				GridWallTypes[Col][Row][WallDir] = EWallType::Nothing;
-				GridWallRotations[Col][Row][WallDir] = EWallRotation::Rotation_0DegUp;
+				GridWallTypes[Col][Row][WallDir] = EWallType::Initialized;
+				GridWallRotations[Col][Row][WallDir] = static_cast<EWallRotation>(WallDir  * 90.f);
 			}
 			GridFloorTypes[Col][Row] = EFloorType::Empty;
+		}
+	}
+}
+
+void AProcHouse::GenerateWalls()
+{
+	//start by making the walls "nothing" from initialized if they are to be made into any variant of walls at all
+	//and windows if they are to be later randomized as windows
+	for (int32 Col = 0; Col < GridSize; ++Col)
+	{
+		for (int32 Row = 0; Row < GridSize; ++Row)
+		{
+			for (int32 WallDir = 0; WallDir < 3; ++WallDir)
+			{
+				bool LookingAtWindow = (Col == GridSize && WallDir == 1 //right
+					|| Col == 0 && WallDir == 3 //left
+					|| Row == 0 && WallDir == 2//bottom
+					|| Row == GridSize && WallDir == 0 //top
+					);
+				if (LookingAtWindow)
+				{
+					GridWallTypes[Col][Row][WallDir] = EWallType::Window;
+					continue;
+				}
+				//now find what non window walls we will be dealing with
+				switch (WallDir)
+				{
+				case 0: //looking up
+					if (GridWallTypes[Col][Row + 1][2] == EWallType::Initialized)
+					{
+						GridWallTypes[Col][Row][WallDir] = EWallType::Nothing;
+					}
+					break;
+				case 1: //looking right
+					if (GridWallTypes[Col + 1][Row][3] == EWallType::Initialized)
+					{
+						GridWallTypes[Col][Row][WallDir] = EWallType::Nothing;
+					}
+					break;
+				case 2://looking down
+					if (GridWallTypes[Col][Row-1][0] == EWallType::Initialized)
+					{
+						GridWallTypes[Col][Row][WallDir] = EWallType::Nothing;
+					}
+				case 3: //looking left
+					if (GridWallTypes[Col - 1][Row][1] == EWallType::Initialized)
+					{
+						GridWallTypes[Col][Row][WallDir] = EWallType::Nothing;
+					}
+				}
+				//ok now we will NOT change anything that remains as "initialized" I stfg
+			}
 		}
 	}
 }

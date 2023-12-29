@@ -18,11 +18,12 @@ enum class EWallDirection : uint8
 UENUM(BlueprintType)
 enum class EWallType : uint8
 {
-	Nothing = 0,
-	Wall = 1,
-	Doorway = 2,
-	Window = 3,
-	NotWindow = 4
+	Initialized = 0,
+	Nothing = 1,
+	Wall = 2,
+	Doorway = 3,
+	Window = 4,
+	NotWindow = 5
 };
 UENUM(BlueprintType)
 enum class EFloorType : uint8
@@ -56,8 +57,14 @@ protected:
 	
 	static const int32 GridSize = 2;
 	EFloorType GridFloorTypes[GridSize][GridSize];
-	EWallType GridWallTypes[GridSize][GridSize][4]; // Added the third dimension for each wall direction
-	EWallRotation GridWallRotations[GridSize][GridSize][4]; // Added the third dimension for each wall direction
+	
+	
+
+	EWallType GridWallTypes[GridSize][GridSize][3]; // Added the third dimension for each wall direction
+	EWallRotation GridWallRotations[GridSize][GridSize][3]; // Added the third dimension for each wall direction
+
+	//EWallType HorizWallTypes[GridSize][GridSize + 1]; //[x][0] and [x][num - 1] are bottom and top walls, respectively
+	//EWallType VertWallTypes[GridSize + 1][GridSize];  //[0][x] and [num - 1][x] are left and right walls, respectively
 
 public:	
 	/*exterior*/
@@ -81,7 +88,8 @@ public:
 
 protected:
 	void InitializeFirstFloor();
-	//void GenerateWalls();
+	
+	void GenerateWalls();
 	void GenerateFloors();
 	void SpawnFloors();
 };
