@@ -68,13 +68,13 @@ public:
 	UStaticMeshComponent* PlotMesh;
 
 	/*floors*/
-	UPROPERTY(EditDefaultsOnly, Category = "Floors")
+	UPROPERTY(EditAnywhere, Category = "Floors")
 	TSubclassOf<AActor> FloorBlueprint;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Floors")
+	UPROPERTY(EditAnywhere, Category = "Floors")
 	TSubclassOf<AActor> SpikesBlueprint;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Floors")
+	UPROPERTY(EditAnywhere, Category = "Floors")
 	TSubclassOf<AActor> WaterBlueprint;
 
 	/*walls*/
