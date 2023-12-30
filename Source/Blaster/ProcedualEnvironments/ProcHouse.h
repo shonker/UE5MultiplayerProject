@@ -57,8 +57,8 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 	
-	static const int32 GridHeight = 2;
-	static const int32 GridWidth = 2;
+	static const int32 GridHeight = 3;
+	static const int32 GridWidth = 3;
 	EFloorType GridFloorTypes[GridWidth][GridHeight];
 	
 	

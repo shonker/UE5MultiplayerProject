@@ -27,8 +27,8 @@ void AProcHouse::BeginPlay()
 		GenerateFloors();
 		SpawnFloors();
 		//awful wall generation... I do not approve of this
-		GenerateWalls();
-		SpawnWalls();
+		//GenerateWalls();
+		//SpawnWalls();
 	}
 }
 
@@ -242,9 +242,9 @@ void AProcHouse::SpawnFloors()
 				FloorToSpawnBlueprint = WaterBlueprint;
 				break;
 			}
-			if (FloorToSpawnBlueprint)
+			if (FloorToSpawnBlueprint != nullptr)
 			{
-				SpawnedFloor = GetWorld()->SpawnActor<AActor>(WaterBlueprint, SpawnLocation, FRotator::ZeroRotator);
+				SpawnedFloor = GetWorld()->SpawnActor<AActor>(FloorToSpawnBlueprint, SpawnLocation, FRotator::ZeroRotator);
 			}
 		}
 	}
@@ -272,7 +272,7 @@ void AProcHouse::SpawnWalls()
 					WallToSpawnBlueprint = DoorwayBlueprint;
 					break;
 				}
-				if (WallToSpawnBlueprint)
+				if (WallToSpawnBlueprint != nullptr)
 				{
 					FRotator WallRotation = FRotator(0.0f, static_cast<float>(GridWallTypes[Col][Row][WallDir]) * 90.f, 0.0f);
 					AActor* SpawnedRoad = GetWorld()->SpawnActor<AActor>(WallToSpawnBlueprint, SpawnLocation, WallRotation);
