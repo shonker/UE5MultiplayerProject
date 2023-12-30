@@ -8,12 +8,12 @@
 
 
 UENUM(BlueprintType)
-enum class EWallDirection : uint8
+enum class EPathDirection : uint8
 {
-	Up,
-	Down,
-	Left,
-	Right
+	Up = 0,
+	Down = 1,
+	Left = 2,
+	Right = 3
 };
 UENUM(BlueprintType)
 enum class EWallType : uint8
@@ -21,9 +21,11 @@ enum class EWallType : uint8
 	Initialized = 0,
 	Nothing = 1,
 	Wall = 2,
-	Doorway = 3,
-	Window = 4,
-	NotWindow = 5
+	NotWall = 3,
+	Doorway = 4,
+	Window = 5,
+	NotWindow = 6,
+	FrontDoor = 7,
 };
 UENUM(BlueprintType)
 enum class EFloorType : uint8
@@ -55,14 +57,13 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 	
-	static const int32 GridSize = 2;
-	EFloorType GridFloorTypes[GridSize][GridSize];
+	static const int32 GridHeight = 2;
+	static const int32 GridWidth = 2;
+	EFloorType GridFloorTypes[GridWidth][GridHeight];
 	
 	
 
-	EWallType GridWallTypes[GridSize][GridSize][3]; // Added the third dimension for each wall direction
-	EWallRotation GridWallRotations[GridSize][GridSize][3]; // Added the third dimension for each wall direction
-
+	EWallType GridWallTypes[GridWidth][GridHeight][3]; // Added the third dimension for each wall direction
 	//EWallType HorizWallTypes[GridSize][GridSize + 1]; //[x][0] and [x][num - 1] are bottom and top walls, respectively
 	//EWallType VertWallTypes[GridSize + 1][GridSize];  //[0][x] and [num - 1][x] are left and right walls, respectively
 
@@ -86,10 +87,23 @@ public:
 
 	/*walls*/
 
+	UPROPERTY(EditAnywhere, Category = "Walls")
+		TSubclassOf<AActor> WallBlueprint;
+
+	UPROPERTY(EditAnywhere, Category = "Walls")
+		TSubclassOf<AActor> WindowBlueprint;
+
+	UPROPERTY(EditAnywhere, Category = "Walls")
+		TSubclassOf<AActor> DoorwayBlueprint;
+
 protected:
 	void InitializeFirstFloor();
 	
 	void GenerateWalls();
+	void FindUsableWalls();
+	void CreatePathways();
+	void AssignDoorways();
 	void GenerateFloors();
 	void SpawnFloors();
+	void SpawnWalls();
 };
