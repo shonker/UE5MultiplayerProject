@@ -26,9 +26,7 @@ void AProcHouse::BeginPlay()
 		InitializeFirstFloor();
 		GenerateFloors();
 		SpawnFloors();
-		//awful wall generation... I do not approve of this
-		//GenerateWalls();
-		//SpawnWalls();
+		GenerateWalls();
 	}
 }
 
@@ -38,152 +36,11 @@ void AProcHouse::InitializeFirstFloor()
 	{
 		for (int32 Row = 0; Row < GridHeight; ++Row)
 		{
-			for (int32 WallDir = 0; WallDir < 3; ++WallDir)
-			{
-				GridWallTypes[Col][Row][WallDir] = EWallType::Initialized;			}
 			GridFloorTypes[Col][Row] = EFloorType::Empty;
 		}
 	}
 }
 
-void AProcHouse::GenerateWalls()
-{
-	FindUsableWalls();
-	CreatePathways();
-	AssignDoorways();
-}
-
-void AProcHouse::AssignDoorways()
-{
-	for (int32 Col = 0; Col < GridWidth; ++Col)
-	{
-		for (int32 Row = 0; Row < GridHeight; ++Row)
-		{
-			for (int32 WallDir = 0; WallDir < 3; ++WallDir)
-			{
-				if (GridWallTypes[Col][Row][WallDir] == EWallType::Wall)
-				{
-					if (FMath::RandRange(0, 100) < 20)
-					{
-						GridWallTypes[Col][Row][WallDir] = EWallType::Doorway;
-					}
-					GridWallTypes[1][0][2] = EWallType::FrontDoor;
-				}
-			}
-		}
-	}
-}
-
-void AProcHouse::CreatePathways()
-{
-	//choose random starting room and lifetime
-	uint8 Lifetime = FMath::RandRange(2, 5);
-	uint8 InitCol = FMath::RandRange(0, GridHeight);
-	uint8 InitRow = FMath::RandRange(0, GridWidth);
-	EPathDirection InitDirection = static_cast<EPathDirection>(FMath::RandRange(0, 3));
-
-	EPathDirection Direction = InitDirection;
-	EPathDirection LastDirection = Direction;
-	uint8 Col = InitCol;
-	uint8 Row = InitRow;
-
-	for (uint8 i = 0; i < Lifetime; Lifetime--)
-	{
-		uint8 iDirection = static_cast<uint8>(Direction);
-		uint8 iLastDirection = static_cast<uint8>(LastDirection);
-		//direction of movement
-		GridWallTypes[Col][Row][iDirection] = EWallType::Nothing;
-		//behind direction
-		//GridWallTypes[Col][Row][(iDirection + 3 - 2) % 3] = EWallType::Wall;
-		//left and right of direction
-		if (GridWallTypes[Col][Row][(iDirection + 3 - 1) % 3] == EWallType::Nothing)
-		{
-			GridWallTypes[Col][Row][(iDirection + 3 - 1) % 3] = EWallType::Wall;
-		}
-
-		if (GridWallTypes[Col][Row][(iDirection + 3 + 1) % 3] == EWallType::Nothing)
-		{
-			GridWallTypes[Col][Row][(iDirection + 3 + 1) % 3] = EWallType::Wall;
-		}
-
-		if (GridWallTypes[Col][Row][iDirection] != EWallType::Window)
-		{
-			GridWallTypes[Col][Row][iDirection] = EWallType::NotWall;
-		}
-
-		switch (Direction)
-		{
-		case EPathDirection::Up:
-			if (Row < GridHeight) Row++;
-			break;
-		case EPathDirection::Down:
-			if (Row > 0) Row--;
-			break;
-		case EPathDirection::Right:
-			if (Col < GridWidth) Col++;
-			break;
-		case EPathDirection::Left:
-			if (Col > 0) Col--;
-			break;
-		}
-	}
-	Direction = static_cast<EPathDirection>(FMath::RandRange(0, 3));
-
-
-}
-
-void AProcHouse::FindUsableWalls()
-{
-	//start by making the walls "nothing" from initialized if they are to be made into any variant of walls at all
-	//and windows if they are to be later randomized as windows
-	for (uint8 Col = 0; Col < GridWidth; ++Col)
-	{
-		for (uint8 Row = 0; Row < GridHeight; ++Row)
-		{
-			for (uint8 WallDir = 0; WallDir < 3; ++WallDir)
-			{
-				bool LookingAtWindow = (Col == GridWidth && WallDir == 1 //right
-					|| Col == 0 && WallDir == 3 //left
-					|| Row == 0 && WallDir == 2//bottom
-					|| Row == GridHeight && WallDir == 0 //top
-					);
-				if (LookingAtWindow)
-				{
-					GridWallTypes[Col][Row][WallDir] = EWallType::Window;
-					continue;
-				}
-				//now find what non window walls we will be dealing with that have not been approved for wall use
-				//nothing == approved
-				switch (WallDir)
-				{
-				case 0: //looking up
-					if (GridWallTypes[Col][Row + 1][2] == EWallType::Initialized)
-					{
-						GridWallTypes[Col][Row][WallDir] = EWallType::Nothing;
-					}
-					break;
-				case 1: //looking right
-					if (GridWallTypes[Col + 1][Row][3] == EWallType::Initialized)
-					{
-						GridWallTypes[Col][Row][WallDir] = EWallType::Nothing;
-					}
-					break;
-				case 2://looking down
-					if (GridWallTypes[Col][Row - 1][0] == EWallType::Initialized)
-					{
-						GridWallTypes[Col][Row][WallDir] = EWallType::Nothing;
-					}
-				case 3: //looking left
-					if (GridWallTypes[Col - 1][Row][1] == EWallType::Initialized)
-					{
-						GridWallTypes[Col][Row][WallDir] = EWallType::Nothing;
-					}
-				}
-				//ok now we will NOT change anything that remains as "initialized" I stfg
-			}
-		}
-	}
-}
 
 // 10% whole house is water, otherwise all normal with 10% chance the ground is spikes.
 void AProcHouse::GenerateFloors()
@@ -224,7 +81,6 @@ void AProcHouse::SpawnFloors()
 			to get to the bottom left corner of the house we need to get to 0,0 so -900 and -900 those values
 			but to get to the center of the unit at 0,0 ... which is essentially 0.5,0.5, we need to move +300, +300
 			which sums to -600
-			why am i explaining this? hm...
 			*/
 			FVector SpawnLocation = GetActorLocation() + FVector(Col * 600.f - 600.f, Row * 600.f - 600.f, 0.0f);
 			TSubclassOf<AActor> FloorToSpawnBlueprint = nullptr;
@@ -250,34 +106,150 @@ void AProcHouse::SpawnFloors()
 	}
 }
 
-void AProcHouse::SpawnWalls()
+
+void AProcHouse::GenerateWalls()
 {
-	for (uint8 Col = 0; Col < GridWidth; ++Col)
+	TArray<FVector2D> ConnectedPoints;
+	TArray<FVector2D> Midpoints;
+	for (int32 i = 0; i < GridSize; ++i)
 	{
-		for (uint8 Row = 0; Row < GridHeight; ++Row)
+		for (int32 j = 0; j < GridSize; ++j)
 		{
-			for (uint8 WallDir = 0; WallDir < 3; ++WallDir)
-			{
-				FVector SpawnLocation = GetActorLocation() + FVector(Col * 600.f - 600.f, Row * 600.f - 600.f, 0.0f);
-				TSubclassOf<AActor> WallToSpawnBlueprint = nullptr;
-				switch (GridWallTypes[Col][Row][WallDir])
-				{
-				case EWallType::Window:
-					WallToSpawnBlueprint = WindowBlueprint;
-					break;
-				case EWallType::Wall:
-					WallToSpawnBlueprint = WallBlueprint;
-					break;
-				case EWallType::Doorway:
-					WallToSpawnBlueprint = DoorwayBlueprint;
-					break;
-				}
-				if (WallToSpawnBlueprint != nullptr)
-				{
-					FRotator WallRotation = FRotator(0.0f, static_cast<float>(GridWallTypes[Col][Row][WallDir]) * 90.f, 0.0f);
-					AActor* SpawnedRoad = GetWorld()->SpawnActor<AActor>(WallToSpawnBlueprint, SpawnLocation, WallRotation);
-				}
-			}
+			Grid[i][j] = FVector2D(i * UnitDistance, j * UnitDistance);
+		}
+	}
+
+	int32 CurrentX = FMath::RandRange(0, GridSize - 1);
+	int32 CurrentY = FMath::RandRange(0, GridSize - 1);
+	FVector2D CurrentPoint = Grid[CurrentX][CurrentY];
+
+	int32 Lifetime = FMath::RandRange(1, MaxLifetime);
+	EPathDirection CurrentDirection = static_cast<EPathDirection>(FMath::RandRange(0, 3));
+
+	while (Lifetime > 0)
+	{
+		MoveInDirection(CurrentPoint, CurrentDirection, UnitDistance);
+		ConnectedPoints.Add(CurrentPoint);
+		--Lifetime;
+	}
+	GenerateMidpoints(ConnectedPoints,Midpoints);
+	SpawnWalls(Midpoints);
+}
+
+void AProcHouse::MoveInDirection(FVector2D& Point, EPathDirection& Direction, float Distance)
+{
+	ChangeDirection(Direction);
+	switch (Direction)
+	{
+	case EPathDirection::Up:
+		if (Point.Y + Distance > 1800)
+		{
+			MoveInDirection(Point, Direction, Distance);
+			break;
+		}
+		Point.Y += Distance;
+		break;
+	case EPathDirection::Down:
+		if (Point.Y - Distance < 0)
+		{
+			MoveInDirection(Point, Direction, Distance);
+			break;
+		}
+		Point.Y -= Distance;
+		break;
+	case EPathDirection::Left:
+		if (Point.X + Distance > 1800)
+		{
+			MoveInDirection(Point, Direction, Distance);
+			break;
+		}
+		Point.X -= Distance;
+		break;
+	case EPathDirection::Right:
+		if (Point.X - Distance < 0)
+		{
+			MoveInDirection(Point, Direction, Distance);
+			break;
+		}
+		Point.X += Distance;
+		break;
+	}
+}
+
+void AProcHouse::ChangeDirection(EPathDirection& Direction)
+{
+	uint8 RandomDirection = FMath::RandRange(1, 3); // 1 is right, 3 is left, 0 is forward
+	uint8 iDirection = static_cast<uint8>(Direction);
+	if (RandomDirection == 2) RandomDirection = 0; //dont go backwards ssorry
+	Direction = static_cast<EPathDirection>((iDirection + RandomDirection) % 4);
+}
+
+void AProcHouse::GenerateMidpoints(const TArray<FVector2D>& ConnectedPoints, TArray<FVector2D>& Midpoints)
+{
+	Midpoints.Empty();
+
+	for (int32 i = 0; i < ConnectedPoints.Num() - 1; i++)
+	{
+		FVector2D Midpoint;
+		Midpoint.X = (ConnectedPoints[i].X + ConnectedPoints[i + 1].X) / 2;
+		Midpoint.Y = (ConnectedPoints[i].Y + ConnectedPoints[i + 1].Y) / 2;
+
+		bool IsWindow = (
+			FMath::IsNearlyEqual(Midpoint.X,0) ||
+			FMath::IsNearlyEqual(Midpoint.Y, 0) ||
+			FMath::IsNearlyEqual(Midpoint.Y,GridSize * UnitDistance) || //fix to width/height but not now
+			FMath::IsNearlyEqual(Midpoint.X,GridSize * UnitDistance)
+		);
+
+		if (!IsWindow && !IsDuplicate(Midpoints, Midpoint))
+		{
+			Midpoints.Add(Midpoint);
+		}
+	}
+}
+
+bool AProcHouse::IsDuplicate(const TArray<FVector2D>& Array, const FVector2D& Point)
+{
+	for (const FVector2D& ExistingPoint : Array)
+	{
+		if (FMath::IsNearlyEqual(ExistingPoint.X,Point.X) 
+			&& FMath::IsNearlyEqual(ExistingPoint.Y,Point.Y))
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+
+void AProcHouse::SpawnWalls(const TArray<FVector2D>& Midpoints)
+{
+	for (const FVector2D& SpawnPoint : Midpoints)
+	{
+		FVector SpawnLocation = GetActorLocation() + FVector(SpawnPoint.X, SpawnPoint.Y, 0.0f);
+		bool IsHorizontal = FMath::RoundToInt(SpawnPoint.Y) % 100 == 0;
+		float YawRotation = IsHorizontal ? 0.f : 90.f;
+		FRotator WallRotation = FRotator(0.0f, YawRotation, 0.0f);
+
+		TSubclassOf<AActor> WallToSpawnBlueprint = nullptr;
+		 
+		int32 DoorCount = FMath::RandRange(0, 2);
+
+		if (DoorCount > 0 && FMath::RandRange(1, 5) == 1)
+		{
+			WallToSpawnBlueprint = DoorwayBlueprint;
+			--DoorCount;
+		}
+		else
+		{
+			WallToSpawnBlueprint = WallBlueprint;
+		}
+
+		
+		if (WallToSpawnBlueprint != nullptr)
+		{
+
+			AActor* SpawnedRoad = GetWorld()->SpawnActor<AActor>(WallToSpawnBlueprint, SpawnLocation, WallRotation);
 		}
 	}
 }

@@ -10,22 +10,21 @@
 UENUM(BlueprintType)
 enum class EPathDirection : uint8
 {
-	Up = 0,
-	Down = 1,
-	Left = 2,
-	Right = 3
+	Up,
+	Down,
+	Left,
+	Right
 };
 UENUM(BlueprintType)
 enum class EWallType : uint8
 {
-	Initialized = 0,
+	ExtraNothing = 0,
 	Nothing = 1,
 	Wall = 2,
-	NotWall = 3,
-	Doorway = 4,
-	Window = 5,
-	NotWindow = 6,
-	FrontDoor = 7,
+	Doorway = 3,
+	Window = 4,
+	NotWindow = 5,
+	FrontDoor = 6,
 };
 UENUM(BlueprintType)
 enum class EFloorType : uint8
@@ -56,16 +55,18 @@ public:
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
-	
+
+	//walls
+	static constexpr int32 GridSize = 4;
+	FVector2D Grid[GridSize][GridSize];
+	UPROPERTY(EditAnywhere, Category = "Walls")
+	int32 MaxLifetime = 5;
+	const int32 UnitDistance = 600;
+
+	//floors
 	static const int32 GridHeight = 3;
 	static const int32 GridWidth = 3;
 	EFloorType GridFloorTypes[GridWidth][GridHeight];
-	
-	
-
-	EWallType GridWallTypes[GridWidth][GridHeight][3]; // Added the third dimension for each wall direction
-	//EWallType HorizWallTypes[GridSize][GridSize + 1]; //[x][0] and [x][num - 1] are bottom and top walls, respectively
-	//EWallType VertWallTypes[GridSize + 1][GridSize];  //[0][x] and [num - 1][x] are left and right walls, respectively
 
 public:	
 	/*exterior*/
@@ -99,11 +100,17 @@ public:
 protected:
 	void InitializeFirstFloor();
 	
-	void GenerateWalls();
-	void FindUsableWalls();
-	void CreatePathways();
-	void AssignDoorways();
 	void GenerateFloors();
 	void SpawnFloors();
-	void SpawnWalls();
+
+
+	UFUNCTION()
+	void GenerateWalls();
+	void MoveInDirection(FVector2D& Point, EPathDirection& Direction, float Distance);
+	void ChangeDirection(EPathDirection& Direction);
+	void GenerateMidpoints(const TArray<FVector2D>& ConnectedPoints, TArray<FVector2D>& Midpoints);
+	bool IsDuplicate(const TArray<FVector2D>& Array, const FVector2D& Point);
+	void SpawnWalls(const TArray<FVector2D>& Midpoints);
+
+
 };
