@@ -100,89 +100,228 @@ void AProcHouse::SpawnFloors()
 
 void AProcHouse::GenerateWalls()
 {
-
-
-	TArray<FVector2D> ConnectedPoints;
-	TArray<FVector2D> Midpoints;
-
-	int32 CurrentX = 1;//FMath::RandRange(1, GridSize - 2);
-	int32 CurrentY = 1;//FMath::RandRange(1, GridSize - 2);
-	FVector2D CurrentPoint = (CurrentX * UnitDistance, CurrentY * UnitDistance);
-
+	//initialize
+	for (int32 Col = 0; Col < GridSize; ++Col)
+	{
+		for (int32 Row = 0; Row < GridSize; Row++)
+		{
+			WallGrid[Col][Row] = false;
+		}
+	}
+	//generate
 	int32 Lifetime = FMath::RandRange(1, MaxLifetime);
+	int32 StartCol = GridSize / 2;
+	int32 StartRow = GridSize / 2;
+	UE_LOG(LogTemp, Display, TEXT("Seed ~ Lifetime: %i StartCol: %i StartRow: %i"), Lifetime, StartCol, StartRow);
+
 	EPathDirection CurrentDirection = static_cast<EPathDirection>(FMath::RandRange(0, 3));
 
-	while (Lifetime > 0)
+	WallGrid[StartCol][StartRow] = true;
+
+	for (int32 i = 0; i < Lifetime; Lifetime--)
 	{
-		MoveInDirection(CurrentPoint, CurrentDirection, UnitDistance, ConnectedPoints);
-		if (!IsDuplicate(ConnectedPoints, CurrentPoint))
+		/*if (FMath::RandRange(1, 100) <= BranchingFrequency)
 		{
-			ConnectedPoints.Add(CurrentPoint);
+			UE_LOG(LogTemp, Log, TEXT("Branch ~ Lifetime: %i StartCol: %i StartRow: %i"), Lifetime, StartCol, StartRow);
+			GenerateRoadBranch(StartCol, StartRow, Lifetime, CurrentDirection);
+		}*/
+		if (FMath::RandBool()) //50% chance cont straight
+		{
+			MoveInDirection(CurrentDirection, StartCol, StartRow);
 		}
-		--Lifetime;
+		else //25% chance left, and 25% right
+		{
+			ChangeDirection(CurrentDirection);
+			MoveInDirection(CurrentDirection, StartCol, StartRow);
+		}
 	}
-	GenerateMidpoints(ConnectedPoints,Midpoints);
-	SpawnWalls(Midpoints);
+	/// <summary>
+	/// //
+	/// </summary>
+	//TArray<FVector2D> ConnectedPoints;
+	//TArray<FVector2D> Midpoints;
+
+	//int32 CurrentX = 1;//FMath::RandRange(1, GridSize - 2);
+	//int32 CurrentY = 1;//FMath::RandRange(1, GridSize - 2);
+	//FVector2D CurrentPoint = (CurrentX * UnitDistance, CurrentY * UnitDistance);
+
+	//int32 Lifetime = FMath::RandRange(1, MaxLifetime);
+	//EPathDirection CurrentDirection = static_cast<EPathDirection>(FMath::RandRange(0, 3));
+
+	//while (Lifetime > 0)
+	//{
+	//	MoveInDirection(CurrentPoint, CurrentDirection, UnitDistance, ConnectedPoints);
+	//	if (!IsDuplicate(ConnectedPoints, CurrentPoint))
+	//	{
+	//		ConnectedPoints.Add(CurrentPoint);
+	//	}
+	//	--Lifetime;
+	//}
+	//GenerateMidpoints(ConnectedPoints,Midpoints);
+	//SpawnWalls(Midpoints);
 }
 
-void AProcHouse::MoveInDirection(FVector2D& Point, EPathDirection& Direction, float Distance, TArray<FVector2D>& ConnectedPoints)
+
+
+void AProcHouse::MoveInDirection(EPathDirection Direction, int32& Col, int32& Row)
 {
-	ChangeDirection(Direction);
+
+	//check if walking into an unsafe border area
 	switch (Direction)
 	{
 	case EPathDirection::Up:
-		Point.Y = FMath::Clamp(Point.Y + Distance, 0, 1800);
-	break;
+		if (Row - 1 <= 1) ChangeDirection(Direction);
+		break;
 	case EPathDirection::Down:
-
-		Point.Y = FMath::Clamp(Point.Y - Distance, 0, 1800);
-	break;
+		if (Row + 1 >= GridSize - 2) ChangeDirection(Direction);
+		break;
 	case EPathDirection::Left:
-		Point.X = FMath::Clamp(Point.X - Distance, 0, 1800);
-	break;
+		if (Col - 1 <= 1) ChangeDirection(Direction);
+		break;
 	case EPathDirection::Right:
-		Point.Y = FMath::Clamp(Point.Y + Distance, 0, 1800);
-	break;
+		if (Col + 1 >= GridSize - 2) ChangeDirection(Direction);
+		break;
 	}
-}
 
-void AProcHouse::ChangeDirection(EPathDirection& Direction)
-{
-	uint8 RandomDirection = FMath::RandBool() ? 1 : 3;//FMath::RandRange(1, 3); // 1 is right, 3 is left, 0 is forward
-	uint8 iDirection = static_cast<uint8>(Direction);
-	//if (RandomDirection == 2) RandomDirection = 0; //dont go backwards ssorry
-	Direction = static_cast<EPathDirection>((iDirection + RandomDirection) % 4);
-}
-
-void AProcHouse::GenerateMidpoints(const TArray<FVector2D>& ConnectedPoints, TArray<FVector2D>& Midpoints)
-{
-	Midpoints.Empty();
-	UE_LOG(LogTemp, Log, TEXT("midpoint generation started"));
-
-	for (int32 i = 0; i < ConnectedPoints.Num() - 1; i++)
+	switch (Direction)
 	{
-		FVector2D Midpoint;
-		Midpoint.X = (ConnectedPoints[i].X + ConnectedPoints[i + 1].X) / 2;
-		Midpoint.Y = (ConnectedPoints[i].Y + ConnectedPoints[i + 1].Y) / 2;
+	case EPathDirection::Up:
+		Row--;
+		break;
+	case EPathDirection::Down:
+		Row++;
+		break;
+	case EPathDirection::Left:
+		Col--;
+		break;
+	case EPathDirection::Right:
+		Col++;
+		break;
+	}
 
-		DrawDebugSphere(GetWorld(), GetActorLocation() + FVector(ConnectedPoints[i].X - 900.f, ConnectedPoints[i + 1].Y - 900.f, 0), 120.f, 12, FColor::Red, true);
-		DrawDebugSphere(GetWorld(), GetActorLocation() + FVector(Midpoint.X - 900.f, Midpoint.Y - 900.f, 0), 150.f, 12, FColor::Purple, true);
+	Col = FMath::Clamp(Col, 1, GridSize - 2);
+	Row = FMath::Clamp(Row, 1, GridSize - 2);
 
-		bool IsWindow = (false);
-			/*FMath::IsNearlyEqual(Midpoint.X, 0) ||
-			FMath::IsNearlyEqual(Midpoint.Y, 0) ||
-			FMath::IsNearlyEqual(Midpoint.Y,GridSize * UnitDistance) || //fix to width/height but not now
-			FMath::IsNearlyEqual(Midpoint.X,GridSize * UnitDistance)
-		);*/
+	WallGrid[Col][Row] = true;
+}
 
-		if (!IsWindow)
+
+void AProcHouse::ChangeDirection(EPathDirection& CurrentDirection)
+{
+	int32 RawDirection = static_cast<int32>(CurrentDirection);
+	int32 LeftOrRight = FMath::RandBool() ? -1 : 1;
+	int32 NextRawDirection = (RawDirection + LeftOrRight + 3) % 3;
+	NextRawDirection = FMath::Clamp(NextRawDirection, 0, 3);//jus2bsafe
+	//OutParameter
+	CurrentDirection = static_cast<EPathDirection>(NextRawDirection);
+}
+
+void AProcHouse::InferWallLocations()
+{
+	for (int32 Col = 0; Col < GridSize; ++Col)
+	{
+		for (int32 Row = 0; Row < GridSize; Row++)
 		{
-		UE_LOG(LogTemp, Log, TEXT("midpoint y: %f"), Midpoint.X);
-		UE_LOG(LogTemp, Log, TEXT("midpoint x: %f"), Midpoint.Y);
-			Midpoints.Add(Midpoint);
+
+			if (WallGrid[Col][Row] == true)
+			{
+				bool ConnectedRight = false;
+				bool ConnectedDown = false;
+				bool ConnectedLeft = false;
+				bool ConnectedUp = false;
+
+				if (Col - 1 >= 0) //Check left
+				{
+					if (WallGrid[Col - 1][Row] == true) ConnectedLeft = true;
+				}
+				if (Col + 1 < GridSize) //Check right
+				{
+					if (WallGrid[Col + 1][Row] == true) ConnectedRight = true;
+				}
+				if (Row - 1 >= 0) //Check up
+				{
+					if (WallGrid[Col][Row - 1] == true) ConnectedUp = true;
+				}
+				if (Row + 1 < GridSize) //Check down
+				{
+					if (WallGrid[Col][Row + 1] == true) ConnectedDown = true;
+				}
+				
+				if (ConnectedRight)
+				{
+					int32 TargetCol = Col + UnitDistance / 2;
+					if (TargetCol >= 0 && TargetCol <= GridSize)
+					{
+						// Add the target element to the array
+						ConnectedWallsArray.Add(WallGrid[TargetCol][Row]);
+					}
+
+				}
+			}
 		}
 	}
 }
+//
+//void AProcHouse::MoveInDirection(FVector2D& Point, EPathDirection& Direction, float Distance, TArray<FVector2D>& ConnectedPoints)
+//{
+//	ChangeDirection(Direction);
+//	switch (Direction)
+//	{
+//	case EPathDirection::Up:
+//		Point.Y = FMath::Clamp(Point.Y + Distance, 0, 1800);
+//	break;
+//	case EPathDirection::Down:
+//
+//		Point.Y = FMath::Clamp(Point.Y - Distance, 0, 1800);
+//	break;
+//	case EPathDirection::Left:
+//		Point.X = FMath::Clamp(Point.X - Distance, 0, 1800);
+//	break;
+//	case EPathDirection::Right:
+//		Point.Y = FMath::Clamp(Point.Y + Distance, 0, 1800);
+//	break;
+//	}
+//}
+//
+//void AProcHouse::ChangeDirection(EPathDirection& Direction)
+//{
+//	uint8 RandomDirection = FMath::RandBool() ? 1 : 3;//FMath::RandRange(1, 3); // 1 is right, 3 is left, 0 is forward
+//	uint8 iDirection = static_cast<uint8>(Direction);
+//	//if (RandomDirection == 2) RandomDirection = 0; //dont go backwards ssorry
+//	Direction = static_cast<EPathDirection>((iDirection + RandomDirection) % 4);
+//}
+
+
+//
+//void AProcHouse::GenerateMidpoints(const TArray<FVector2D>& ConnectedPoints, TArray<FVector2D>& Midpoints)
+//{
+//	Midpoints.Empty();
+//	UE_LOG(LogTemp, Log, TEXT("midpoint generation started"));
+//
+//	for (int32 i = 0; i < ConnectedPoints.Num() - 1; i++)
+//	{
+//		FVector2D Midpoint;
+//		Midpoint.X = (ConnectedPoints[i].X + ConnectedPoints[i + 1].X) / 2;
+//		Midpoint.Y = (ConnectedPoints[i].Y + ConnectedPoints[i + 1].Y) / 2;
+//
+//		DrawDebugSphere(GetWorld(), GetActorLocation() + FVector(ConnectedPoints[i].X - 900.f, ConnectedPoints[i + 1].Y - 900.f, 0), 120.f, 12, FColor::Red, true);
+//		DrawDebugSphere(GetWorld(), GetActorLocation() + FVector(Midpoint.X - 900.f, Midpoint.Y - 900.f, 0), 150.f, 12, FColor::Purple, true);
+//
+//		bool IsWindow = (false);
+//			/*FMath::IsNearlyEqual(Midpoint.X, 0) ||
+//			FMath::IsNearlyEqual(Midpoint.Y, 0) ||
+//			FMath::IsNearlyEqual(Midpoint.Y,GridSize * UnitDistance) || //fix to width/height but not now
+//			FMath::IsNearlyEqual(Midpoint.X,GridSize * UnitDistance)
+//		);*/
+//
+//		if (!IsWindow)
+//		{
+//		UE_LOG(LogTemp, Log, TEXT("midpoint y: %f"), Midpoint.X);
+//		UE_LOG(LogTemp, Log, TEXT("midpoint x: %f"), Midpoint.Y);
+//			Midpoints.Add(Midpoint);
+//		}
+//	}
+//}
 
 bool AProcHouse::IsDuplicate(const TArray<FVector2D>& Array, const FVector2D& Point)
 {

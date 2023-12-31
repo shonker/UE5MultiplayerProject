@@ -10,10 +10,10 @@
 UENUM(BlueprintType)
 enum class EPathDirection : uint8
 {
-	Up = 0,
-	Right = 1,
-	Down = 2,
-	Left = 3
+	Right = 0,
+	Down = 1,
+	Left = 2,
+	Up = 3,
 };
 UENUM(BlueprintType)
 enum class EWallType : uint8
@@ -56,6 +56,8 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+
+
 	//walls
 	static constexpr int32 GridSize = 3;
 	FVector2D Grid[GridSize][GridSize];
@@ -63,6 +65,11 @@ protected:
 	int32 MaxLifetime = 5;
 	const int32 UnitDistance = 600;
 
+	// walls but potentially better
+	bool WallGrid[GridSize][GridSize];
+	UPROPERTY()
+	TArray<bool> ConnectedWallsArray;
+	
 	//floors
 	static const int32 GridHeight = 3;
 	static const int32 GridWidth = 3;
@@ -97,18 +104,25 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Walls")
 		TSubclassOf<AActor> DoorwayBlueprint;
 
+
+
 protected:
 	void InitializeFirstFloor();
 	
 	void GenerateFloors();
 	void SpawnFloors();
 
+	//walls
+
 
 	UFUNCTION()
 	void GenerateWalls();
-	void MoveInDirection(FVector2D& Point, EPathDirection& Direction, float Distance, TArray<FVector2D>& ConnectedPoints);
-	void ChangeDirection(EPathDirection& Direction);
-	void GenerateMidpoints(const TArray<FVector2D>& ConnectedPoints, TArray<FVector2D>& Midpoints);
+	void MoveInDirection(EPathDirection Direction, int32& Col, int32& Row);
+	void ChangeDirection(EPathDirection& CurrentDirection);
+	void InferWallLocations();
+	//void MoveInDirection(FVector2D& Point, EPathDirection& Direction, float Distance, TArray<FVector2D>& ConnectedPoints);
+	//void ChangeDirection(EPathDirection& Direction);
+	//void GenerateMidpoints(const TArray<FVector2D>& ConnectedPoints, TArray<FVector2D>& Midpoints);
 	bool IsDuplicate(const TArray<FVector2D>& Array, const FVector2D& Point);
 	void SpawnWalls(const TArray<FVector2D>& Midpoints);
 
