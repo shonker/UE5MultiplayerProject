@@ -59,7 +59,7 @@ protected:
 
 
 	//walls
-	static constexpr int32 GridSize = 3;
+	static constexpr int32 GridSize = 4;
 	FVector2D Grid[GridSize][GridSize];
 	UPROPERTY(EditAnywhere, Category = "Walls")
 	int32 MaxLifetime = 5;
@@ -68,7 +68,8 @@ protected:
 	// walls but potentially better
 	bool WallGrid[GridSize][GridSize];
 	UPROPERTY()
-	TArray<bool> ConnectedWallsArray;
+	TArray<int32> aConnectedWallsX;
+	TArray<int32> aConnectedWallsY;
 	
 	//floors
 	static const int32 GridHeight = 3;
@@ -124,7 +125,5 @@ protected:
 	//void ChangeDirection(EPathDirection& Direction);
 	//void GenerateMidpoints(const TArray<FVector2D>& ConnectedPoints, TArray<FVector2D>& Midpoints);
 	bool IsDuplicate(const TArray<FVector2D>& Array, const FVector2D& Point);
-	void SpawnWalls(const TArray<FVector2D>& Midpoints);
-
-
+	void SpawnWalls();
 };
