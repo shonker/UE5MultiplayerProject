@@ -10,10 +10,10 @@
 UENUM(BlueprintType)
 enum class EPathDirection : uint8
 {
-	Up,
-	Down,
-	Left,
-	Right
+	Up = 0,
+	Right = 1,
+	Down = 2,
+	Left = 3
 };
 UENUM(BlueprintType)
 enum class EWallType : uint8
@@ -57,7 +57,7 @@ protected:
 	virtual void BeginPlay() override;
 
 	//walls
-	static constexpr int32 GridSize = 4;
+	static constexpr int32 GridSize = 3;
 	FVector2D Grid[GridSize][GridSize];
 	UPROPERTY(EditAnywhere, Category = "Walls")
 	int32 MaxLifetime = 5;
@@ -106,7 +106,7 @@ protected:
 
 	UFUNCTION()
 	void GenerateWalls();
-	void MoveInDirection(FVector2D& Point, EPathDirection& Direction, float Distance);
+	void MoveInDirection(FVector2D& Point, EPathDirection& Direction, float Distance, TArray<FVector2D>& ConnectedPoints);
 	void ChangeDirection(EPathDirection& Direction);
 	void GenerateMidpoints(const TArray<FVector2D>& ConnectedPoints, TArray<FVector2D>& Midpoints);
 	bool IsDuplicate(const TArray<FVector2D>& Array, const FVector2D& Point);
