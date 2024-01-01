@@ -6,6 +6,14 @@
 #include "GameFramework/Actor.h"
 #include "ProcHouse.generated.h"
 
+struct FWallInfo {
+	FVector2D Midpoint;
+	EWallType WallType;
+};
+
+struct FPrefabWallLayout {
+	TArray<FWallInfo> WallInfos; // Each entry represents a wall's midpoint and type
+};
 
 UENUM(BlueprintType)
 enum class EPathDirection : uint8
@@ -25,6 +33,7 @@ enum class EWallType : uint8
 	Window = 4,
 	NotWindow = 5,
 	FrontDoor = 6,
+	LockedFrontDoor = 8
 };
 UENUM(BlueprintType)
 enum class EFloorType : uint8
@@ -96,15 +105,23 @@ public:
 
 	/*walls*/
 
-	UPROPERTY(EditAnywhere, Category = "Walls")
+	UPROPERTY(EditAnywhere, Category = "Prefab Walls")
 		TSubclassOf<AActor> WallBlueprint;
 
-	UPROPERTY(EditAnywhere, Category = "Walls")
-		TSubclassOf<AActor> WindowBlueprint;
-
-	UPROPERTY(EditAnywhere, Category = "Walls")
+	UPROPERTY(EditAnywhere, Category = "Prefab Walls")
 		TSubclassOf<AActor> DoorwayBlueprint;
 
+	UPROPERTY(EditAnywhere, Category = "Prefab Walls")
+		TSubclassOf<AActor> WindowBlueprint;
+
+	UPROPERTY(EditAnywhere, Category = "Prefab Walls")
+		TSubclassOf<AActor> NotWindowBlueprint;
+
+	UPROPERTY(EditAnywhere, Category = "Prefab Walls")
+		TSubclassOf<AActor> FrontDoorBlueprint;
+
+	UPROPERTY(EditAnywhere, Category = "Prefab Walls")
+		TSubclassOf<AActor> LockedFrontDoorBlueprint;
 
 
 protected:
@@ -114,16 +131,23 @@ protected:
 	void SpawnFloors();
 
 	//walls
-
+	void ReadPrefabLayoutsFromFile();
+	EWallType ConvertLetterToWallType(const FString& Letter);
 
 	UFUNCTION()
 	void GenerateWalls();
-	void MoveInDirection(EPathDirection Direction, int32& Col, int32& Row);
-	void ChangeDirection(EPathDirection& CurrentDirection);
+	void MoveInDirection(EPathDirection& Direction, int32& Col, int32& Row);
+	void ChangeDirection(EPathDirection& CurrentDirection, int32 Col, int32 Row);
 	void InferWallLocations();
-	//void MoveInDirection(FVector2D& Point, EPathDirection& Direction, float Distance, TArray<FVector2D>& ConnectedPoints);
-	//void ChangeDirection(EPathDirection& Direction);
-	//void GenerateMidpoints(const TArray<FVector2D>& ConnectedPoints, TArray<FVector2D>& Midpoints);
-	bool IsDuplicate(const TArray<FVector2D>& Array, const FVector2D& Point);
+	bool IsDuplicate(int32 TargetX, int32 TargetY);
+	UFUNCTION()
 	void SpawnWalls();
+	//for prefab
+	void SpawnPrefabWalls();
+
+	void SpawnWall(TSubclassOf<AActor> PFWallBlueprint, const FVector& Location, const FRotator& Rotation);
+
+
+private:
+	TArray<FPrefabWallLayout> PrefabWallLayouts;
 };

@@ -6,6 +6,8 @@
 // Sets default values
 AProcHouse::AProcHouse()
 {
+	ReadPrefabLayoutsFromFile();
+	
 	PrimaryActorTick.bCanEverTick = false;
 	HouseMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("House Mesh"));
 	SetRootComponent(HouseMesh);
@@ -26,7 +28,8 @@ void AProcHouse::BeginPlay()
 		InitializeFirstFloor();
 		GenerateFloors();
 		SpawnFloors();
-		GenerateWalls();
+		//GenerateWalls();
+		SpawnPrefabWalls();
 	}
 }
 
@@ -121,47 +124,24 @@ void AProcHouse::GenerateWalls()
 
 	for (int32 i = 0; i < Lifetime; Lifetime--)
 	{
-		/*if (FMath::RandRange(1, 100) <= BranchingFrequency)
-		{
-			UE_LOG(LogTemp, Log, TEXT("Branch ~ Lifetime: %i StartCol: %i StartRow: %i"), Lifetime, StartCol, StartRow);
-			GenerateRoadBranch(StartCol, StartRow, Lifetime, CurrentDirection);
-		}*/
-		if (FMath::RandBool()) //50% chance cont straight
-		{
-			MoveInDirection(CurrentDirection, StartCol, StartRow);
-		}
-		else //25% chance left, and 25% right
-		{
-			ChangeDirection(CurrentDirection);
-			MoveInDirection(CurrentDirection, StartCol, StartRow);
-		}
+		ChangeDirection(CurrentDirection, StartCol, StartRow);
+		MoveInDirection(CurrentDirection, StartCol, StartRow);
 	}
 	InferWallLocations();
 	SpawnWalls();
 }
 
-
-
-void AProcHouse::MoveInDirection(EPathDirection Direction, int32& Col, int32& Row)
+void AProcHouse::MoveInDirection(EPathDirection& Direction, int32& Col, int32& Row)
 {
-
-	//check if walking into an unsafe border area
-	switch (Direction)
-	{
-	case EPathDirection::Up:
-		if (Row + 1 >= GridSize) ChangeDirection(Direction);
-		break;
-	case EPathDirection::Down:
-		if (Row + 1 < 0) ChangeDirection(Direction);
-		break;
-	case EPathDirection::Left:
-		if (Col - 1 < 0) ChangeDirection(Direction);
-		break;
-	case EPathDirection::Right:
-		if (Col + 1 >= GridSize) ChangeDirection(Direction);
-		break;
+	// Check and adjust direction if at the edge of the grid
+	if ((Direction == EPathDirection::Up && Row + 1 >= GridSize) ||
+		(Direction == EPathDirection::Down && Row - 1 < 0) ||
+		(Direction == EPathDirection::Left && Col - 1 < 0) ||
+		(Direction == EPathDirection::Right && Col + 1 >= GridSize)) {
+		ChangeDirection(Direction, Col, Row);
 	}
 
+	// Move in the direction
 	switch (Direction)
 	{
 	case EPathDirection::Up:
@@ -177,22 +157,26 @@ void AProcHouse::MoveInDirection(EPathDirection Direction, int32& Col, int32& Ro
 		Col++;
 		break;
 	}
-
-	Col = FMath::Clamp(Col, 0, GridSize-1);
-	Row = FMath::Clamp(Row, 0, GridSize-1);
+	Col = FMath::Clamp(Col, 0, GridSize - 1);
+	Row = FMath::Clamp(Row, 0, GridSize - 1);
 
 	WallGrid[Col][Row] = true;
 }
 
-
-void AProcHouse::ChangeDirection(EPathDirection& CurrentDirection)
+void AProcHouse::ChangeDirection(EPathDirection& CurrentDirection, int32 Col, int32 Row)
 {
-	int32 RawDirection = static_cast<int32>(CurrentDirection);
-	int32 LeftOrRight = FMath::RandBool() ? -1 : 1;
-	int32 NextRawDirection = (RawDirection + LeftOrRight + 3) % 3;
-	NextRawDirection = FMath::Clamp(NextRawDirection, 0, 3);//jus2bsafe
-	//OutParameter
-	CurrentDirection = static_cast<EPathDirection>(NextRawDirection);
+	std::vector<EPathDirection> possibleDirections = { EPathDirection::Up, EPathDirection::Down, EPathDirection::Left, EPathDirection::Right };
+
+	possibleDirections.erase(std::remove_if(possibleDirections.begin(), possibleDirections.end(),
+		[Col, Row, this](EPathDirection dir) {
+			return (dir == EPathDirection::Up && Row + 1 >= GridSize) ||
+				(dir == EPathDirection::Down && Row - 1 < 0) ||
+				(dir == EPathDirection::Left && Col - 1 < 0) ||
+				(dir == EPathDirection::Right && Col + 1 >= GridSize);
+		}),
+		possibleDirections.end());
+
+	CurrentDirection = possibleDirections[FMath::RandRange(0, possibleDirections.size() - 1)];
 }
 
 void AProcHouse::InferWallLocations()
@@ -234,40 +218,53 @@ void AProcHouse::InferWallLocations()
 				{
 					TargetY = Row * UnitDistance;
 					TargetX = FMath::RoundToInt32((Col + 0.5) * UnitDistance);
-					aConnectedWallsX.Add(TargetX);
-					aConnectedWallsY.Add(TargetY);
+					if (!IsDuplicate(TargetX, TargetY))
+					{
+						aConnectedWallsX.Add(TargetX);
+						aConnectedWallsY.Add(TargetY);
+					}
 				}				
 				if (ConnectedDown)
 				{
 					TargetY = FMath::RoundToInt32((Row - 0.5) * UnitDistance);
 					TargetX =Col * UnitDistance;
-					aConnectedWallsX.Add(TargetX);
-					aConnectedWallsY.Add(TargetY);
+					if (!IsDuplicate(TargetX, TargetY))
+					{
+						aConnectedWallsX.Add(TargetX);
+						aConnectedWallsY.Add(TargetY);
+					}
 				}				
 				if (ConnectedLeft)
 				{
 					TargetY = Row * UnitDistance;
 					TargetX = FMath::RoundToInt32((Col - 0.5) * UnitDistance);
-					aConnectedWallsX.Add(TargetX);
-					aConnectedWallsY.Add(TargetY);
+					if (!IsDuplicate(TargetX, TargetY))
+					{
+						aConnectedWallsX.Add(TargetX);
+						aConnectedWallsY.Add(TargetY);
+					}
 				}				
 				if (ConnectedUp)
 				{
 					TargetY = FMath::RoundToInt32((Row + 0.5) * UnitDistance);
 					TargetX = Col * UnitDistance;
-					aConnectedWallsX.Add(TargetX);
-					aConnectedWallsY.Add(TargetY);
-				}			}
+					if (!IsDuplicate(TargetX, TargetY))
+					{
+						aConnectedWallsX.Add(TargetX);
+						aConnectedWallsY.Add(TargetY);
+					}
+				}			
+			}
 		}
 	}
 }
 
-bool AProcHouse::IsDuplicate(const TArray<FVector2D>& Array, const FVector2D& Point)
+bool AProcHouse::IsDuplicate(int32 TargetX, int32 TargetY)
 {
-	for (const FVector2D& ExistingPoint : Array)
+	for (int32 u = 0; u < aConnectedWallsX.Num(); u++)
 	{
-		if (FMath::IsNearlyEqual(ExistingPoint.X,Point.X,1.f) 
-			&& FMath::IsNearlyEqual(ExistingPoint.Y,Point.Y,1.f))
+		if (aConnectedWallsX[u] == TargetX &&
+			aConnectedWallsY[u] == TargetY)
 		{
 			return true;
 		}
@@ -280,8 +277,11 @@ void AProcHouse::SpawnWalls()
 {
 	for (int32 i = 0; i < aConnectedWallsX.Num(); i++)
 	{
+		
 		int32 SpawnPointX = aConnectedWallsX[i];
 		int32 SpawnPointY = aConnectedWallsY[i];
+
+		UE_LOG(LogTemp, Log, TEXT("wall x: %i y: %i "), SpawnPointX,SpawnPointY);
 
 		FVector SpawnLocation = GetActorLocation() + FVector(SpawnPointX - 900.f, SpawnPointY - 900.f, 0.0f);
 		bool IsHorizontal = SpawnPointY % 200 == 0;//600 div 200 but not 300
@@ -308,5 +308,131 @@ void AProcHouse::SpawnWalls()
 			DrawDebugSphere(GetWorld(), GetActorLocation() + FVector(SpawnPointX - 900.f, SpawnPointY - 900.f, 0), 100.f, 12, IsHorizontalColor, true);
 			//AActor* SpawnedWall = GetWorld()->SpawnActor<AActor>(WallToSpawnBlueprint, SpawnLocation, WallRotation);
 		}
+	}
+}
+
+void AProcHouse::ReadPrefabLayoutsFromFile()
+{
+	FString FilePath = FPaths::Combine(FPaths::ProjectContentDir(), TEXT("PrefabRooms.csv"));
+	TArray<FString> Lines;
+	FFileHelper::LoadFileToStringArray(Lines, *FilePath);
+
+	int32 CurrentHouseStartLine = 0;
+	while (CurrentHouseStartLine < Lines.Num())
+	{
+		FPrefabWallLayout PrefabLayout;
+		for (int32 i = 0; i < 7; ++i) { // Each house has 7 rows
+			int32 LineIndex = CurrentHouseStartLine + i;
+			if (LineIndex < Lines.Num()) {
+				FString& Line = Lines[LineIndex];
+				TArray<FString> Tokens;
+				Line.ParseIntoArray(Tokens, TEXT(","), true);
+
+				for (int32 j = 0; j < Tokens.Num(); ++j) {
+//UE_LOG(LogTemp, Log, TEXT("%s"),*Tokens[j]);
+					EWallType WallType = ConvertLetterToWallType(Tokens[j]);
+					FVector2D WallMidpoint(j * 300, i * 300);
+
+					FWallInfo WallInfo;
+					WallInfo.Midpoint = WallMidpoint;
+					WallInfo.WallType = WallType;
+					PrefabLayout.WallInfos.Add(WallInfo);
+				}
+			}
+		}
+		PrefabWallLayouts.Add(PrefabLayout);
+		CurrentHouseStartLine += 7;
+	}
+}
+
+EWallType AProcHouse::ConvertLetterToWallType(const FString& Letter)
+{
+	if (Letter == "W") return EWallType::Wall;
+	if (Letter == "D") return EWallType::Doorway;
+	if (Letter == "I") return EWallType::Window;
+	if (Letter == "N") return EWallType::NotWindow;
+	if (Letter == "U") return EWallType::FrontDoor;
+	if (Letter == "L") return EWallType::LockedFrontDoor;
+	return EWallType::Nothing; // Default
+}
+
+
+void AProcHouse::SpawnPrefabWalls()
+{
+	if (PrefabWallLayouts.Num() == 0)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("No prefab wall layouts available."));
+		return;
+	}
+	//choose random layout
+	int32 LayoutIndex = FMath::RandRange(0, PrefabWallLayouts.Num() - 1);
+	FPrefabWallLayout SelectedLayout = PrefabWallLayouts[LayoutIndex];
+
+	for (const FWallInfo& WallInfo : SelectedLayout.WallInfos) {
+
+		FVector SpawnLocation = GetActorLocation() + FVector(WallInfo.Midpoint.X - 900.f, WallInfo.Midpoint.Y - 900.f, 0.0f);
+
+		bool IsHorizontal = FMath::RoundToInt(WallInfo.Midpoint.Y) % 200 == 0;//600 div 200 but not 300
+		float YawRotation = IsHorizontal ? 0.f : 90.f;
+		FRotator SpawnRotation = FRotator(0.0f, YawRotation, 0.0f);
+
+		switch (WallInfo.WallType) {
+		case EWallType::ExtraNothing:
+			break;
+
+		case EWallType::Nothing:
+			UE_LOG(LogTemp, Log, TEXT("nothing"));
+
+			DrawDebugSphere(GetWorld(), SpawnLocation, 80.f, 12, FColor::Green, true);
+			break;
+
+		case EWallType::Wall:
+			UE_LOG(LogTemp, Log, TEXT("wall"));
+			SpawnWall(WallBlueprint, SpawnLocation, SpawnRotation);
+			break;
+
+		case EWallType::Doorway:
+			UE_LOG(LogTemp, Log, TEXT("doorway"));
+
+			SpawnWall(DoorwayBlueprint, SpawnLocation, SpawnRotation);
+			break;
+
+		case EWallType::Window:
+			UE_LOG(LogTemp, Log, TEXT("window"));
+
+			SpawnWall(WindowBlueprint, SpawnLocation, SpawnRotation);
+			break;
+
+		case EWallType::NotWindow:
+			UE_LOG(LogTemp, Log, TEXT("not window"));
+
+			SpawnWall(NotWindowBlueprint, SpawnLocation, SpawnRotation);
+			break;
+
+		case EWallType::FrontDoor:
+			UE_LOG(LogTemp, Log, TEXT("front door"));
+
+			SpawnWall(FrontDoorBlueprint, SpawnLocation, SpawnRotation);
+			break;
+
+		case EWallType::LockedFrontDoor:
+			UE_LOG(LogTemp, Log, TEXT("locked door"));
+
+			SpawnWall(LockedFrontDoorBlueprint, SpawnLocation, SpawnRotation);
+			break;
+
+		default:
+
+			break;
+		}
+	}
+}
+
+void AProcHouse::SpawnWall(TSubclassOf<AActor> PFWallBlueprint, const FVector& Location, const FRotator& Rotation)
+{
+	if (PFWallBlueprint != nullptr)
+	{
+		DrawDebugSphere(GetWorld(), Location, 100.f, 12, FColor::Purple, true);
+		GetWorld()->SpawnActor<AActor>(PFWallBlueprint, Location, Rotation);
 	}
 }
