@@ -1,62 +1,80 @@
 #include "ProcPark.h"
 
-AProcPark::AProcPark()
-{
-
-}
-
 void AProcPark::BeginPlay()
 {
-    // Randomly choose a lifetime between 5 and 10
-    int32 Lifetime = FMath::RandRange(5, 10);
-    FVector StartLocation(200, 500, 1100);
-    FRotator StartRotation = FRotator(0, FMath::RandRange(0, 3) * 90, FMath::RandRange(0, 3) * 90);
+    if (HasAuthority())
+    {
+        // Randomly choose a lifetime between 5 and 10
+        int32 Lifetime = FMath::RandRange(5, 10);
 
-    SpawnNextObject(StartLocation, StartRotation, Lifetime, 0);
+        FVector StartLocation = FVector(857, 274, 1435) + GetActorLocation();
+        FRotator StartRotation = FRotator(0, 0, FMath::RandRange(0, 1) * 180);
+
+        // Combine StartLocation and StartRotation into a FTransform
+        FTransform StartTransform(StartRotation, StartLocation);
+
+        BranchCount = FMath::RandRange(2, MaxBranchCount);
+        SpawnNextObject(StartTransform, Lifetime, 0);
+    }
 }
-
-void AProcPark::SpawnNextObject(const FVector& Location, const FRotator& Rotation, int32 CurrentLifetime, int32 CurrentBranchCount)
+void AProcPark::SpawnNextObject(const FTransform& ParentTransform, int32 CurrentLifetime, int32 CurrentBranchCount)
 {
     if (CurrentLifetime <= 0 || ObjectTypes.Num() == 0)
         return;
 
     FObjectTypeInfo SelectedType = GetRandomObjectTypeExcluding(LastSpawnedParkPart);
-   
     if (!SelectedType.ObjectBlueprint)
         return;
 
-    // Spawn the object first, then get its output locations
-    AActor* SpawnedObject = GetWorld()->SpawnActor<AActor>(SelectedType.ObjectBlueprint, Location, Rotation);
-    if (!SpawnedObject)
-        return;
+    LastSpawnedParkPart = SelectedType.ObjectBlueprint;
 
-    LastSpawnedParkPart = SelectedType.ObjectBlueprint; // Update last spawned part type
-
-    AProcParkPart* SpawnedPart = Cast<AProcParkPart>(SpawnedObject);
-    if (SpawnedPart && SpawnedPart->OutputLocations.Num() > 0)
+    AProcParkPart* SpawnedPart = Cast<AProcParkPart>(SelectedType.ObjectBlueprint);
+    if (SpawnedPart && SpawnedPart->OutputTransforms.Num() > 0)
     {
-        // Randomly select one of the output locations
-        int32 OutputIndex = FMath::RandRange(0, SpawnedPart->OutputLocations.Num() - 1);
-        FVector OutputLocation = SpawnedPart->OutputLocations[OutputIndex];
+        int32 OutputIndex = FMath::RandRange(0, SpawnedPart->OutputTransforms.Num() - 1);
+        FTransform OutputTransform = SpawnedPart->OutputTransforms[OutputIndex];
+        FTransform WorldTransform = OutputTransform * ParentTransform;
+        AdjustRotationAndSpawn(WorldTransform, SelectedType, CurrentLifetime, CurrentBranchCount);
 
-        FVector NextLocation = CalculateOutputLocation(SpawnedObject, OutputLocation, Rotation);
-        FRotator NextRotation = FRotator(0, FMath::RandRange(0, 3) * 90, FMath::RandRange(0, 3) * 90);
-
-        // Debug visuals
-        DrawDebugSphere(GetWorld(), NextLocation, 50.0f, 12, FColor::Red, true, -1.0f, 0, 2.0f);
-        DrawDebugLine(GetWorld(), Location, NextLocation, FColor::Blue, true, -1.0f, 0, 5.0f);
-        // Decide whether to branch
-        bool ShouldBranch = false; /* Branching Logic */;
-        if (ShouldBranch && CurrentBranchCount < MaxBranchCount)
+        // Check for branching possibility
+        if (SpawnedPart->OutputTransforms.Num() > 1 && FMath::RandBool())
         {
-            // Spawn another branch
-            SpawnNextObject(NextLocation, NextRotation, CurrentLifetime - 1, CurrentBranchCount + 1);
-        }
+            // Select a different output transform for branching
+            int32 BranchOutputIndex;
+            do {
+                BranchOutputIndex = FMath::RandRange(0, SpawnedPart->OutputTransforms.Num() - 1);
+            } while (BranchOutputIndex == OutputIndex); // Ensure different index
 
-        // Continue the current branch
-        SpawnNextObject(NextLocation, NextRotation, CurrentLifetime - 1, CurrentBranchCount);
+            FTransform BranchOutputTransform = SpawnedPart->OutputTransforms[BranchOutputIndex];
+            FTransform BranchWorldTransform = BranchOutputTransform * ParentTransform;
+            AdjustRotationAndSpawn(BranchWorldTransform, SelectedType, CurrentLifetime, CurrentBranchCount + 1);
+        }
     }
 }
+
+void AProcPark::AdjustRotationAndSpawn(const FTransform& WorldTransform, const FObjectTypeInfo& SelectedType, int32 CurrentLifetime, int32 CurrentBranchCount)
+{
+    // Adjust rotation with random yaw offset (-90, 0, 90)
+    float RandomYawOffset = FMath::RandRange(-1, 1) * 90.0f;
+    FRotator AdjustedRotation = WorldTransform.GetRotation().Rotator();
+    AdjustedRotation.Yaw += RandomYawOffset;
+
+    // Spawn the next object with the adjusted transform
+    AActor* SpawnedObject = GetWorld()->SpawnActor<AActor>(SelectedType.ObjectBlueprint, WorldTransform.GetLocation(), AdjustedRotation);
+    if (SpawnedObject)
+    {
+
+        // Update the transform for the next spawn
+        FTransform NextParentTransform = SpawnedObject->GetActorTransform();
+
+        // Continue spawning if lifetime and branch count permit
+        if (CurrentLifetime > 1 && CurrentBranchCount < MaxBranchCount)
+        {
+            SpawnNextObject(NextParentTransform, CurrentLifetime - 1.f, CurrentBranchCount);
+        }
+    }
+}
+
 
 // Update CalculateOutputLocation to take an additional FVector parameter for OutputLocation
 FVector AProcPark::CalculateOutputLocation(const AActor* SpawnedObject, const FVector& OutputLocation, const FRotator& Rotation)

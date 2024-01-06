@@ -121,7 +121,7 @@ void AProcHouse::GenerateWalls()
 	int32 Lifetime = FMath::RandRange(1, MaxLifetime);
 	int32 StartCol = FMath::RandRange(0, GridSize - 1);
 	int32 StartRow = FMath::RandRange(0, GridSize - 1);
-	UE_LOG(LogTemp, Display, TEXT("Seed ~ Lifetime: %i StartCol: %i StartRow: %i"), Lifetime, StartCol, StartRow);
+	//UE_LOG(LogTemp, Display, TEXT("Seed ~ Lifetime: %i StartCol: %i StartRow: %i"), Lifetime, StartCol, StartRow);
 
 	EPathDirection CurrentDirection = static_cast<EPathDirection>(FMath::RandRange(0, 3));
 
@@ -398,42 +398,42 @@ void AProcHouse::SpawnPrefabWalls()
 			break;
 
 		case EWallType::Nothing:
-			UE_LOG(LogTemp, Log, TEXT("nothing"));
+			//UE_LOG(LogTemp, Log, TEXT("nothing"));
 
 			//DrawDebugSphere(GetWorld(), SpawnLocation, 80.f, 12, FColor::Green, true);
 			break;
 
 		case EWallType::Wall:
-			UE_LOG(LogTemp, Log, TEXT("wall"));
+			//UE_LOG(LogTemp, Log, TEXT("wall"));
 			SpawnWall(WallBlueprint, SpawnLocation, SpawnRotation);
 			break;
 
 		case EWallType::Doorway:
-			UE_LOG(LogTemp, Log, TEXT("doorway"));
+			//UE_LOG(LogTemp, Log, TEXT("doorway"));
 
 			SpawnWall(DoorwayBlueprint, SpawnLocation, SpawnRotation);
 			break;
 
 		case EWallType::Window:
-			UE_LOG(LogTemp, Log, TEXT("window"));
+			//UE_LOG(LogTemp, Log, TEXT("window"));
 
 			SpawnWall(WindowBlueprint, SpawnLocation, SpawnRotation);
 			break;
 
 		case EWallType::NotWindow:
-			UE_LOG(LogTemp, Log, TEXT("not window"));
+			//UE_LOG(LogTemp, Log, TEXT("not window"));
 
 			SpawnWall(NotWindowBlueprint, SpawnLocation, SpawnRotation);
 			break;
 
 		case EWallType::FrontDoor:
-			UE_LOG(LogTemp, Log, TEXT("front door"));
+			//UE_LOG(LogTemp, Log, TEXT("front door"));
 
 			SpawnWall(FrontDoorBlueprint, SpawnLocation, SpawnRotation);
 			break;
 
 		case EWallType::LockedFrontDoor:
-			UE_LOG(LogTemp, Log, TEXT("locked door"));
+			//UE_LOG(LogTemp, Log, TEXT("locked door"));
 
 			SpawnWall(LockedFrontDoorBlueprint, SpawnLocation, SpawnRotation);
 			break;

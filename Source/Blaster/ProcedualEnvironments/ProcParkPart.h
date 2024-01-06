@@ -16,7 +16,7 @@ public:
 
 	// Output locations as editable vectors in the editor
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Output Locations")
-		TArray<FVector> OutputLocations;
+		TArray<FTransform> OutputTransforms;
 
 protected:
 	// Called when the game starts or when spawned
