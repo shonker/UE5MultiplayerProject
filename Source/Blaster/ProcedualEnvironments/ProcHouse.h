@@ -69,7 +69,6 @@ protected:
 
 	//walls
 	static constexpr int32 GridSize = 4;
-	FVector2D Grid[GridSize][GridSize];
 	UPROPERTY(EditAnywhere, Category = "Walls")
 	int32 MaxLifetime = 5;
 	const int32 UnitDistance = 600;
@@ -79,6 +78,9 @@ protected:
 	UPROPERTY()
 	TArray<int32> aConnectedWallsX;
 	TArray<int32> aConnectedWallsY;
+
+	//narrow walls
+	bool GridNWalls[GridSize][GridSize];
 	
 	//floors
 	static const int32 GridHeight = 3;
@@ -146,6 +148,7 @@ protected:
 	void SpawnPrefabWalls();
 
 	void SpawnWall(TSubclassOf<AActor> PFWallBlueprint, const FVector& Location, const FRotator& Rotation);
+
 
 
 private:

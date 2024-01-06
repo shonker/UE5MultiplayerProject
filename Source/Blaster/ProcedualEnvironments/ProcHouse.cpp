@@ -28,8 +28,14 @@ void AProcHouse::BeginPlay()
 		InitializeFirstFloor();
 		GenerateFloors();
 		SpawnFloors();
+		//shitty self proc
 		//GenerateWalls();
+
+		//prefab python proc
 		SpawnPrefabWalls();
+
+		//generative narrowWalls
+		//GenerateNarrowWalls();
 	}
 }
 
@@ -43,7 +49,6 @@ void AProcHouse::InitializeFirstFloor()
 		}
 	}
 }
-
 
 // 10% whole house is water, otherwise all normal with 10% chance the ground is spikes.
 void AProcHouse::GenerateFloors()
@@ -100,7 +105,7 @@ void AProcHouse::SpawnFloors()
 	}
 }
 
-
+//bad
 void AProcHouse::GenerateWalls()
 {
 	//initialize
@@ -109,7 +114,7 @@ void AProcHouse::GenerateWalls()
 		for (int32 Row = 0; Row < GridSize; Row++)
 		{
 			WallGrid[Col][Row] = false;
-			DrawDebugSphere(GetWorld(), GetActorLocation() + FVector(Col * UnitDistance - 900.f, Row * UnitDistance - 900.f, 0), 75.f, 12, FColor::Blue, true);
+			//DrawDebugSphere(GetWorld(), GetActorLocation() + FVector(Col * UnitDistance - 900.f, Row * UnitDistance - 900.f, 0), 75.f, 12, FColor::Blue, true);
 		}
 	}
 	//generate
@@ -130,7 +135,7 @@ void AProcHouse::GenerateWalls()
 	InferWallLocations();
 	SpawnWalls();
 }
-
+//bad
 void AProcHouse::MoveInDirection(EPathDirection& Direction, int32& Col, int32& Row)
 {
 	// Check and adjust direction if at the edge of the grid
@@ -162,7 +167,7 @@ void AProcHouse::MoveInDirection(EPathDirection& Direction, int32& Col, int32& R
 
 	WallGrid[Col][Row] = true;
 }
-
+//bad
 void AProcHouse::ChangeDirection(EPathDirection& CurrentDirection, int32 Col, int32 Row)
 {
 	std::vector<EPathDirection> possibleDirections = { EPathDirection::Up, EPathDirection::Down, EPathDirection::Left, EPathDirection::Right };
@@ -178,7 +183,7 @@ void AProcHouse::ChangeDirection(EPathDirection& CurrentDirection, int32 Col, in
 
 	CurrentDirection = possibleDirections[FMath::RandRange(0, possibleDirections.size() - 1)];
 }
-
+//bad
 void AProcHouse::InferWallLocations()
 {
 	for (int32 Col = 0; Col < GridSize; ++Col)
@@ -258,7 +263,7 @@ void AProcHouse::InferWallLocations()
 		}
 	}
 }
-
+//fine but part of bad thing
 bool AProcHouse::IsDuplicate(int32 TargetX, int32 TargetY)
 {
 	for (int32 u = 0; u < aConnectedWallsX.Num(); u++)
@@ -271,8 +276,7 @@ bool AProcHouse::IsDuplicate(int32 TargetX, int32 TargetY)
 	}
 	return false;
 }
-
-
+//bad
 void AProcHouse::SpawnWalls()
 {
 	for (int32 i = 0; i < aConnectedWallsX.Num(); i++)
@@ -281,7 +285,7 @@ void AProcHouse::SpawnWalls()
 		int32 SpawnPointX = aConnectedWallsX[i];
 		int32 SpawnPointY = aConnectedWallsY[i];
 
-		UE_LOG(LogTemp, Log, TEXT("wall x: %i y: %i "), SpawnPointX,SpawnPointY);
+		//UE_LOG(LogTemp, Log, TEXT("wall x: %i y: %i "), SpawnPointX,SpawnPointY);
 
 		FVector SpawnLocation = GetActorLocation() + FVector(SpawnPointX - 900.f, SpawnPointY - 900.f, 0.0f);
 		bool IsHorizontal = SpawnPointY % 200 == 0;//600 div 200 but not 300
@@ -291,26 +295,38 @@ void AProcHouse::SpawnWalls()
 		TSubclassOf<AActor> WallToSpawnBlueprint = nullptr;
 		 
 		int32 DoorCount = FMath::RandRange(0, 2);
-		
-		if (DoorCount > 0 && FMath::RandRange(1, 5) == 1)
-		{
-			WallToSpawnBlueprint = DoorwayBlueprint;
-			--DoorCount;
-		}
-		else
-		{
-			WallToSpawnBlueprint = WallBlueprint;
-		}
 
+		/*if (FMath::IsNearlyEqual(SpawnPointX,0,1) ||
+			FMath::IsNearlyEqual(SpawnPointX, GridSize * UnitDistance, 1) ||
+			FMath::IsNearlyEqual(SpawnPointY, 0, 1) ||
+			FMath::IsNearlyEqual(SpawnPointY, GridSize*UnitDistance, 1)
+			)
+		{
+			WallToSpawnBlueprint = WindowBlueprint;
+		}*/
+
+		{
+			if (DoorCount > 0 && FMath::RandRange(1, 5) == 1)
+			{
+				WallToSpawnBlueprint = DoorwayBlueprint;
+				--DoorCount;
+			}
+			else
+			{
+				WallToSpawnBlueprint = WallBlueprint;
+			}
+		}
+		
 		if (WallToSpawnBlueprint != nullptr)
 		{
-			FColor IsHorizontalColor = IsHorizontal ? FColor::Green : FColor::Red;
-			DrawDebugSphere(GetWorld(), GetActorLocation() + FVector(SpawnPointX - 900.f, SpawnPointY - 900.f, 0), 100.f, 12, IsHorizontalColor, true);
-			//AActor* SpawnedWall = GetWorld()->SpawnActor<AActor>(WallToSpawnBlueprint, SpawnLocation, WallRotation);
+			//FColor IsHorizontalColor = IsHorizontal ? FColor::Green : FColor::Red;
+			//DrawDebugSphere(GetWorld(), GetActorLocation() + FVector(SpawnPointX - 900.f, SpawnPointY - 900.f, 0), 100.f, 12, IsHorizontalColor, true);
+			AActor* SpawnedWall = GetWorld()->SpawnActor<AActor>(WallToSpawnBlueprint, SpawnLocation, WallRotation);
 		}
 	}
 }
 
+//initial prefab concept
 void AProcHouse::ReadPrefabLayoutsFromFile()
 {
 	FString FilePath = FPaths::Combine(FPaths::ProjectContentDir(), TEXT("PrefabRooms.csv"));
@@ -345,6 +361,7 @@ void AProcHouse::ReadPrefabLayoutsFromFile()
 	}
 }
 
+//initial prefab concept
 EWallType AProcHouse::ConvertLetterToWallType(const FString& Letter)
 {
 	if (Letter == "W") return EWallType::Wall;
@@ -356,7 +373,7 @@ EWallType AProcHouse::ConvertLetterToWallType(const FString& Letter)
 	return EWallType::Nothing; // Default
 }
 
-
+//initial prefab concept
 void AProcHouse::SpawnPrefabWalls()
 {
 	if (PrefabWallLayouts.Num() == 0)
@@ -383,7 +400,7 @@ void AProcHouse::SpawnPrefabWalls()
 		case EWallType::Nothing:
 			UE_LOG(LogTemp, Log, TEXT("nothing"));
 
-			DrawDebugSphere(GetWorld(), SpawnLocation, 80.f, 12, FColor::Green, true);
+			//DrawDebugSphere(GetWorld(), SpawnLocation, 80.f, 12, FColor::Green, true);
 			break;
 
 		case EWallType::Wall:
@@ -428,11 +445,12 @@ void AProcHouse::SpawnPrefabWalls()
 	}
 }
 
+//initial prefab concept
 void AProcHouse::SpawnWall(TSubclassOf<AActor> PFWallBlueprint, const FVector& Location, const FRotator& Rotation)
 {
 	if (PFWallBlueprint != nullptr)
 	{
-		DrawDebugSphere(GetWorld(), Location, 100.f, 12, FColor::Purple, true);
+		//DrawDebugSphere(GetWorld(), Location, 100.f, 12, FColor::Purple, true);
 		GetWorld()->SpawnActor<AActor>(PFWallBlueprint, Location, Rotation);
 	}
 }

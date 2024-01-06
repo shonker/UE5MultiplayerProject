@@ -98,10 +98,10 @@ void AProcNeighborhood::MoveInDirection(EDirection Direction, int32& Col, int32&
 	switch (Direction)
 	{
 	case EDirection::Up:
-		if (Row - 1 <= 1) ChangeDirection(Direction);
+		if (Row + 1 <= GridSize - 2) ChangeDirection(Direction);
 		break;
 	case EDirection::Down:
-		if (Row + 1 >= GridSize - 2) ChangeDirection(Direction);
+		if (Row - 1 <= 1) ChangeDirection(Direction);
 		break;
 	case EDirection::Left:
 		if (Col - 1 <= 1) ChangeDirection(Direction);
@@ -114,10 +114,10 @@ void AProcNeighborhood::MoveInDirection(EDirection Direction, int32& Col, int32&
 	switch (Direction)
 	{
 	case EDirection::Up:
-		Row--;
+		Row++;
 		break;
 	case EDirection::Down:
-		Row++;
+		Row--;
 		break;
 	case EDirection::Left:
 		Col--;
@@ -170,13 +170,13 @@ void AProcNeighborhood::InferRoadTypesAndRotations()
 				{
 					if (GridCellTypes[Col + 1][Row] == CellType::Road) ConnectedRight = true;
 				}
-				if (Row - 1 >= 0) //Check up
+				if (Row + 1 <= GridSize) //Check up
 				{
-					if (GridCellTypes[Col][Row - 1] == CellType::Road) ConnectedUp = true;
+					if (GridCellTypes[Col][Row + 1] == CellType::Road) ConnectedUp = true;
 				}
-				if (Row + 1 < GridSize) //Check down
+				if (Row - 1 >= 0) //Check down
 				{
-					if (GridCellTypes[Col][Row + 1] == CellType::Road) ConnectedDown = true;
+					if (GridCellTypes[Col][Row - 1] == CellType::Road) ConnectedDown = true;
 				}
 				uint8 ConnectionCount = ConnectedRight + ConnectedLeft + ConnectedDown + ConnectedUp;
 				
@@ -277,26 +277,25 @@ void AProcNeighborhood::GenerateHouses()
 				{
 					if (GridCellTypes[Col + 1][Row] == CellType::Road) ConnectedRight = true;
 				}
-				if (Row - 1 >= 0) //Check up
+				if (Row + 1 < GridSize) //Check up
 				{
-					if (GridCellTypes[Col][Row - 1] == CellType::Road) ConnectedUp = true;
+					if (GridCellTypes[Col][Row + 1] == CellType::Road) ConnectedUp = true;
 				}
-				if (Row + 1 < GridSize) //Check down
+				if (Row - 1 > 0) //Check down
 				{
-					if (GridCellTypes[Col][Row + 1] == CellType::Road) ConnectedDown = true;
+					if (GridCellTypes[Col][Row - 1] == CellType::Road) ConnectedDown = true;
 				}
 
 				uint8 ConnectionCount = ConnectedRight + ConnectedLeft + ConnectedDown + ConnectedUp;
 
 				ConnectionCounts.Add(FVector2D(Col, Row), ConnectionCount);
 
-
 				TArray<CellRotation> PossibleRotations;
 
-				if (ConnectedLeft) PossibleRotations.Add(CellRotation::Rotation_180DegLeft);
-				if (ConnectedRight) PossibleRotations.Add(CellRotation::Rotation_0DegRight);
-				if (ConnectedUp) PossibleRotations.Add(CellRotation::Rotation_270DegUp);
-				if (ConnectedDown) PossibleRotations.Add(CellRotation::Rotation_90DegDown);
+				if (ConnectedLeft) PossibleRotations.Add(CellRotation::Rotation_90DegDown);
+				if (ConnectedRight) PossibleRotations.Add(CellRotation::Rotation_270DegUp);
+				if (ConnectedUp) PossibleRotations.Add(CellRotation::Rotation_180DegLeft);
+				if (ConnectedDown) PossibleRotations.Add(CellRotation::Rotation_0DegRight);
 
 				if (PossibleRotations.Num() > 0)
 				{
@@ -334,7 +333,7 @@ void AProcNeighborhood::SpawnFinishedNeighborhood()
 		for (int32 Row = 0; Row < GridSize; Row++)
 		{
 			TSubclassOf<AActor> RoadBlueprint = nullptr;
-			FVector SpawnLocation = GetActorLocation() + FVector(Col * CellSize, Row * CellSize, 0.0f);
+			FVector SpawnLocation = GetActorLocation() + FVector(Col * CellSize, -Row * CellSize, 0.0f);
 			UWorld* World = GetWorld();
 			if (World)
 			{
