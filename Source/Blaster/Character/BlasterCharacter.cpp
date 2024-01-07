@@ -66,10 +66,13 @@ ABlasterCharacter::ABlasterCharacter()
 	//but we do need to incl the header	
 	OverheadWidget->SetupAttachment(RootComponent);  
 
+	//i believe this is bad practice to set these here but it sure is the easiest :)
 	Combat = CreateDefaultSubobject<UCombatComponent>(TEXT("CombatComponent"));
 	Combat->SetIsReplicated(true);
 
 	InventoryComponent = CreateDefaultSubobject<UInventoryComponent>(TEXT("InventoryComponent"));
+	InventoryComponent->Combat = Combat;
+	Combat->InventoryComponent = InventoryComponent;
 
 	//this is also checked on bp character movement comp in myblasterchar
 	GetCharacterMovement()->NavAgentProps.bCanCrouch = true;
@@ -223,6 +226,9 @@ void ABlasterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 	PlayerInputComponent->BindAction("Throw", IE_Pressed, this, &ABlasterCharacter::ThrowButtonPressed);
 	PlayerInputComponent->BindAction("Throw", IE_Released, this, &ABlasterCharacter::ThrowButtonReleased);
 
+
+	PlayerInputComponent->BindAction("ItemShuffleLeft", IE_Pressed, this, &ABlasterCharacter::ItemShuffleLeft);
+	PlayerInputComponent->BindAction("ItemShuffleRight", IE_Pressed, this, &ABlasterCharacter::ItemShuffleRight);
 }
 
 
@@ -616,12 +622,19 @@ void ABlasterCharacter::LookUp(float Value)
 void ABlasterCharacter::EquipButtonPressed()
 {
 	if (bDisableGameplay) return;
-
 	if (InventoryComponent)
 	{
-		AWeapon* NewWeapon = OverlappingWeapon;
-			InventoryComponent->EquipItem(NewWeapon);
+		if (HasAuthority())
+		{
+			AWeapon* NewWeapon = OverlappingWeapon;
+			InventoryComponent->AddItem(NewWeapon);
+		}
+		else
+		{
+			ServerEquipButtonPressed();
+		}
 	}
+
 	//if (Combat)
 	//{
 	//	if (HasAuthority()) //are we server?
@@ -635,18 +648,33 @@ void ABlasterCharacter::EquipButtonPressed()
 	//}
 }
 
-if (InventoryComponent)
-{
-	AWeapon* NewWeapon = // Logic to determine the weapon to equip
-		InventoryComponent->EquipItem(NewWeapon);
-}
-
     //here we have the server rpc so non-authority can pickup weapon
 void ABlasterCharacter::ServerEquipButtonPressed_Implementation()
 {
-	if (Combat)
+	if (InventoryComponent)
+	{
+		AWeapon* NewWeapon = OverlappingWeapon;
+		InventoryComponent->AddItem(NewWeapon);
+	}
+	/*if (Combat)
 	{
 		Combat->EquipWeapon(OverlappingWeapon);
+	}*/
+}
+
+void ABlasterCharacter::ItemShuffleLeft()
+{
+	if (InventoryComponent)
+	{
+		InventoryComponent->ShuffleItem(true);
+	}
+}
+
+void ABlasterCharacter::ItemShuffleRight()
+{
+	if (InventoryComponent)
+	{
+		InventoryComponent->ShuffleItem(false);
 	}
 }
 

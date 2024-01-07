@@ -45,9 +45,15 @@ public:
 	UFUNCTION(BlueprintImplementableEvent)
 	void ShowSniperScopeWidget(bool bShowScope);
 
+
+	/*
+		ITEMS
+	*/
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	class UInventoryComponent* InventoryComponent;
 
+	void ItemShuffleLeft();
+	void ItemShuffleRight();
 
 protected:
 	virtual void Destroyed() override;

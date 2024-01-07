@@ -1,6 +1,8 @@
 #include "InventoryComponent.h"
 #include "Net/UnrealNetwork.h"
-#include "Blaster/Weapon/Weapon.h" // Assuming Weapon class exists
+#include "Blaster/Weapon/Weapon.h"
+#include "Blaster/BlasterComponents/CombatComponent.h"
+
 
 UInventoryComponent::UInventoryComponent()
 {
@@ -13,25 +15,31 @@ void UInventoryComponent::BeginPlay()
     Super::BeginPlay();
 }
 
+void UInventoryComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+    Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+    DOREPLIFETIME(UInventoryComponent, InventoryItems);
+    DOREPLIFETIME(UInventoryComponent, ActiveWeapon);
+}
+
 void UInventoryComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
     Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 }
 
-void UInventoryComponent::EquipItem(AWeapon* Weapon)
+//should only be called in server
+void UInventoryComponent::AddItem(AWeapon* Weapon)
 {
     if (!Weapon) return;
+    
+    //todo: store ActiveWeapon
 
-    // Check if there is an active weapon, if so, store it in inventory
-    if (ActiveWeapon)
+    InventoryItems.Add(Weapon);
+
+    if (Combat)
     {
-        InventoryItems.Add(ActiveWeapon);
+    	Combat->EquipWeapon(Weapon);
     }
-
-    // Set the new weapon as the active weapon
-    ActiveWeapon = Weapon;
-
-    // TODO: Additional logic for equipping the weapon visually, etc.
 }
 
 void UInventoryComponent::ShuffleItem(bool bIsShuffleLeft)
@@ -55,7 +63,10 @@ void UInventoryComponent::ShuffleItem(bool bIsShuffleLeft)
     // Update the active weapon
     ActiveWeapon = InventoryItems[NextIndex];
 
-    // TODO: Additional logic for updating the weapon visually, etc.
+    if (Combat)
+    {
+        Combat->EquipWeapon(ActiveWeapon);
+    }
 }
 
 void UInventoryComponent::ThrowItem()
@@ -69,9 +80,3 @@ void UInventoryComponent::ThrowItem()
     ActiveWeapon = nullptr;
 }
 
-void UInventoryComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
-{
-    Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-    DOREPLIFETIME(UInventoryComponent, InventoryItems);
-    DOREPLIFETIME(UInventoryComponent, ActiveWeapon);
-}

@@ -38,6 +38,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void ThrowFinished();
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	class UInventoryComponent* InventoryComponent;
+
 protected:
 	virtual void BeginPlay() override;
 	void SetAiming(bool bIsAiming);
@@ -78,7 +81,7 @@ protected:
 
 	UFUNCTION(NetMulticast, Reliable)
 	void NetMulticastThrow(FVector_NetQuantize10 ProvidedThrowVector);
-
+	void StoreEquippedWeapon();
 	void DropEquippedWeapon();
 	void AttachActorToRightHand(AActor* ActorToAttach);
 	void AttachActorToLeftHand(AActor* ActorToAttach);

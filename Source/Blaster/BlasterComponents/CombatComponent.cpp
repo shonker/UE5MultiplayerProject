@@ -7,6 +7,7 @@
 #include "Net/UnrealNetwork.h"
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Blaster/BlasterComponents/InventoryComponent.h" 
 #include "DrawDebugHelpers.h"
 #include "Blaster/PlayerController/BlasterPlayerController.h"
 #include "Camera/CameraComponent.h"
@@ -404,8 +405,8 @@ void UCombatComponent::EquipWeapon(AWeapon *WeaponToEquip)
 {
 	if (Character == nullptr || WeaponToEquip == nullptr) return;
 	if (CombatState != ECombatState::ECS_Unoccupied) return;
-	DropEquippedWeapon();
-
+	//DropEquippedWeapon();
+	StoreEquippedWeapon();
 	//equipped weapon is null for all but server, not replicated
 	EquippedWeapon = WeaponToEquip;
 	EquippedWeapon->SetWeaponState(EWeaponState::EWS_Equipped);
@@ -424,28 +425,6 @@ void UCombatComponent::EquipWeapon(AWeapon *WeaponToEquip)
 
 }
 
-//include file at top
-//this is only being called on server
-//void UCombatComponent::UnEquipWeapon(AWeapon *WeaponToUnEquip, FVector_NetQuantize10 ProvidedThrowVector)
-//{
-//	if (Character == nullptr || WeaponToUnEquip == nullptr) return;
-//	if (CombatState != ECombatState::ECS_Unoccupied) return;
-//	DropEquippedWeapon();
-//
-//	//equipped weapon is null for all but server, not replicated
-//
-//	EquippedWeapon->SetWeaponState(EWeaponState::EWS_Dropped);
-//	
-//	//this returns currently & does nothing
-//	UpdateCarriedAmmo();
-//	PlayEquipWeaponSound();
-//	EquippedWeapon = nullptr;
-//	//change character to always be oriented w/ cam view, looks appropriate because
-//	//we implemented the equipped weapon blendspace into the anim BP
-//	Character->GetCharacterMovement()->bOrientRotationToMovement = true;
-//	Character->bUseControllerRotationYaw = false;
-//}
-
 void UCombatComponent::OnRep_EquippedWeapon()
 {
 	if (EquippedWeapon && Character)
@@ -460,6 +439,14 @@ void UCombatComponent::OnRep_EquippedWeapon()
 		Character->GetCharacterMovement()->bOrientRotationToMovement = false;
 		Character->bUseControllerRotationYaw = true;
 	}
+}
+
+void UCombatComponent::StoreEquippedWeapon()
+{
+	/*if (InventoryComponent)
+	{
+		InventoryComponent->ShuffleItem(false);
+	}*/
 }
 
 void UCombatComponent::DropEquippedWeapon()

@@ -22,17 +22,25 @@ public:
     virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
     // Inventory management
-    void EquipItem(AWeapon* Weapon);
+    void AddItem(AWeapon* Weapon);
     void ShuffleItem(bool bIsShuffleLeft);
     void ThrowItem();
 
     // Replication
     void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
+    //meta specifier allows private variables to be blueprintreadonly
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+        class UCombatComponent* Combat;
 private:
     UPROPERTY(Replicated)
         TArray<AWeapon*> InventoryItems;
 
     UPROPERTY(Replicated)
         AWeapon* ActiveWeapon;
+    
+    UPROPERTY()
+        int32 InventoryItemLimit = 6;
+
+    
 };
