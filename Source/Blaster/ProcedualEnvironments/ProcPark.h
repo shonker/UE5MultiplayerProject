@@ -27,13 +27,15 @@ public:
 protected:
     virtual void BeginPlay() override;
 
+
 private:
+    void InitializePark(FVector Location, FRotator Rotation);
+
     void SpawnNextObject(const FTransform& ParentTransform, int32 CurrentLifetime, int32 CurrentBranchCount);
+    void ProcessSpawn(AProcParkPart* SpawnedPart, const FTransform& ParentTransform, int32 CurrentLifetime, int32 CurrentBranchCount, bool IsBranch, FObjectTypeInfo SelectedType);
 
     UPROPERTY(EditAnywhere, Category = "Procedural Generation")
         TArray<FObjectTypeInfo> ObjectTypes;
-
-    void AdjustRotationAndSpawn(const FTransform& WorldTransform, const FObjectTypeInfo& SelectedType, int32 CurrentLifetime, int32 CurrentBranchCount);
 
     FVector CalculateOutputLocation(const AActor* SpawnedObject, const FVector& OutputLocation, const FRotator& Rotation);
 
