@@ -45,6 +45,10 @@ public:
 	UFUNCTION(BlueprintImplementableEvent)
 	void ShowSniperScopeWidget(bool bShowScope);
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	class UInventoryComponent* InventoryComponent;
+
+
 protected:
 	virtual void Destroyed() override;
 	// Called when the game starts or when spawned

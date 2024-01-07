@@ -9,6 +9,7 @@
 #include "Net/UnrealNetwork.h"
 #include "Blaster/Weapon/Weapon.h"
 #include "Blaster/BlasterComponents/CombatComponent.h"
+#include "Blaster/BlasterComponents/InventoryComponent.h" 
 #include "Kismet/KismetMathLibrary.h"
 #include "Kismet/GameplayStatics.h"
 #include "Sound/SoundCue.h"
@@ -67,6 +68,8 @@ ABlasterCharacter::ABlasterCharacter()
 
 	Combat = CreateDefaultSubobject<UCombatComponent>(TEXT("CombatComponent"));
 	Combat->SetIsReplicated(true);
+
+	InventoryComponent = CreateDefaultSubobject<UInventoryComponent>(TEXT("InventoryComponent"));
 
 	//this is also checked on bp character movement comp in myblasterchar
 	GetCharacterMovement()->NavAgentProps.bCanCrouch = true;
@@ -613,17 +616,29 @@ void ABlasterCharacter::LookUp(float Value)
 void ABlasterCharacter::EquipButtonPressed()
 {
 	if (bDisableGameplay) return;
-	if (Combat)
+
+	if (InventoryComponent)
 	{
-		if (HasAuthority()) //are we server?
-		{
-		Combat->EquipWeapon(OverlappingWeapon);
-		}
-		else
-		{
-			ServerEquipButtonPressed();
-		}
+		AWeapon* NewWeapon = OverlappingWeapon;
+			InventoryComponent->EquipItem(NewWeapon);
 	}
+	//if (Combat)
+	//{
+	//	if (HasAuthority()) //are we server?
+	//	{
+	//	Combat->EquipWeapon(OverlappingWeapon);
+	//	}
+	//	else
+	//	{
+	//		ServerEquipButtonPressed();
+	//	}
+	//}
+}
+
+if (InventoryComponent)
+{
+	AWeapon* NewWeapon = // Logic to determine the weapon to equip
+		InventoryComponent->EquipItem(NewWeapon);
 }
 
     //here we have the server rpc so non-authority can pickup weapon
