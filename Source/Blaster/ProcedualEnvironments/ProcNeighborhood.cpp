@@ -3,6 +3,7 @@
 #include "ProcNeighborhood.h"
 #include "Engine/World.h"
 #include "Kismet/GameplayStatics.h"
+#include "DrawDebugHelpers.h"
 
 const float AProcNeighborhood::CellSize = 100.f * 20.f;
 
@@ -23,6 +24,7 @@ void AProcNeighborhood::BeginPlay()
 		GenerateRoads();
 		InferRoadTypesAndRotations();
 		GenerateHouses();
+		GenerateMiscellaneousLocations();
 		SpawnFinishedNeighborhood();
 	}
 }
@@ -325,6 +327,62 @@ void AProcNeighborhood::GenerateHouses()
 	}
 }
 
+void AProcNeighborhood::GenerateMiscellaneousLocations()
+{
+	TMap<FVector2D, uint8> ConnectionCounts;
+
+	for (int32 Col = 0; Col < GridSize; ++Col)
+	{
+		for (int32 Row = 0; Row < GridSize; Row++)
+		{
+			if (MiscThingsToGenerateCount <= 0) return;
+
+			if (GridCellTypes[Col][Row] == CellType::Empty)
+			{
+				bool ConnectedRight = false;
+				bool ConnectedDown = false;
+				bool ConnectedLeft = false;
+				bool ConnectedUp = false;
+
+				if (Col - 1 >= 0) //Check left
+				{
+					if (GridCellTypes[Col - 1][Row] == CellType::Road) ConnectedLeft = true;
+				}
+				if (Col + 1 < GridSize) //Check right
+				{
+					if (GridCellTypes[Col + 1][Row] == CellType::Road) ConnectedRight = true;
+				}
+				if (Row + 1 < GridSize) //Check up
+				{
+					if (GridCellTypes[Col][Row + 1] == CellType::Road) ConnectedUp = true;
+				}
+				if (Row - 1 > 0) //Check down
+				{
+					if (GridCellTypes[Col][Row - 1] == CellType::Road) ConnectedDown = true;
+				}
+				uint8 ConnectionCount = ConnectedRight + ConnectedLeft + ConnectedDown + ConnectedUp;
+
+				if (ConnectionCount == 1)
+				{
+					int32 TargetX = Col - ConnectedUp + ConnectedDown;
+					int32 TargetY = Row - ConnectedRight + ConnectedLeft;
+						if (GridCellTypes[TargetX][TargetY] == CellType::Empty
+							&& GridCellTypes[TargetX + 1][TargetY] == CellType::Empty
+							&& GridCellTypes[TargetX][TargetY - 1] == CellType::Empty
+							&& GridCellTypes[TargetX +1][TargetY - 1] == CellType::Empty)
+						{
+							GridCellTypes[TargetX][TargetY] = CellType::Park;
+							GridCellTypes[TargetX + 1][TargetY] = CellType::Reserved;
+							GridCellTypes[TargetX][TargetY - 1 ] = CellType::Reserved;
+							GridCellTypes[TargetX + 1][TargetY - 1] = CellType::Reserved;
+							MiscThingsToGenerateCount--;
+						}
+				}
+			}
+		}
+	}
+}
+
 
 void AProcNeighborhood::SpawnFinishedNeighborhood()
 {
@@ -371,10 +429,8 @@ void AProcNeighborhood::SpawnFinishedNeighborhood()
 							SpawnedRoads.Add(SpawnedRoad);
 						}
 					}
-					break;
+				break;
 				case CellType::House:
-					if (World)
-					{
 						if (HouseBlueprintClass)
 						{
 							FRotator HouseRotation = FRotator(0.0f, static_cast<float>(GridRotations[Col][Row]), 0.0f);
@@ -384,9 +440,22 @@ void AProcNeighborhood::SpawnFinishedNeighborhood()
 								SpawnedHouses.Add(SpawnedHouse);
 							}
 						}
+				break;
+				case CellType::Park:
+					if (ParkBlueprintClass)
+					{
+						FRotator ParkRotation = FRotator(0.0f, 0.0f, 0.0f);
+						AActor* SpawnedHouse = GetWorld()->SpawnActor<AActor>(ParkBlueprintClass, SpawnLocation, ParkRotation);
 					}
+				break;
+				case CellType::Reserved:
+					//DrawDebugSphere(GetWorld(), SpawnLocation, 500.f, 100, FColor::Blue, true);	
+				break;
+
 				}
 			}
 		}
 	}	
 }
+
+

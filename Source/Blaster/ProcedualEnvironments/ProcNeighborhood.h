@@ -29,7 +29,9 @@ enum class CellType : uint8
 {
 	Empty,
 	House,
-	Road
+	Road,
+	Park,
+	Reserved
 };
 
 enum class CellRotation : uint32
@@ -119,4 +121,14 @@ protected:
 		TArray<AActor*> SpawnedRoads;
 	UPROPERTY(BlueprintReadOnly)
 		TArray<AActor*> SpawnedHouses;
+
+	/*
+		MISC LOCATIONS
+	*/
+	int32 MiscThingsToGenerateCount = 1;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Park Generation")
+		TSubclassOf<AActor> ParkBlueprintClass;
+
+	void GenerateMiscellaneousLocations();
 };

@@ -1,24 +1,44 @@
 #include "ProcPark.h"
 #include "ProcParkPart.h"
+#include "EngineUtils.h"  
 
 void AProcPark::BeginPlay()
 {
     if (HasAuthority())
-    {      
+    {
         FVector Location;
         Location = FVector(857, 274, 1435);
         InitializePark(Location, FRotator(0, 0, FMath::RandRange(0, 1) * 180));
-        Location = FVector(2006,1746,1436);
-        InitializePark(Location, FRotator(0,0,-130));
+        Location = FVector(2006, 1746, 1436);
+        InitializePark(Location, FRotator(0, 0, 0));
+        
+        // Define the bounds
+        FVector MinBounds = FVector(-1000, -1000, 0) + GetActorLocation();
+        FVector MaxBounds = FVector(3000, 3000, 3000) + GetActorLocation();
 
-        TArray<AActor*> OverlappingActors;
-        GetOverlappingActors(OverlappingActors);
-        for (AActor* Actor : OverlappingActors)
+        // Iterate over all actors of type AProcParkPart
+        for (TActorIterator<AProcParkPart> It(GetWorld()); It; ++It)
         {
-                Actor->Destroy();
+            AProcParkPart* ParkPart = *It;
+            if (ParkPart)
+            {
+                // Check if the actor's position is outside the bounds
+                if (!IsWithinBounds(ParkPart->GetActorLocation(), MinBounds, MaxBounds))
+                {
+                    UE_LOG(LogTemp, Error, TEXT("DESTROY@!@"));
+                    // Destroy the actor if it's outside the bounds
+                    ParkPart->Destroy();
+                }
+            }
         }
     }
-   
+}
+
+bool AProcPark::IsWithinBounds(const FVector & Position, const FVector & MinBounds, const FVector & MaxBounds)
+{
+    return Position.X >= MinBounds.X && Position.X <= MaxBounds.X &&
+        Position.Y >= MinBounds.Y && Position.Y <= MaxBounds.Y &&
+        Position.Z >= MinBounds.Z && Position.Z <= MaxBounds.Z;
 }
 
 void AProcPark::InitializePark(FVector Location,FRotator Rotation)
@@ -30,7 +50,7 @@ void AProcPark::InitializePark(FVector Location,FRotator Rotation)
 
     FTransform StartTransform(StartRotation, StartLocation);
 
-    BranchCount = FMath::RandRange(3, MaxBranchCount);
+    BranchCount = FMath::RandRange(0, MaxBranchCount);
     SpawnNextObject(StartTransform, Lifetime, 0);
 }
 

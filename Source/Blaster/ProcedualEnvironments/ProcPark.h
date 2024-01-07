@@ -45,6 +45,8 @@ private:
     const int32 MaxBranchCount = 4;
     int32 BranchCount = 0;
 
+    bool IsWithinBounds(const FVector& Position, const FVector& MinBounds, const FVector& MaxBounds);
+
 
 };
 
