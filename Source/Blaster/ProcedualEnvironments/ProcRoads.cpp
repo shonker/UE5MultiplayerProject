@@ -10,12 +10,60 @@ AProcRoads::AProcRoads()
 	RoadMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("RoadMesh"));
 	SetRootComponent(RoadMesh);
 	RoadMesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Block);
+
+	// Create and attach spawn point components
+	for (int32 i = 0; i < 8; ++i)
+	{
+		USceneComponent* NewSpawnPoint = CreateDefaultSubobject<USceneComponent>(FName("SpawnPoint" + FString::FromInt(i)));
+		NewSpawnPoint->SetupAttachment(RootComponent);
+		SpawnPoints.Add(NewSpawnPoint);
+	}
 }
 
-// Called when the game starts or when spawned
 void AProcRoads::BeginPlay()
 {
-	Super::BeginPlay();
+    Super::BeginPlay();
+
+    if (SpawnableObjects.Num() == 0 || SpawnPoints.Num() == 0)
+        return;
+
+    // Random chance distribution
+    TArray<int32> ChanceDistribution = { 50, 40, 10, 5, 2, 1 }; // Represents 0, 1, 2, 3, 4, 5 spawns
+    int32 SpawnCount = ChooseSpawnCount(ChanceDistribution);
+
+    TArray<USceneComponent*> ChosenSpawnPoints;
+    while (ChosenSpawnPoints.Num() < SpawnCount)
+    {
+        USceneComponent* SelectedPoint = SpawnPoints[FMath::RandRange(0, SpawnPoints.Num() - 1)];
+        if (!ChosenSpawnPoints.Contains(SelectedPoint))
+        {
+            ChosenSpawnPoints.Add(SelectedPoint);
+            SpawnObjectAtPoint(SelectedPoint);
+        }
+    }
 }
 
+int32 AProcRoads::ChooseSpawnCount(const TArray<int32>& Distribution)
+{
+    int32 RandomNumber = FMath::RandRange(1, 100);
+    int32 AccumulatedChance = 0;
+
+    for (int32 i = 0; i < Distribution.Num(); ++i)
+    {
+        AccumulatedChance += Distribution[i];
+        if (RandomNumber <= AccumulatedChance)
+            return i; // i represents the number of objects to spawn
+    }
+
+    return 0; // Default to 0 if no other condition met
+}
+
+void AProcRoads::SpawnObjectAtPoint(USceneComponent* SpawnPoint)
+{
+    if (SpawnableObjects.Num() == 0)
+        return;
+
+    TSubclassOf<AActor> SelectedObject = SpawnableObjects[FMath::RandRange(0, SpawnableObjects.Num() - 1)];
+    GetWorld()->SpawnActor<AActor>(SelectedObject, SpawnPoint->GetComponentLocation(), SpawnPoint->GetComponentRotation() + FRotator(0.f,FMath::RandRange(-180,180),0.f));
+}
 

@@ -10,16 +10,25 @@ UCLASS()
 class BLASTER_API AProcRoads : public AActor
 {
 	GENERATED_BODY()
-	
-public:	
-	// Sets default values for this actor's properties
-	AProcRoads();
-
-protected:
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
 
 private:
 	UPROPERTY(EditAnywhere)
 	UStaticMeshComponent* RoadMesh;
+
+public:
+	AProcRoads();
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spawning")
+		TArray<TSubclassOf<AActor>> SpawnableObjects;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spawning")
+		TArray<USceneComponent*> SpawnPoints;
+
+protected:
+	virtual void BeginPlay() override;
+
+private:
+	int32 ChooseSpawnCount(const TArray<int32>& Distribution);
+	void SpawnObjectAtPoint(USceneComponent* SpawnPoint);
+
 };
