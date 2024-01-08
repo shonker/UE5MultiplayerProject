@@ -24,6 +24,13 @@ enum class EPathDirection : uint8
 	Up = 3,
 };
 UENUM(BlueprintType)
+enum class ERoomType : uint8
+{
+	Nothing,
+	Hallway,
+	Staircase
+}; 
+UENUM(BlueprintType)
 enum class EWallType : uint8
 {
 	ExtraNothing = 0,
@@ -60,33 +67,16 @@ class BLASTER_API AProcHouse : public AActor
 public:	
 	// Sets default values for this actor's properties
 	AProcHouse();
+	/*
+		RANDOMIZERS
+	*/
+	int32 Randomness = FMath::RandRange(0, 20);
+	int32 Fear = FMath::RandRange(0, 20);
+	int32 Openness = FMath::RandRange(0,20);
 
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
-
-
-
-	//walls
-	static constexpr int32 GridSize = 4;
-	UPROPERTY(EditAnywhere, Category = "Walls")
-	int32 MaxLifetime = 5;
-	const int32 UnitDistance = 600;
-
-	// walls but potentially better
-	bool WallGrid[GridSize][GridSize];
-	UPROPERTY()
-	TArray<int32> aConnectedWallsX;
-	TArray<int32> aConnectedWallsY;
-
-	//narrow walls
-	bool GridNWalls[GridSize][GridSize];
-	
-	//floors
-	static const int32 GridHeight = 3;
-	static const int32 GridWidth = 3;
-	EFloorType GridFloorTypes[GridWidth][GridHeight];
-
 public:	
 	/*exterior*/
 
@@ -127,30 +117,58 @@ public:
 
 
 protected:
+
+	/*
+		FLOORS
+	*/
 	void InitializeFirstFloor();
-	
 	void GenerateFloors();
 	void SpawnFloors();
 
-	//walls
-	void ReadPrefabLayoutsFromFile();
-	EWallType ConvertLetterToWallType(const FString& Letter);
-
+	/*
+		PROCEDURAL WALLS
+	*/
 	UFUNCTION()
-	void GenerateWalls();
+	void GenerateRooms();
 	void MoveInDirection(EPathDirection& Direction, int32& Col, int32& Row);
 	void ChangeDirection(EPathDirection& CurrentDirection, int32 Col, int32 Row);
 	void InferWallLocations();
 	bool IsDuplicate(int32 TargetX, int32 TargetY);
+	void DesignateWall(int32 TargetX, int32 TargetY, EWallType WallType);
+	void RandomizeWallsAndWindows();
 	UFUNCTION()
 	void SpawnWalls();
-	//for prefab
+
+	/*
+	*	PREFAB WALLS
+	*/
+	EWallType ConvertLetterToWallType(const FString& Letter);
+	void ReadPrefabLayoutsFromFile();
 	void SpawnPrefabWalls();
-
 	void SpawnWall(TSubclassOf<AActor> PFWallBlueprint, const FVector& Location, const FRotator& Rotation);
-
-
 
 private:
 	TArray<FPrefabWallLayout> PrefabWallLayouts;
+
+	//walls
+	static constexpr int32 GridSize = 2;
+	UPROPERTY(EditAnywhere, Category = "Walls")
+		int32 MaxLifetime = 5;
+	const int32 UnitDistance = 600;
+
+	// walls but potentially better
+	ERoomType RoomGrid[GridSize][GridSize];
+	UPROPERTY()
+		TArray<int32> aConnectedWallsX;
+	TArray<int32> aConnectedWallsY;
+	TArray<EWallType> aWallTypes;
+
+	//narrow walls
+	bool GridNWalls[GridSize][GridSize];
+
+	//floors
+	static const int32 GridHeight = 3;
+	static const int32 GridWidth = 3;
+	EFloorType GridFloorTypes[GridWidth][GridHeight];
+
 };

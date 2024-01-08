@@ -2,6 +2,7 @@
 
 
 #include "ProcHouse.h"
+#include "DrawDebugHelpers.h"
 
 // Sets default values
 AProcHouse::AProcHouse()
@@ -29,10 +30,10 @@ void AProcHouse::BeginPlay()
 		GenerateFloors();
 		SpawnFloors();
 		//shitty self proc
-		//GenerateWalls();
+		GenerateRooms();
 
 		//prefab python proc
-		SpawnPrefabWalls();
+		//SpawnPrefabWalls();
 
 		//generative narrowWalls
 		//GenerateNarrowWalls();
@@ -105,27 +106,28 @@ void AProcHouse::SpawnFloors()
 	}
 }
 
-//bad
-void AProcHouse::GenerateWalls()
+
+void AProcHouse::GenerateRooms()
 {
 	//initialize
-	for (int32 Col = 0; Col < GridSize; ++Col)
+	for (int32 Col = 0; Col <= GridSize; Col++)
 	{
-		for (int32 Row = 0; Row < GridSize; Row++)
+		for (int32 Row = 0; Row <= GridSize; Row++)
 		{
-			WallGrid[Col][Row] = false;
-			//DrawDebugSphere(GetWorld(), GetActorLocation() + FVector(Col * UnitDistance - 900.f, Row * UnitDistance - 900.f, 0), 75.f, 12, FColor::Blue, true);
+			UE_LOG(LogTemp, Log, TEXT("row: %i"), Row);
+			RoomGrid[Col][Row] = ERoomType::Nothing;
+			DrawDebugSphere(GetWorld(), GetActorLocation() + FVector(Col * UnitDistance - 600, Row * UnitDistance - 600.f, 0), 75.f, 12, FColor::Blue, true);
 		}
 	}
 	//generate
 	int32 Lifetime = FMath::RandRange(1, MaxLifetime);
-	int32 StartCol = FMath::RandRange(0, GridSize - 1);
-	int32 StartRow = FMath::RandRange(0, GridSize - 1);
-	//UE_LOG(LogTemp, Display, TEXT("Seed ~ Lifetime: %i StartCol: %i StartRow: %i"), Lifetime, StartCol, StartRow);
-
+	int32 StartCol = FMath::RandRange(0, GridSize);
+	int32 StartRow = FMath::RandRange(0, GridSize);
+	UE_LOG(LogTemp, Display, TEXT("Seed ~ Lifetime: %i StartCol: %i StartRow: %i"), Lifetime, StartCol, StartRow);
+	UE_LOG(LogTemp, Log, TEXT("fear: i%, randomness: i%"),Lifetime, Fear, Randomness);
 	EPathDirection CurrentDirection = static_cast<EPathDirection>(FMath::RandRange(0, 3));
 
-	WallGrid[StartCol][StartRow] = true;
+	RoomGrid[StartCol][StartRow] = ERoomType::Hallway;
 
 	for (int32 i = 0; i < Lifetime; Lifetime--)
 	{
@@ -133,9 +135,10 @@ void AProcHouse::GenerateWalls()
 		MoveInDirection(CurrentDirection, StartCol, StartRow);
 	}
 	InferWallLocations();
+	RandomizeWallsAndWindows();
 	SpawnWalls();
 }
-//bad
+
 void AProcHouse::MoveInDirection(EPathDirection& Direction, int32& Col, int32& Row)
 {
 	// Check and adjust direction if at the edge of the grid
@@ -165,9 +168,9 @@ void AProcHouse::MoveInDirection(EPathDirection& Direction, int32& Col, int32& R
 	Col = FMath::Clamp(Col, 0, GridSize - 1);
 	Row = FMath::Clamp(Row, 0, GridSize - 1);
 
-	WallGrid[Col][Row] = true;
+	RoomGrid[Col][Row] = ERoomType::Hallway;
 }
-//bad
+
 void AProcHouse::ChangeDirection(EPathDirection& CurrentDirection, int32 Col, int32 Row)
 {
 	std::vector<EPathDirection> possibleDirections = { EPathDirection::Up, EPathDirection::Down, EPathDirection::Left, EPathDirection::Right };
@@ -183,87 +186,204 @@ void AProcHouse::ChangeDirection(EPathDirection& CurrentDirection, int32 Col, in
 
 	CurrentDirection = possibleDirections[FMath::RandRange(0, possibleDirections.size() - 1)];
 }
-//bad
+
 void AProcHouse::InferWallLocations()
 {
-	for (int32 Col = 0; Col < GridSize; ++Col)
+	
+	for (int32 Col = 0; Col <= GridSize; ++Col)
 	{
-		for (int32 Row = 0; Row < GridSize; Row++)
+		for (int32 Row = 0; Row <= GridSize; Row++)
 		{
+			bool WallRight = false;
+			bool WallDown = false;
+			bool WallLeft = false;
+			bool WallUp = false;
 
-			if (WallGrid[Col][Row] == true)
+			bool WindowLeft = false;
+			bool WindowDown = false;
+			bool WindowRight = false;
+			bool WindowUp = false;
+
+			if (Col - 1 >= 0)
 			{
-
-				bool ConnectedRight = false;
-				bool ConnectedDown = false;
-				bool ConnectedLeft = false;
-				bool ConnectedUp = false;
-
-				if (Col - 1 >= 0)
+				if (RoomGrid[Col - 1][Row] == ERoomType::Nothing)
 				{
-					if (WallGrid[Col - 1][Row] == true) ConnectedLeft = true;
-				}
-				if (Col + 1 < GridSize)
-				{
-					if (WallGrid[Col + 1][Row] == true) ConnectedRight = true;
-				}
-				if (Row - 1 >= 0)
-				{
-					if (WallGrid[Col][Row - 1] == true) ConnectedDown = true;
-				}
-				if (Row + 1 < GridSize)
-				{
-					if (WallGrid[Col][Row + 1] == true) ConnectedUp = true;
-				}
-
-				int32 TargetX;
-				int32 TargetY;
-				
-				if (ConnectedRight)
-				{
-					TargetY = Row * UnitDistance;
-					TargetX = FMath::RoundToInt32((Col + 0.5) * UnitDistance);
-					if (!IsDuplicate(TargetX, TargetY))
+					if (RoomGrid[Col][Row] == ERoomType::Hallway)
 					{
-						aConnectedWallsX.Add(TargetX);
-						aConnectedWallsY.Add(TargetY);
+						WallLeft = true;
 					}
-				}				
-				if (ConnectedDown)
-				{
-					TargetY = FMath::RoundToInt32((Row - 0.5) * UnitDistance);
-					TargetX =Col * UnitDistance;
-					if (!IsDuplicate(TargetX, TargetY))
+					else
 					{
-						aConnectedWallsX.Add(TargetX);
-						aConnectedWallsY.Add(TargetY);
+						if (Randomness > FMath::RandRange(0, 100))
+						{
+							WallLeft = true;
+						}
 					}
-				}				
-				if (ConnectedLeft)
-				{
-					TargetY = Row * UnitDistance;
-					TargetX = FMath::RoundToInt32((Col - 0.5) * UnitDistance);
-					if (!IsDuplicate(TargetX, TargetY))
-					{
-						aConnectedWallsX.Add(TargetX);
-						aConnectedWallsY.Add(TargetY);
-					}
-				}				
-				if (ConnectedUp)
-				{
-					TargetY = FMath::RoundToInt32((Row + 0.5) * UnitDistance);
-					TargetX = Col * UnitDistance;
-					if (!IsDuplicate(TargetX, TargetY))
-					{
-						aConnectedWallsX.Add(TargetX);
-						aConnectedWallsY.Add(TargetY);
-					}
-				}			
+				}
 			}
+			else
+			{
+				WindowLeft = true;
+			}
+			if (Col + 1 <= GridSize)
+			{
+				if (RoomGrid[Col + 1][Row] == ERoomType::Nothing)
+				{
+					if (RoomGrid[Col][Row] == ERoomType::Hallway)
+					{
+						WallRight = true;
+					}
+					else
+					{
+						if (Randomness > FMath::RandRange(0, 100))
+						{
+							WallRight = true;
+						}
+					}
+				}
+			}
+			else
+			{
+				WindowRight = true;
+			}
+			if (Row - 1 >= 0)
+			{
+				if (RoomGrid[Col][Row - 1] == ERoomType::Nothing)
+				{
+					if (RoomGrid[Col][Row] == ERoomType::Hallway)
+					{
+						WallDown = true;
+					}
+					else
+					{
+						if (Randomness > FMath::RandRange(0, 100))
+						{
+							WallDown = true;
+						}
+					}
+				}
+			}
+			else
+			{
+				WindowDown = true;
+			}
+			if (Row + 1 <= GridSize)
+			{
+				if (RoomGrid[Col][Row + 1] == ERoomType::Nothing)
+				{
+					if (RoomGrid[Col][Row] == ERoomType::Hallway)
+					{
+						WallUp = true;
+					}
+					else
+					{
+						if (Randomness > FMath::RandRange(0, 100))
+						{
+							WallUp = true;
+						}
+					}
+				}
+			}
+			else 
+			{
+				WindowUp = true;
+			}
+
+			if (Fear > FMath::RandRange(0, 100))
+			{
+				if (Col + 1 <= GridSize) WallRight = true;
+				if (Row - 1 >= 0) WallDown = true;
+				if (Col - 1 >= 0) WallLeft = true;
+				if (Row + 1 <= GridSize) WallUp = true;
+			}
+
+			/*if (Openness > FMath::RandRange(0, 200))
+			{
+				 WallRight = false;
+				 WallDown = false;
+				 WallLeft = false;
+				 WallUp = false;
+			}*/
+				
+			int32 TargetX;
+			int32 TargetY;
+				
+			if (WallRight || WindowRight)
+			{
+				TargetY = Row * UnitDistance;
+				TargetX = FMath::RoundToInt32((Col + 0.5) * UnitDistance);
+				if (!IsDuplicate(TargetX, TargetY))
+				{
+					if (WallRight)
+					{
+						DesignateWall(TargetX, TargetY, EWallType::Wall);
+					}
+					if (WindowRight)
+					{
+						DesignateWall(TargetX, TargetY, EWallType::Window);
+					}
+						
+				}
+			}	
+			if (WallDown || WindowDown)
+			{
+				TargetY = FMath::RoundToInt32((Row - 0.5) * UnitDistance);
+				TargetX = Col * UnitDistance;
+				if (!IsDuplicate(TargetX, TargetY))
+				{
+					if (WallDown)
+					{
+						DesignateWall(TargetX, TargetY, EWallType::Wall);
+					}
+					if (WindowDown)
+					{
+						DesignateWall(TargetX, TargetY, EWallType::Window);
+					}
+				}
+			}				
+			if (WallLeft || WindowLeft)
+			{
+				TargetY = Row * UnitDistance;
+				TargetX = FMath::RoundToInt32((Col - 0.5) * UnitDistance);
+				if (!IsDuplicate(TargetX, TargetY))
+				{
+					if (WallLeft)
+					{
+						DesignateWall(TargetX, TargetY, EWallType::Wall);
+					}
+					if (WindowLeft)
+					{
+						DesignateWall(TargetX, TargetY, EWallType::Window);
+					}
+				}
+			}				
+			if (WallUp || WindowUp)
+			{
+				TargetY = FMath::RoundToInt32((Row + 0.5) * UnitDistance);
+				TargetX = Col * UnitDistance;
+				if (!IsDuplicate(TargetX, TargetY))
+				{
+					if (WallUp)
+					{
+						DesignateWall(TargetX, TargetY, EWallType::Wall);
+					}
+					if (WindowUp)
+					{
+						DesignateWall(TargetX, TargetY, EWallType::Window);
+					}
+				}
+			}	
 		}
 	}
 }
-//fine but part of bad thing
+
+void AProcHouse::DesignateWall(int32 TargetX, int32 TargetY, EWallType WallType)
+{
+	aConnectedWallsX.Add(TargetX);
+	aConnectedWallsY.Add(TargetY);
+	aWallTypes.Add(WallType);
+}
+
 bool AProcHouse::IsDuplicate(int32 TargetX, int32 TargetY)
 {
 	for (int32 u = 0; u < aConnectedWallsX.Num(); u++)
@@ -276,51 +396,92 @@ bool AProcHouse::IsDuplicate(int32 TargetX, int32 TargetY)
 	}
 	return false;
 }
-//bad
-void AProcHouse::SpawnWalls()
+
+void AProcHouse::RandomizeWallsAndWindows()
 {
-	for (int32 i = 0; i < aConnectedWallsX.Num(); i++)
+	for (EWallType& Wall : aWallTypes)
 	{
-		
-		int32 SpawnPointX = aConnectedWallsX[i];
-		int32 SpawnPointY = aConnectedWallsY[i];
-
-		//UE_LOG(LogTemp, Log, TEXT("wall x: %i y: %i "), SpawnPointX,SpawnPointY);
-
-		FVector SpawnLocation = GetActorLocation() + FVector(SpawnPointX - 900.f, SpawnPointY - 900.f, 0.0f);
-		bool IsHorizontal = SpawnPointY % 200 == 0;//600 div 200 but not 300
-		float YawRotation = IsHorizontal ? 0.f : 90.f;
-		FRotator WallRotation = FRotator(0.0f, YawRotation, 0.0f);
-
-		TSubclassOf<AActor> WallToSpawnBlueprint = nullptr;
-		 
-		int32 DoorCount = FMath::RandRange(0, 2);
-
-		/*if (FMath::IsNearlyEqual(SpawnPointX,0,1) ||
-			FMath::IsNearlyEqual(SpawnPointX, GridSize * UnitDistance, 1) ||
-			FMath::IsNearlyEqual(SpawnPointY, 0, 1) ||
-			FMath::IsNearlyEqual(SpawnPointY, GridSize*UnitDistance, 1)
-			)
+		switch (Wall)
 		{
-			WallToSpawnBlueprint = WindowBlueprint;
-		}*/
-
-		{
-			if (DoorCount > 0 && FMath::RandRange(1, 5) == 1)
+		case EWallType::Window:
+			if (Fear > FMath::RandRange(0, 100))
 			{
-				WallToSpawnBlueprint = DoorwayBlueprint;
-				--DoorCount;
+				if (FMath::RandRange(1, 6) > 1)
+				{
+					Wall = EWallType::NotWindow;
+				}
+			} 
+			else
+			{
+				if (FMath::RandRange(1, 3) > 1)
+				{
+					Wall = EWallType::NotWindow;
+				}
+			}
+			break;
+		case EWallType::Wall:
+			if (Openness > FMath::RandRange(0, 100))
+			{
+				if (FMath::RandRange(1, 3) == 1)
+				{
+					Wall = EWallType::Doorway;
+				}
 			}
 			else
 			{
-				WallToSpawnBlueprint = WallBlueprint;
+				if (FMath::RandRange(1, 6) == 1)
+				{
+					Wall = EWallType::Doorway;
+				}
 			}
+			break;
 		}
-		
+	}
+}
+
+void AProcHouse::SpawnWalls()
+{
+	int32 HouseOffsetXY = 600;
+	//0,0
+	DrawDebugSphere(GetWorld(), GetActorLocation() + FVector(-HouseOffsetXY, -HouseOffsetXY, 0), 100.f, 12, FColor::Red, true);
+	//max,max
+	DrawDebugSphere(GetWorld(), GetActorLocation() + FVector(GridSize*UnitDistance - HouseOffsetXY, GridSize * UnitDistance - HouseOffsetXY, 0), 100.f, 12, FColor::Purple, true);
+	for (int32 i = 0; i < aConnectedWallsX.Num(); i++)
+	{
+		int32 SpawnPointX = aConnectedWallsX[i];
+		int32 SpawnPointY = aConnectedWallsY[i];
+
+		FVector SpawnLocation = GetActorLocation() + FVector(SpawnPointX - HouseOffsetXY, SpawnPointY - HouseOffsetXY, 0.0f);
+
+		bool IsHorizontal = SpawnPointY % 200 == 0;//600 div 200 but not 300
+		float YawRotation = IsHorizontal ? 90.f : 0.f;
+		FRotator WallRotation = FRotator(0.0f, YawRotation, 0.0f);
+
+		TSubclassOf<AActor> WallToSpawnBlueprint = nullptr;
+		switch (aWallTypes[i])
+		{
+		case EWallType::Wall:
+			WallToSpawnBlueprint = WallBlueprint;
+			break;
+			
+		case EWallType::Window:
+			WallToSpawnBlueprint = WindowBlueprint;
+			break;		
+		case EWallType::Doorway:
+			WallToSpawnBlueprint = DoorwayBlueprint;
+			break;		
+		case EWallType::NotWindow:
+			WallToSpawnBlueprint = NotWindowBlueprint;
+			break;		
+		case EWallType::LockedFrontDoor:
+			WallToSpawnBlueprint = DoorwayBlueprint;
+			break;		
+		}
+
 		if (WallToSpawnBlueprint != nullptr)
 		{
 			//FColor IsHorizontalColor = IsHorizontal ? FColor::Green : FColor::Red;
-			//DrawDebugSphere(GetWorld(), GetActorLocation() + FVector(SpawnPointX - 900.f, SpawnPointY - 900.f, 0), 100.f, 12, IsHorizontalColor, true);
+		//	DrawDebugSphere(GetWorld(), GetActorLocation() + FVector(SpawnPointX - 900.f, SpawnPointY - 900.f, 0), 100.f, 12, FColor::Blue, true);
 			AActor* SpawnedWall = GetWorld()->SpawnActor<AActor>(WallToSpawnBlueprint, SpawnLocation, WallRotation);
 		}
 	}
