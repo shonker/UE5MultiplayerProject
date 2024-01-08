@@ -35,7 +35,7 @@ public:
 	UPROPERTY(EditDefaultsOnly)
 	float WarmupTime = 10.f;	
 	
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(BlueprintReadWrite)
 	float MatchTime= 120.f;
 
 	UPROPERTY(EditDefaultsOnly)

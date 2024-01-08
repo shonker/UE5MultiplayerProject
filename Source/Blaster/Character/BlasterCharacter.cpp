@@ -663,18 +663,20 @@ void ABlasterCharacter::ServerEquipButtonPressed_Implementation()
 }
 
 void ABlasterCharacter::ItemShuffleLeft()
-{
-	if (InventoryComponent)
-	{
-		InventoryComponent->ShuffleItem(true);
-	}
+{ //this is so fucking stupid
+		ServerShuffleItem(true);
 }
 
 void ABlasterCharacter::ItemShuffleRight()
 {
+		ServerShuffleItem(false);
+}
+
+void ABlasterCharacter::ServerShuffleItem_Implementation(bool IsLeft)
+{
 	if (InventoryComponent)
 	{
-		InventoryComponent->ShuffleItem(false);
+		InventoryComponent->ShuffleItem(IsLeft);
 	}
 }
 

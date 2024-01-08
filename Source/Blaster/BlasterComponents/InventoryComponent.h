@@ -25,7 +25,7 @@ public:
     void AddItem(AWeapon* Weapon);
     void ShuffleItem(bool bIsShuffleLeft);
     void RemoveItem();
-
+    
     // Replication
     void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 

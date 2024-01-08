@@ -54,6 +54,8 @@ public:
 
 	void ItemShuffleLeft();
 	void ItemShuffleRight();
+	UFUNCTION(Server, Reliable)
+	void ServerShuffleItem(bool IsLeft);
 
 protected:
 	virtual void Destroyed() override;
