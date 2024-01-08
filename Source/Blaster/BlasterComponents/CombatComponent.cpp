@@ -300,6 +300,10 @@ void UCombatComponent::NetMulticastThrow_Implementation(FVector_NetQuantize10 Pr
 		Character->bUseControllerRotationYaw = false;
 		Character->GetCharacterMovement()->bOrientRotationToMovement = true;
 	}
+	if (InventoryComponent)
+	{
+		InventoryComponent->RemoveItem();
+	}
 	DropEquippedWeapon();
 	if (EquippedWeapon == nullptr) return;
 	EquippedWeapon->GetWeaponMesh()->AddImpulse(ProvidedThrowVector,NAME_None,true);
@@ -443,6 +447,8 @@ void UCombatComponent::OnRep_EquippedWeapon()
 
 void UCombatComponent::StoreEquippedWeapon()
 {
+	if (EquippedWeapon == nullptr) return;
+	EquippedWeapon->SetWeaponState(EWeaponState::EWS_Stored);
 	/*if (InventoryComponent)
 	{
 		InventoryComponent->ShuffleItem(false);

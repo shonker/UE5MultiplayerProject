@@ -24,7 +24,7 @@ public:
     // Inventory management
     void AddItem(AWeapon* Weapon);
     void ShuffleItem(bool bIsShuffleLeft);
-    void ThrowItem();
+    void RemoveItem();
 
     // Replication
     void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;

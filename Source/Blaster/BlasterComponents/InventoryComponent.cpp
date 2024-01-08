@@ -30,9 +30,7 @@ void UInventoryComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 //should only be called in server
 void UInventoryComponent::AddItem(AWeapon* Weapon)
 {
-    if (!Weapon) return;
-    
-    //todo: store ActiveWeapon
+    if (!Weapon) return;    
 
     InventoryItems.Add(Weapon);
 
@@ -40,11 +38,12 @@ void UInventoryComponent::AddItem(AWeapon* Weapon)
     {
     	Combat->EquipWeapon(Weapon);
     }
+    ActiveWeapon = Weapon;
 }
 
 void UInventoryComponent::ShuffleItem(bool bIsShuffleLeft)
 {
-    if (InventoryItems.Num() == 0) return;
+    if (InventoryItems.Num() <= 1) return;
 
     // Find the index of the current active weapon
     int32 CurrentIndex = InventoryItems.IndexOfByKey(ActiveWeapon);
@@ -69,13 +68,10 @@ void UInventoryComponent::ShuffleItem(bool bIsShuffleLeft)
     }
 }
 
-void UInventoryComponent::ThrowItem()
+void UInventoryComponent::RemoveItem()
 {
     if (!ActiveWeapon) return;
 
-    // TODO: Implement the logic to 'throw' the weapon
-
-    // Remove the active weapon from the inventory
     InventoryItems.RemoveSingle(ActiveWeapon);
     ActiveWeapon = nullptr;
 }
