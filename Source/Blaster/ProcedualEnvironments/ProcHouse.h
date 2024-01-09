@@ -153,13 +153,13 @@ private:
 	//walls
 	static constexpr int32 GridSize = 2;
 	UPROPERTY(EditAnywhere, Category = "Walls")
-		int32 MaxLifetime = 5;
+	int32 MaxLifetime = 5;
 	const int32 UnitDistance = 600;
 
 	// walls but potentially better
 	ERoomType RoomGrid[GridSize][GridSize];
 	UPROPERTY()
-		TArray<int32> aConnectedWallsX;
+	TArray<int32> aConnectedWallsX;
 	TArray<int32> aConnectedWallsY;
 	TArray<EWallType> aWallTypes;
 

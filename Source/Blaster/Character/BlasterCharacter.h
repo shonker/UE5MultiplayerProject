@@ -67,6 +67,8 @@ protected:
 	void Turn(float Value);
 	void LookUp(float Value);
 	void EquipButtonPressed();
+	void EquipButtonHeld();
+	void EquipButtonReleased();
 	void CrouchButtonPressed();
 	void ReloadButtonPressed();
 	void AimButtonPressed();
@@ -119,10 +121,15 @@ private:
 	UPROPERTY(ReplicatedUsing = OnRep_OverlappingWeapon)
 	class AWeapon* OverlappingWeapon;
 
+	UPROPERTY(ReplicatedUsing = OnRep_OverlappingButton)
+	class AMyButton* OverlappingButton;
+
 	//rep vars can ONLY have input params of the var being repd
 	//what gets passed in? the last var, BEFORE the update to the var :)
 	UFUNCTION()
 	void OnRep_OverlappingWeapon(AWeapon* LastWeapon);
+	UFUNCTION()
+	void OnRep_OverlappingButton(AMyButton* LastButton);
 
 	//meta specifier allows private variables to be blueprintreadonly
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
@@ -151,6 +158,9 @@ private:
 
 	UFUNCTION(Server, Reliable)
 	void ServerEquipButtonPressed();
+
+	UFUNCTION(Server, Reliable)
+	void ServerEquipButtonReleased();
 
 	//protected aim offset var
 	float AO_Yaw;
@@ -204,7 +214,7 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Player Stats")
 	float MaxHealth = 100.f;
 
-	UPROPERTY(ReplicatedUsing = OnRep_Health, VisibleAnywhere, Category = "PlayerStats")
+	UPROPERTY(ReplicatedUsing = OnRep_Health, VisibleAnywhere, Category = "Player Stats")
 	float Health = 100.f;
 
 	UFUNCTION()
@@ -253,6 +263,7 @@ private:
 public:	
 	//here it is updated for all clients AND server (logic for that inside)
 	void SetOverlappingWeapon(AWeapon* Weapon);
+	void SetOverlappingButton(AMyButton* Button);
 	bool IsWeaponEquipped();
 	bool IsAiming();
 	FORCEINLINE float GetAOYaw() const { return AO_Yaw; }

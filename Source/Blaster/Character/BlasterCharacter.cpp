@@ -8,6 +8,7 @@
 #include "Components/CapsuleComponent.h"
 #include "Net/UnrealNetwork.h"
 #include "Blaster/Weapon/Weapon.h"
+#include "Blaster/Buttons/MyButton.h"
 #include "Blaster/BlasterComponents/CombatComponent.h"
 #include "Blaster/BlasterComponents/InventoryComponent.h" 
 #include "Kismet/KismetMathLibrary.h"
@@ -25,16 +26,10 @@
 #include "Blaster/BlasterTypes/CombatState.h"
 #include "DrawDebugHelpers.h"
 
-//hewwo!!!!
-//heres a handy reminder of how to set server specific console loggies :)))))
-//this means the person running the code isn't the server, 
-//but they're grabbing the blaster character that is the server
 //	if (HasAuthority() && !IsLocallyControlled()) 
 //	{
 //			UE_LOG(LogTemp, Warning, TEXT("AO_Pitch: %f"), AO_Pitch);
 //	}
-//
-//*/
 
 // Sets default values
 ABlasterCharacter::ABlasterCharacter()
@@ -101,15 +96,13 @@ ABlasterCharacter::ABlasterCharacter()
 		DissolveTimeline = CreateDefaultSubobject<UTimelineComponent>(TEXT("DissolveTimelineComponent"));
 }
 
-//here we setup the variable replication for server to comm to clients
+
 void ABlasterCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	//the _condition adds a condition as to whether the var is rep'd
-	//final argument specifies who the var is rep'd for
-	//in this case, the weapon being overlapped is only communicated to the person controlling the blaster character that overlaps the weapon
 	DOREPLIFETIME_CONDITION(ABlasterCharacter, OverlappingWeapon, COND_OwnerOnly);
+	DOREPLIFETIME_CONDITION(ABlasterCharacter, OverlappingButton, COND_OwnerOnly);
 	DOREPLIFETIME_CONDITION(ABlasterCharacter, InteractTargetLocation, COND_SkipOwner);
 	DOREPLIFETIME(ABlasterCharacter, Health);
 	DOREPLIFETIME(ABlasterCharacter, bDisableGameplay);
@@ -215,6 +208,8 @@ void ABlasterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 	PlayerInputComponent->BindAxis("LookUp", this, &ABlasterCharacter::LookUp);
 
 	PlayerInputComponent->BindAction("Equip", IE_Pressed, this, &ABlasterCharacter::EquipButtonPressed);
+	PlayerInputComponent->BindAction("Equip", IE_Released, this, &ABlasterCharacter::EquipButtonReleased);
+
 	PlayerInputComponent->BindAction("Crouch", IE_Pressed, this, &ABlasterCharacter::CrouchButtonPressed);
 	PlayerInputComponent->BindAction("Reload", IE_Pressed, this, &ABlasterCharacter::ReloadButtonPressed);
 	PlayerInputComponent->BindAction("Aim", IE_Pressed, this, &ABlasterCharacter::AimButtonPressed);
@@ -460,7 +455,6 @@ void ABlasterCharacter::ThrowButtonReleased()
 	}
 }
 
-
 void ABlasterCharacter::StartDissolve() //and death particles lol
 {
 	// Create the particle system
@@ -634,18 +628,6 @@ void ABlasterCharacter::EquipButtonPressed()
 			ServerEquipButtonPressed();
 		}
 	}
-
-	//if (Combat)
-	//{
-	//	if (HasAuthority()) //are we server?
-	//	{
-	//	Combat->EquipWeapon(OverlappingWeapon);
-	//	}
-	//	else
-	//	{
-	//		ServerEquipButtonPressed();
-	//	}
-	//}
 }
 
     //here we have the server rpc so non-authority can pickup weapon
@@ -656,10 +638,19 @@ void ABlasterCharacter::ServerEquipButtonPressed_Implementation()
 		AWeapon* NewWeapon = OverlappingWeapon;
 		InventoryComponent->AddItem(NewWeapon);
 	}
-	/*if (Combat)
-	{
-		Combat->EquipWeapon(OverlappingWeapon);
-	}*/
+}
+
+
+void ABlasterCharacter::EquipButtonReleased()
+{
+	if (bDisableGameplay) return;
+	
+}
+
+    //here we have the server rpc so non-authority can pickup weapon
+void ABlasterCharacter::ServerEquipButtonReleased_Implementation()
+{
+	
 }
 
 void ABlasterCharacter::ItemShuffleLeft()
@@ -988,6 +979,38 @@ void ABlasterCharacter::OnRep_InteractTargetLocation()
 	SetInteractAndVisualTargetSphereLocation(InteractTargetLocation);
 }
 
+void ABlasterCharacter::SetOverlappingButton(AMyButton* Button)
+{
+	//this exact if statement disables the widget for the server on exit. wjat
+	if (OverlappingButton)
+	{
+		//OverlappingButton->ShowPickupWidget(false);
+	}
+	OverlappingButton = Button;
+	//logic to only show widget for the character controlling the pawn
+	//onsphereoverlap is only called w/in the server... what are we to do?
+	//check if THIS function being called is being called by the character being controlled
+	if (IsLocallyControlled())
+	{
+		if (OverlappingButton)
+		{
+			//OverlappingButton->ShowPickupWidget(true);
+		}
+	}
+}
+
+void ABlasterCharacter::OnRep_OverlappingButton(AMyButton* LastButton)
+{
+	if (OverlappingButton) //this is the new var, LatWeapon is the old one
+	{
+		//LastButton->ShowPickupWidget(true);
+	}
+	if (LastButton)//if lastweapon is not null then it is implied it now is... this seems like overlapping weapons could cause problems
+	{
+		//LastButton->ShowPickupWidget(false);
+	}
+}
+
 void ABlasterCharacter::SetOverlappingWeapon(AWeapon *Weapon)
 {	
 	//this exact if statement disables the widget for the server on exit. wjat
@@ -1007,7 +1030,6 @@ void ABlasterCharacter::SetOverlappingWeapon(AWeapon *Weapon)
 		}
 	}
 }
-
 
 //repnotify is not called on server. 
 //gosh this is gee golly hard lmao

@@ -116,7 +116,7 @@ void AProcHouse::GenerateRooms()
 		{
 			UE_LOG(LogTemp, Log, TEXT("row: %i"), Row);
 			RoomGrid[Col][Row] = ERoomType::Nothing;
-			DrawDebugSphere(GetWorld(), GetActorLocation() + FVector(Col * UnitDistance - 600, Row * UnitDistance - 600.f, 0), 75.f, 12, FColor::Blue, true);
+			//DrawDebugSphere(GetWorld(), GetActorLocation() + FVector(Col * UnitDistance - 600, Row * UnitDistance - 600.f, 0), 75.f, 12, FColor::Blue, true);
 		}
 	}
 	//generate
@@ -443,9 +443,9 @@ void AProcHouse::SpawnWalls()
 {
 	int32 HouseOffsetXY = 600;
 	//0,0
-	DrawDebugSphere(GetWorld(), GetActorLocation() + FVector(-HouseOffsetXY, -HouseOffsetXY, 0), 100.f, 12, FColor::Red, true);
+	//DrawDebugSphere(GetWorld(), GetActorLocation() + FVector(-HouseOffsetXY, -HouseOffsetXY, 0), 100.f, 12, FColor::Red, true);
 	//max,max
-	DrawDebugSphere(GetWorld(), GetActorLocation() + FVector(GridSize*UnitDistance - HouseOffsetXY, GridSize * UnitDistance - HouseOffsetXY, 0), 100.f, 12, FColor::Purple, true);
+	//DrawDebugSphere(GetWorld(), GetActorLocation() + FVector(GridSize*UnitDistance - HouseOffsetXY, GridSize * UnitDistance - HouseOffsetXY, 0), 100.f, 12, FColor::Purple, true);
 	for (int32 i = 0; i < aConnectedWallsX.Num(); i++)
 	{
 		int32 SpawnPointX = aConnectedWallsX[i];
