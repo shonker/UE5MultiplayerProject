@@ -627,6 +627,18 @@ void ABlasterCharacter::EquipButtonPressed()
 		{
 			ServerEquipButtonPressed();
 		}
+		return;
+	}
+	if (OverlappingButton)
+	{
+		if (HasAuthority())
+		{
+			OverlappingButton->OnInitPress();
+		}
+		else
+		{
+			ServerEquipButtonPressed();
+		}
 	}
 }
 
@@ -637,6 +649,12 @@ void ABlasterCharacter::ServerEquipButtonPressed_Implementation()
 	{
 		AWeapon* NewWeapon = OverlappingWeapon;
 		InventoryComponent->AddItem(NewWeapon);
+		return;
+	}
+	if (OverlappingButton)
+	{
+		OverlappingButton->OnInitPress();
+		return;
 	}
 }
 
@@ -644,13 +662,27 @@ void ABlasterCharacter::ServerEquipButtonPressed_Implementation()
 void ABlasterCharacter::EquipButtonReleased()
 {
 	if (bDisableGameplay) return;
+	if (HasAuthority())
+	{
+		if (OverlappingButton)
+		{
+			OverlappingButton->OnRelease();
+		}
+	}
+	else
+	{
+		ServerEquipButtonReleased();
+	}
 	
 }
 
     //here we have the server rpc so non-authority can pickup weapon
 void ABlasterCharacter::ServerEquipButtonReleased_Implementation()
 {
-	
+	if (OverlappingButton)
+	{
+		OverlappingButton->OnRelease();
+	}
 }
 
 void ABlasterCharacter::ItemShuffleLeft()
