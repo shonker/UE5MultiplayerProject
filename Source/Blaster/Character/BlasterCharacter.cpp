@@ -620,14 +620,16 @@ void ABlasterCharacter::EquipButtonPressed()
 	{
 		if (HasAuthority())
 		{
-			AWeapon* NewWeapon = OverlappingWeapon;
-			InventoryComponent->AddItem(NewWeapon);
+			if (OverlappingWeapon)
+			{
+				InventoryComponent->AddItem(OverlappingWeapon);
+				return;
+			}
 		}
 		else
 		{
 			ServerEquipButtonPressed();
 		}
-		return;
 	}
 	if (OverlappingButton)
 	{
@@ -647,9 +649,11 @@ void ABlasterCharacter::ServerEquipButtonPressed_Implementation()
 {
 	if (InventoryComponent)
 	{
-		AWeapon* NewWeapon = OverlappingWeapon;
-		InventoryComponent->AddItem(NewWeapon);
-		return;
+		if (OverlappingWeapon)
+		{
+			InventoryComponent->AddItem(OverlappingWeapon);
+			return;
+		}
 	}
 	if (OverlappingButton)
 	{

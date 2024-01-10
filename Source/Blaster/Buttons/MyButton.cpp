@@ -1,4 +1,8 @@
 #include "MyButton.h"
+#include "Blaster/Character/BlasterCharacter.h"
+#include "Components/WidgetComponent.h"
+#include "Components/SphereComponent.h"
+#include "Components/BoxComponent.h"
 
 AMyButton::AMyButton()
 {
@@ -23,6 +27,8 @@ void AMyButton::BeginPlay()
         AreaBox->OnComponentBeginOverlap.AddDynamic(this, &AMyButton::OnSphereOverlap);
         AreaBox->OnComponentEndOverlap.AddDynamic(this, &AMyButton::OnSphereEndOverlap);
     }
+    AreaBox->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+    AreaBox->SetCollisionResponseToChannel(ECollisionChannel::ECC_Visibility, ECollisionResponse::ECR_Block);
 
     if (PickupWidget)
     {
@@ -43,7 +49,7 @@ void AMyButton::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor
         ABlasterCharacter* BlasterCharacter = Cast<ABlasterCharacter>(OtherActor);
         if (BlasterCharacter)
         {
-            BlasterCharacter->SetOverlappingButton(this); // Assuming SetOverlappingButton is implemented in ABlasterCharacter
+            BlasterCharacter->SetOverlappingButton(this);
         }
     }
 }
