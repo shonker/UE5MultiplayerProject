@@ -34,6 +34,8 @@ void AMyButton::BeginPlay()
     {
         PickupWidget->SetVisibility(false);
     }
+
+    OwningActor = GetOwner();
 }
 
 void AMyButton::Tick(float DeltaTime)
@@ -73,17 +75,21 @@ void AMyButton::OnSphereEndOverlap(UPrimitiveComponent* OverlappedComponent, AAc
 
 void AMyButton::OnInitPress()
 {
+
+    OnButtonPressed.Broadcast();
+
     IsActivelyPressed = true;
     UE_LOG(LogTemp, Log, TEXT("i am pressed"));
 }
 
 void AMyButton::WhileHeld()
 {
-
+    OnButtonHeld.Broadcast();
 }
 
 void AMyButton::OnRelease()
 {
+    OnButtonReleased.Broadcast();
     IsActivelyPressed = false;
     UE_LOG(LogTemp, Log, TEXT("I am released"));
 }

@@ -635,6 +635,7 @@ void ABlasterCharacter::EquipButtonPressed()
 	{
 		if (HasAuthority())
 		{
+			//MulticastButtonOnInitPress_Implementation
 			OverlappingButton->OnInitPress();
 		}
 		else
@@ -657,6 +658,7 @@ void ABlasterCharacter::ServerEquipButtonPressed_Implementation()
 	}
 	if (OverlappingButton)
 	{
+		
 		OverlappingButton->OnInitPress();
 		return;
 	}

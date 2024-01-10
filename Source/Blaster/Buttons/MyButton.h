@@ -7,6 +7,11 @@
 #include "Blaster/Character/BlasterCharacter.h"
 #include "MyButton.generated.h"
 
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FButtonPressedDelegate);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FButtonReleasedDelegate);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FButtonHeldDelegate);
+
 UCLASS()
 class BLASTER_API AMyButton : public AActor
 {
@@ -14,7 +19,15 @@ class BLASTER_API AMyButton : public AActor
 
 public:
     AMyButton();
+    // Event dispatchers
+    UPROPERTY(BlueprintAssignable, Category = "Button")
+        FButtonPressedDelegate OnButtonPressed;
 
+    UPROPERTY(BlueprintAssignable, Category = "Button")
+        FButtonReleasedDelegate OnButtonReleased;
+
+    UPROPERTY(BlueprintAssignable, Category = "Button")
+        FButtonHeldDelegate OnButtonHeld;
 protected:
     virtual void BeginPlay() override;
 
@@ -38,7 +51,7 @@ public:
     virtual void OnInitPress();
     virtual void WhileHeld();
     virtual void OnRelease();
-
+    AActor* OwningActor;
 private:
     bool IsActivelyPressed = false;
 };

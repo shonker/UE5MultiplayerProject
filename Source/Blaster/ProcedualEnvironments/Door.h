@@ -3,7 +3,9 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/Actor.h"
+#include "Blaster/Buttons/MyButton.h"
+#include "Components/ChildActorComponent.h"
+
 #include "Door.generated.h"
 
 UCLASS()
@@ -12,17 +14,34 @@ class BLASTER_API ADoor : public AActor
 	GENERATED_BODY()
 	
 public:	
-	// Sets default values for this actor's properties
+
 	ADoor();
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
-	UPROPERTY(BlueprintReadWrite, Category = "Door Mesh")
+	
+	UPROPERTY(EditAnywhere, Category = "Door Mesh")
 	USkeletalMeshComponent* DoorMesh;
+
+	UFUNCTION()
+	void KnobButtonPress();
+	UFUNCTION()
+	void KnobButtonRelease();
+
+	/*UPROPERTY(EditAnywhere, Category = "Buttons")
+	AMyButton* DoorKnobButton;
+
+	UPROPERTY(EditAnywhere,Category = "Buttons")
+	AMyButton* LockButton;*/
+
+	UPROPERTY(EditAnywhere, Category = "Components")
+		UChildActorComponent* DoorKnobButtonComponent;
+
 protected:
-	// Called when the game starts or when spawned
+
 	virtual void BeginPlay() override;
 
 public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
 
+	virtual void Tick(float DeltaTime) override;
+	bool IsOpen = false;
+	
 };
