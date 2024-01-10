@@ -13,11 +13,14 @@ ADoor::ADoor()
 	DoorMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Door Mesh"));
 	SetRootComponent(DoorMesh);
 	DoorMesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Block);
-	//LockButton = CreateDefaultSubobject<AMyButton>(TEXT("Door Lock"));
 
 	DoorKnobButtonComponent = CreateDefaultSubobject<UChildActorComponent>(TEXT("Door Knob Button"));
 	DoorKnobButtonComponent->SetupAttachment(DoorMesh, FName("DoorKnobsSocket"));
 	DoorKnobButtonComponent->SetChildActorClass(AMyButton::StaticClass());
+	
+	LockButtonComponent = CreateDefaultSubobject<UChildActorComponent>(TEXT("Lock Button"));
+	LockButtonComponent->SetupAttachment(DoorMesh, FName("LockSocket"));
+	LockButtonComponent->SetChildActorClass(AMyButton::StaticClass());
 
 }
 
@@ -26,19 +29,6 @@ void ADoor::BeginPlay()
 {
 	Super::BeginPlay();	
 
-	/*if (GetWorld())
-	{
-		FActorSpawnParameters SpawnParams;
-		SpawnParams.Owner = this;
-		DoorKnobButton = GetWorld()->SpawnActor<AMyButton>(AMyButton::StaticClass(), FVector::ZeroVector, FRotator::ZeroRotator, SpawnParams);
-
-		if (DoorKnobButton)
-		{
-			const FName SocketName = FName("DoorKnobsSocket");
-			DoorKnobButton->AttachToComponent(DoorMesh, FAttachmentTransformRules::SnapToTargetIncludingScale, SocketName);
-		}
-	}*/
-
 	if (DoorKnobButtonComponent)
 	{
 		AMyButton* DoorKnobButton = Cast<AMyButton>(DoorKnobButtonComponent->GetChildActor());
@@ -46,6 +36,14 @@ void ADoor::BeginPlay()
 		{
 			DoorKnobButton->OnButtonPressed.AddDynamic(this, &ADoor::KnobButtonPress);
 			DoorKnobButton->OnButtonReleased.AddDynamic(this, &ADoor::KnobButtonRelease);
+		}
+	}
+	if (LockButtonComponent)
+	{
+		AMyButton* LockButton = Cast<AMyButton>(LockButtonComponent->GetChildActor());
+		if (LockButton)
+		{
+			LockButton->OnButtonPressed.AddDynamic(this, &ADoor::LockButtonPress);
 		}
 	}
 }
@@ -70,18 +68,25 @@ void ADoor::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimePro
 
 void ADoor::KnobButtonPress()
 {
-	UE_LOG(LogTemp, Log, TEXT("I am turn knob"));
+	bKnobTurning = true;
+	if (bIsLocked)
+	{
+		bAttemptOpen = true;
+	}
 }
 
 void ADoor::KnobButtonRelease()
 {
-	IsOpen = !IsOpen;
-	if (IsOpen)
+	bKnobTurning = false;
+
+	if (!bIsLocked)
 	{
-		UE_LOG(LogTemp, Log, TEXT("I am opened"));
+		bIsOpen = !bIsOpen;
 	}
-	if (!IsOpen)
-	{
-		UE_LOG(LogTemp, Log, TEXT("I am closed"));
-	}
+	bAttemptOpen = false;
+}
+
+void ADoor::LockButtonPress()
+{
+	bIsLocked = !bIsLocked;
 }

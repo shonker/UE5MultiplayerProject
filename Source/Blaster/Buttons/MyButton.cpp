@@ -12,8 +12,8 @@ AMyButton::AMyButton()
     AreaBox->SetupAttachment(RootComponent);
     AreaBox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
-    PickupWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("PickupWidget"));
-    PickupWidget->SetupAttachment(RootComponent);
+    InteractWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("InteractWidget"));
+    InteractWidget->SetupAttachment(RootComponent);
 }
 
 void AMyButton::BeginPlay()
@@ -30,9 +30,9 @@ void AMyButton::BeginPlay()
     AreaBox->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
     AreaBox->SetCollisionResponseToChannel(ECollisionChannel::ECC_Visibility, ECollisionResponse::ECR_Block);
 
-    if (PickupWidget)
+    if (InteractWidget)
     {
-        PickupWidget->SetVisibility(false);
+        InteractWidget->SetVisibility(false);
     }
 
     OwningActor = GetOwner();
@@ -79,17 +79,15 @@ void AMyButton::OnInitPress()
     OnButtonPressed.Broadcast();
 
     IsActivelyPressed = true;
-    UE_LOG(LogTemp, Log, TEXT("i am pressed"));
 }
 
 void AMyButton::WhileHeld()
 {
-    OnButtonHeld.Broadcast();
+   // OnButtonHeld.Broadcast();
 }
 
 void AMyButton::OnRelease()
 {
     OnButtonReleased.Broadcast();
     IsActivelyPressed = false;
-    UE_LOG(LogTemp, Log, TEXT("I am released"));
 }

@@ -25,6 +25,8 @@ public:
 	void KnobButtonPress();
 	UFUNCTION()
 	void KnobButtonRelease();
+	UFUNCTION()
+	void LockButtonPress();
 
 	/*UPROPERTY(EditAnywhere, Category = "Buttons")
 	AMyButton* DoorKnobButton;
@@ -35,6 +37,9 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Components")
 		UChildActorComponent* DoorKnobButtonComponent;
 
+	UPROPERTY(EditAnywhere, Category = "Components")
+		UChildActorComponent* LockButtonComponent;
+
 protected:
 
 	virtual void BeginPlay() override;
@@ -42,6 +47,13 @@ protected:
 public:	
 
 	virtual void Tick(float DeltaTime) override;
-	bool IsOpen = false;
+	UPROPERTY(BlueprintReadOnly)
+	bool bIsOpen = false;
+	UPROPERTY(BlueprintReadOnly)
+	bool bKnobTurning = false;
+	UPROPERTY(BlueprintReadOnly)
+	bool bIsLocked = false;
+	UPROPERTY(BlueprintReadWrite)
+	bool bAttemptOpen = false;
 	
 };

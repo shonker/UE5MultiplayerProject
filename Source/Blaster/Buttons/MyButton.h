@@ -35,7 +35,7 @@ protected:
         UBoxComponent* AreaBox;
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-        UWidgetComponent* PickupWidget;
+        UWidgetComponent* InteractWidget;
 
 public:
     virtual void Tick(float DeltaTime) override;
