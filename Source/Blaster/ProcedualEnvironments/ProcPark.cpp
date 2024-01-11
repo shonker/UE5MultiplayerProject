@@ -25,7 +25,7 @@ void AProcPark::BeginPlay()
                 // Check if the actor's position is outside the bounds
                 if (!IsWithinBounds(ParkPart->GetActorLocation(), MinBounds, MaxBounds))
                 {
-                    UE_LOG(LogTemp, Error, TEXT("DESTROY@!@"));
+                   // UE_LOG(LogTemp, Error, TEXT("DESTROY@!@"));
                     // Destroy the actor if it's outside the bounds
                     ParkPart->Destroy();
                 }

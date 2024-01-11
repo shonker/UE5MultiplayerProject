@@ -46,6 +46,7 @@ void ADoor::BeginPlay()
 			LockButton->OnButtonPressed.AddDynamic(this, &ADoor::LockButtonPress);
 		}
 	}
+	//DrawDebugSphere(GetWorld(), GetActorLocation(), 400.f, 12, FColor::Blue, true);
 }
 
 // Called every frame

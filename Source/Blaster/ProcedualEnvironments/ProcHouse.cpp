@@ -114,7 +114,7 @@ void AProcHouse::GenerateRooms()
 	{
 		for (int32 Row = 0; Row <= GridSize; Row++)
 		{
-			UE_LOG(LogTemp, Log, TEXT("row: %i"), Row);
+			//UE_LOG(LogTemp, Log, TEXT("row: %i"), Row);
 			RoomGrid[Col][Row] = ERoomType::Nothing;
 			//DrawDebugSphere(GetWorld(), GetActorLocation() + FVector(Col * UnitDistance - 600, Row * UnitDistance - 600.f, 0), 75.f, 12, FColor::Blue, true);
 		}
@@ -123,8 +123,8 @@ void AProcHouse::GenerateRooms()
 	int32 Lifetime = FMath::RandRange(1, MaxLifetime);
 	int32 StartCol = FMath::RandRange(0, GridSize);
 	int32 StartRow = FMath::RandRange(0, GridSize);
-	UE_LOG(LogTemp, Display, TEXT("Seed ~ Lifetime: %i StartCol: %i StartRow: %i"), Lifetime, StartCol, StartRow);
-	UE_LOG(LogTemp, Log, TEXT("fear: i%, randomness: i%"),Lifetime, Fear, Randomness);
+	//UE_LOG(LogTemp, Display, TEXT("Seed ~ Lifetime: %i StartCol: %i StartRow: %i"), Lifetime, StartCol, StartRow);
+	//UE_LOG(LogTemp, Log, TEXT("fear: i%, randomness: i%"),Lifetime, Fear, Randomness);
 	EPathDirection CurrentDirection = static_cast<EPathDirection>(FMath::RandRange(0, 3));
 
 	RoomGrid[StartCol][StartRow] = ERoomType::Hallway;
@@ -189,11 +189,11 @@ void AProcHouse::ChangeDirection(EPathDirection& CurrentDirection, int32 Col, in
 
 void AProcHouse::InferWallLocations()
 {
-	
 	for (int32 Col = 0; Col <= GridSize; ++Col)
 	{
 		for (int32 Row = 0; Row <= GridSize; Row++)
 		{
+
 			bool WallRight = false;
 			bool WallDown = false;
 			bool WallLeft = false;
@@ -337,7 +337,7 @@ void AProcHouse::InferWallLocations()
 					}
 					if (WindowDown)
 					{
-						DesignateWall(TargetX, TargetY, EWallType::Window);
+							DesignateWall(TargetX, TargetY, EWallType::Window);
 					}
 				}
 			}				
@@ -369,7 +369,14 @@ void AProcHouse::InferWallLocations()
 					}
 					if (WindowUp)
 					{
-						DesignateWall(TargetX, TargetY, EWallType::Window);
+						if (Col == 1)
+						{
+							DesignateWall(TargetX, TargetY, EWallType::FrontDoor);
+						}
+						else
+						{
+							DesignateWall(TargetX, TargetY, EWallType::Window);
+						}
 					}
 				}
 			}	
@@ -438,24 +445,23 @@ void AProcHouse::RandomizeWallsAndWindows()
 		}
 	}
 }
-
 void AProcHouse::SpawnWalls()
 {
 	int32 HouseOffsetXY = 600;
-	//0,0
-	//DrawDebugSphere(GetWorld(), GetActorLocation() + FVector(-HouseOffsetXY, -HouseOffsetXY, 0), 100.f, 12, FColor::Red, true);
-	//max,max
-	//DrawDebugSphere(GetWorld(), GetActorLocation() + FVector(GridSize*UnitDistance - HouseOffsetXY, GridSize * UnitDistance - HouseOffsetXY, 0), 100.f, 12, FColor::Purple, true);
+	FTransform OwnerTransform = GetActorTransform();
+
 	for (int32 i = 0; i < aConnectedWallsX.Num(); i++)
 	{
 		int32 SpawnPointX = aConnectedWallsX[i];
 		int32 SpawnPointY = aConnectedWallsY[i];
 
-		FVector SpawnLocation = GetActorLocation() + FVector(SpawnPointX - HouseOffsetXY, SpawnPointY - HouseOffsetXY, 0.0f);
+		FVector RelativeSpawnLocation = FVector(SpawnPointX - HouseOffsetXY, SpawnPointY - HouseOffsetXY, 0.0f);
+		FVector SpawnLocation = OwnerTransform.TransformPosition(RelativeSpawnLocation); // Apply the owner's transform
 
-		bool IsHorizontal = SpawnPointY % 200 == 0;//600 div 200 but not 300
+		bool IsHorizontal = SpawnPointY % 200 == 0; //600 div 200 but not 300
 		float YawRotation = IsHorizontal ? 90.f : 0.f;
 		FRotator WallRotation = FRotator(0.0f, YawRotation, 0.0f);
+		WallRotation = OwnerTransform.TransformRotation(WallRotation.Quaternion()).Rotator(); // Apply the owner's rotation
 
 		TSubclassOf<AActor> WallToSpawnBlueprint = nullptr;
 		switch (aWallTypes[i])
@@ -473,15 +479,14 @@ void AProcHouse::SpawnWalls()
 		case EWallType::NotWindow:
 			WallToSpawnBlueprint = NotWindowBlueprint;
 			break;		
-		case EWallType::LockedFrontDoor:
-			WallToSpawnBlueprint = DoorwayBlueprint;
+		case EWallType::FrontDoor:
+			WallToSpawnBlueprint = FrontDoorBlueprint;
+			//DrawDebugSphere(GetWorld(), SpawnLocation, 80.f, 12, FColor::Green, true);
 			break;		
 		}
 
 		if (WallToSpawnBlueprint != nullptr)
 		{
-			//FColor IsHorizontalColor = IsHorizontal ? FColor::Green : FColor::Red;
-		//	DrawDebugSphere(GetWorld(), GetActorLocation() + FVector(SpawnPointX - 900.f, SpawnPointY - 900.f, 0), 100.f, 12, FColor::Blue, true);
 			AActor* SpawnedWall = GetWorld()->SpawnActor<AActor>(WallToSpawnBlueprint, SpawnLocation, WallRotation);
 		}
 	}
@@ -561,7 +566,7 @@ void AProcHouse::SpawnPrefabWalls()
 		case EWallType::Nothing:
 			//UE_LOG(LogTemp, Log, TEXT("nothing"));
 
-			//DrawDebugSphere(GetWorld(), SpawnLocation, 80.f, 12, FColor::Green, true);
+			
 			break;
 
 		case EWallType::Wall:
@@ -588,8 +593,7 @@ void AProcHouse::SpawnPrefabWalls()
 			break;
 
 		case EWallType::FrontDoor:
-			//UE_LOG(LogTemp, Log, TEXT("front door"));
-
+			///UE_LOG(LogTemp, Log, TEXT("front door"));
 			SpawnWall(FrontDoorBlueprint, SpawnLocation, SpawnRotation);
 			break;
 
