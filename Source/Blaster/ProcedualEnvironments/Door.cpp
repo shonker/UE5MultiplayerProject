@@ -17,10 +17,12 @@ ADoor::ADoor()
 	DoorKnobButtonComponent = CreateDefaultSubobject<UChildActorComponent>(TEXT("Door Knob Button"));
 	DoorKnobButtonComponent->SetupAttachment(DoorMesh, FName("DoorKnobsSocket"));
 	DoorKnobButtonComponent->SetChildActorClass(AMyButton::StaticClass());
+	DoorKnobButtonComponent->SetIsReplicated(true);
 	
 	LockButtonComponent = CreateDefaultSubobject<UChildActorComponent>(TEXT("Lock Button"));
 	LockButtonComponent->SetupAttachment(DoorMesh, FName("LockSocket"));
 	LockButtonComponent->SetChildActorClass(AMyButton::StaticClass());
+	LockButtonComponent->SetIsReplicated(true);
 
 }
 
@@ -36,6 +38,7 @@ void ADoor::BeginPlay()
 		{
 			DoorKnobButton->OnButtonPressed.AddDynamic(this, &ADoor::KnobButtonPress);
 			DoorKnobButton->OnButtonReleased.AddDynamic(this, &ADoor::KnobButtonRelease);
+			DoorKnobButton->OnButtonDraggedOff.AddDynamic(this, &ADoor::KnobButtonDraggedOff);
 		}
 	}
 	if (LockButtonComponent)
@@ -84,6 +87,12 @@ void ADoor::KnobButtonRelease()
 	{
 		bIsOpen = !bIsOpen;
 	}
+	bAttemptOpen = false;
+}
+
+void ADoor::KnobButtonDraggedOff()
+{
+	bKnobTurning = false;
 	bAttemptOpen = false;
 }
 

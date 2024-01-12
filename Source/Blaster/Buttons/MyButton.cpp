@@ -69,25 +69,93 @@ void AMyButton::OnSphereEndOverlap(UPrimitiveComponent* OverlappedComponent, AAc
 
     if (IsActivelyPressed)
     {
-        OnRelease();
+        IsActivelyPressed = false;
+        OnDragOff();
     }
+}
+
+void AMyButton::MulticastOnInitPress_Implementation()
+{
+    IsActivelyPressed = true;
+    OnButtonPressed.Broadcast();
+}
+
+//technically this only needs to be populated with multicast oninit press as the server is the only one receiving the input from the clients. 
+//no client should be calling these functions, however, i shall leave this here as i spent the time writing it out and may want it one day
+void AMyButton::ServerOnInitPress_Implementation()
+{
+    MulticastOnInitPress();
 }
 
 void AMyButton::OnInitPress()
 {
+    if (HasAuthority())
+    {
+        MulticastOnInitPress();
+    }
+    else
+    {
+        ServerOnInitPress();
+    }
 
-    OnButtonPressed.Broadcast();
+}
 
-    IsActivelyPressed = true;
+void AMyButton::MulticastWhileHeld_Implementation()
+{
+
+}
+
+void AMyButton::ServerWhileHeld_Implementation()
+{
 }
 
 void AMyButton::WhileHeld()
 {
+    //not really necessarry
    // OnButtonHeld.Broadcast();
+}
+
+void AMyButton::MulticastOnRelease_Implementation()
+{
+    OnButtonReleased.Broadcast();
+    IsActivelyPressed = false;
+}
+
+void AMyButton::ServerOnRelease_Implementation()
+{
+    MulticastOnRelease();
 }
 
 void AMyButton::OnRelease()
 {
-    OnButtonReleased.Broadcast();
-    IsActivelyPressed = false;
+    if (HasAuthority())
+    {
+        MulticastOnRelease();
+    }
+    else
+    {
+        ServerOnRelease();
+    }
+}
+
+void AMyButton::MulticastOnDragOff_Implementation()
+{
+    OnButtonDraggedOff.Broadcast();
+}
+
+void AMyButton::ServerOnDragOff_Implementation()
+{
+    MulticastOnDragOff();
+}
+
+void AMyButton::OnDragOff()
+{
+    if (HasAuthority())
+    {
+        MulticastOnDragOff();
+    }
+    else
+    {
+        ServerOnDragOff();
+    }
 }

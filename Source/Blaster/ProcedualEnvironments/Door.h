@@ -27,6 +27,8 @@ public:
 	void KnobButtonRelease();
 	UFUNCTION()
 	void LockButtonPress();
+	UFUNCTION()
+	void KnobButtonDraggedOff();
 
 	/*UPROPERTY(EditAnywhere, Category = "Buttons")
 	AMyButton* DoorKnobButton;
