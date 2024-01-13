@@ -66,9 +66,19 @@ void AProcHouse::GenerateFloors()
 			}
 			else
 			{
+				if ((Col == 0 || Col == GridWidth - 1) && Row == 0)
+				{
+					/*if (FMath::RandRange(1, 4) == 1)
+					{
+						GridFloorTypes[Col][Row] = EFloorType::Stairs;
+						continue;
+					}*/
+					GridFloorTypes[Col][Row] = EFloorType::Stairs;
+					continue;
+				}
 				GridFloorTypes[Col][Row] = EFloorType::Floor;
 				if (FMath::RandRange(0, 99) < 10)
-				{
+				{	
 					GridFloorTypes[Col][Row] = EFloorType::Spikes;
 				}
 			}
@@ -83,6 +93,7 @@ void AProcHouse::SpawnFloors()
 		for (uint8 Row = 0; Row < GridHeight; ++Row)
 		{
 			FVector SpawnLocation = GetActorLocation() + FVector(Col * 600.f - 600.f, Row * 600.f - 600.f, 0.0f);
+			FRotator SpawnRotation = FRotator::ZeroRotator;
 			TSubclassOf<AActor> FloorToSpawnBlueprint = nullptr;
 			AActor* SpawnedFloor;
 
@@ -97,10 +108,13 @@ void AProcHouse::SpawnFloors()
 			case EFloorType::Water:
 				FloorToSpawnBlueprint = WaterBlueprint;
 				break;
+			case EFloorType::Stairs:
+					FloorToSpawnBlueprint = StaircaseBlueprint;
+				break;
 			}
 			if (FloorToSpawnBlueprint != nullptr)
 			{
-				SpawnedFloor = GetWorld()->SpawnActor<AActor>(FloorToSpawnBlueprint, SpawnLocation, FRotator::ZeroRotator);
+				SpawnedFloor = GetWorld()->SpawnActor<AActor>(FloorToSpawnBlueprint, SpawnLocation, SpawnRotation);
 			}
 		}
 	}

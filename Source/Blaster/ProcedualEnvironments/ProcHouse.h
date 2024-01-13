@@ -48,7 +48,8 @@ enum class EFloorType : uint8
 	Empty,
 	Floor,
 	Spikes,
-	Water
+	Water,
+	Stairs
 };
 
 enum class EWallRotation : uint32
@@ -94,6 +95,12 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = "Floors")
 	TSubclassOf<AActor> WaterBlueprint;
+	
+	UPROPERTY(EditAnywhere, Category = "Floors")
+	TSubclassOf<AActor> StaircaseBlueprint;
+	
+	UPROPERTY(EditAnywhere, Category = "Floors")
+	TSubclassOf<AActor> StaircaseMirroredBlueprint;
 
 	/*walls*/
 
