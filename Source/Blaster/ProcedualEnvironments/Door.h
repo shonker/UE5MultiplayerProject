@@ -40,22 +40,29 @@ public:
 		UChildActorComponent* DoorKnobButtonComponent;
 
 	UPROPERTY(EditAnywhere, Category = "Components")
+		UChildActorComponent* DoorKnobButtonComponent2;
+
+	UPROPERTY(EditAnywhere, Category = "Components")
 		UChildActorComponent* LockButtonComponent;
 
 protected:
 
 	virtual void BeginPlay() override;
 
+	void AttemptLockButtonCast();
+
 public:	
 
 	virtual void Tick(float DeltaTime) override;
-	UPROPERTY(BlueprintReadOnly)
+	UPROPERTY(BlueprintReadOnly, Replicated)
 	bool bIsOpen = false;
-	UPROPERTY(BlueprintReadOnly)
+	UPROPERTY(BlueprintReadOnly, Replicated)
 	bool bKnobTurning = false;
-	UPROPERTY(BlueprintReadOnly)
+	UPROPERTY(BlueprintReadOnly, Replicated)
 	bool bIsLocked = false;
-	UPROPERTY(BlueprintReadWrite)
+	UPROPERTY(BlueprintReadWrite, Replicated)
 	bool bAttemptOpen = false;
-	
+
+private:
+	FTimerHandle TimerHandle_AttemptCast;
 };

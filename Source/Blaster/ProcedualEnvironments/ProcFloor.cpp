@@ -16,7 +16,7 @@ AProcFloor::AProcFloor()
 void AProcFloor::BeginPlay()
 {
 	Super::BeginPlay();
-    if (FMath::RandRange(0,10) == 1) SpawnNPCs();
+   // if (FMath::RandRange(0,10) == 1) SpawnNPCs();
 }
 
 // Called every frame

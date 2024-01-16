@@ -9,11 +9,12 @@ AMyButton::AMyButton()
     PrimaryActorTick.bCanEverTick = true;
 
     AreaBox = CreateDefaultSubobject<UBoxComponent>(TEXT("AreaBox"));
-    AreaBox->SetupAttachment(RootComponent);
+    SetRootComponent(AreaBox);
     AreaBox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
     InteractWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("InteractWidget"));
     InteractWidget->SetupAttachment(RootComponent);
+    bReplicates = true;
 }
 
 void AMyButton::BeginPlay()
@@ -51,6 +52,7 @@ void AMyButton::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor
         ABlasterCharacter* BlasterCharacter = Cast<ABlasterCharacter>(OtherActor);
         if (BlasterCharacter)
         {
+            UE_LOG(LogTemp, Log, TEXT("overlap detected in button on server"));
             BlasterCharacter->SetOverlappingButton(this);
         }
     }
@@ -77,27 +79,27 @@ void AMyButton::OnSphereEndOverlap(UPrimitiveComponent* OverlappedComponent, AAc
 void AMyButton::MulticastOnInitPress_Implementation()
 {
     IsActivelyPressed = true;
-    OnButtonPressed.Broadcast();
 }
 
 //technically this only needs to be populated with multicast oninit press as the server is the only one receiving the input from the clients. 
 //no client should be calling these functions, however, i shall leave this here as i spent the time writing it out and may want it one day
 void AMyButton::ServerOnInitPress_Implementation()
 {
-    MulticastOnInitPress();
+    OnButtonPressed.Broadcast();
+   //MulticastOnInitPress();
 }
 
 void AMyButton::OnInitPress()
 {
-    if (HasAuthority())
-    {
-        MulticastOnInitPress();
-    }
-    else
-    {
-        ServerOnInitPress();
-    }
-
+   /* if (HasAuthority())
+    {*/
+    OnButtonPressed.Broadcast();
+    //   // MulticastOnInitPress();
+    //}
+    //else
+    //{
+    //    ServerOnInitPress();
+    //}
 }
 
 void AMyButton::MulticastWhileHeld_Implementation()

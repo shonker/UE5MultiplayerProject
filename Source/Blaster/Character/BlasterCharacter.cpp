@@ -625,18 +625,11 @@ void ABlasterCharacter::EquipButtonPressed()
 				InventoryComponent->AddItem(OverlappingWeapon);
 				return;
 			}
-		}
-		else
-		{
-			ServerEquipButtonPressed();
-		}
-	}
-	if (OverlappingButton)
-	{
-		if (HasAuthority())
-		{
-			//MulticastButtonOnInitPress_Implementation
-			OverlappingButton->OnInitPress();
+			if (OverlappingButton)
+			{
+				OverlappingButton->OnInitPress();
+				return;
+			}
 		}
 		else
 		{
@@ -658,7 +651,6 @@ void ABlasterCharacter::ServerEquipButtonPressed_Implementation()
 	}
 	if (OverlappingButton)
 	{
-		
 		OverlappingButton->OnInitPress();
 		return;
 	}
@@ -1024,6 +1016,7 @@ void ABlasterCharacter::SetOverlappingButton(AMyButton* Button)
 	{
 		//OverlappingButton->ShowPickupWidget(false);
 	}
+	UE_LOG(LogTemp, Log, TEXT("overlapping button set in abc"));
 	OverlappingButton = Button;
 	//logic to only show widget for the character controlling the pawn
 	//onsphereoverlap is only called w/in the server... what are we to do?
