@@ -6,6 +6,15 @@
 #include "GameFramework/Actor.h"
 #include "ProcFloor.generated.h"
 
+USTRUCT(BlueprintType)
+struct FHouseNPCTypeInfo
+{
+	GENERATED_BODY()
+
+		UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		TSubclassOf<ACharacter> NPCBlueprint;
+};
+
 UCLASS()
 class BLASTER_API AProcFloor : public AActor
 {
@@ -14,6 +23,17 @@ class BLASTER_API AProcFloor : public AActor
 public:	
 	// Sets default values for this actor's properties
 	AProcFloor();
+
+	UPROPERTY(EditAnywhere, Category = "Procedural Generation")
+		TArray<FHouseNPCTypeInfo> NPCTypes; 
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "NPC Output Locations")
+		TArray<FTransform> NPCOutputLocs;
+
+	FHouseNPCTypeInfo GetRandomObjectType();
+
+private:
+	void SpawnNPCs();
 
 protected:
 	// Called when the game starts or when spawned

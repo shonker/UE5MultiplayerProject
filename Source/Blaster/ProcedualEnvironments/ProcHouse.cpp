@@ -16,8 +16,6 @@ AProcHouse::AProcHouse()
 	PlotMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Plot Mesh"));
 	PlotMesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Block);
 	PlotMesh->SetupAttachment(RootComponent);
-
-
 }
 
 // Called when the game starts or when spawned

@@ -4,8 +4,10 @@
 #include "Engine/World.h"
 #include "Kismet/GameplayStatics.h"
 #include "DrawDebugHelpers.h"
+#include "AI/NavigationSystemBase.h"
 
 const float AProcNeighborhood::CellSize = 100.f * 20.f;
+//const float AProcNeighborhood::CenterLocOffset = GridSize * CellSize / 2;
 
 // Sets default values
 AProcNeighborhood::AProcNeighborhood()
@@ -26,6 +28,28 @@ void AProcNeighborhood::BeginPlay()
 		GenerateHouses();
 		GenerateMiscellaneousLocations();
 		SpawnFinishedNeighborhood();
+
+		//FVector navMeshBounds = GetActorLocation() + FVector(GridSize * CellSize, -GridSize * CellSize, 2000.0f);
+		/*FNavigationSystem::Build(*GetWorld(), FNavigationSystem::ECollisionChannel::ECC_Pawn, navMeshBounds);
+		
+		if (GetWorld()->GetNavigationSystem()->MainNavData != nullptr)
+		{
+			TArray<AActor*> Actors;
+			FVector LevelCentre = GetActorLocation() + (GridSize * CellSize) * 0.5f;
+
+			UGameplayStatics::GetAllActorsOfClass(GetWorld(), ANavMeshBoundsVolume::StaticClass(), Actors);
+
+			if (Actors.Num() > 0)
+			{
+				ANavMeshBoundsVolume* NMBV = Cast<ANavMeshBoundsVolume>(Actors.Last());
+				if (NMBV != nullptr)
+				{
+					NMBV->SetActorLocation(LevelCentre);
+					NMBV->SetActorScale3D((MaxBounds - MinBounds + FVector(0.0f, 0.0f, 100.0f)));
+					GetWorld()->GetNavigationSystem()->OnNavigationBoundsUpdated(NMBV);
+				}
+			}
+		}*/
 	}
 }
 
@@ -138,7 +162,8 @@ void AProcNeighborhood::MoveInDirection(EDirection Direction, int32& Col, int32&
 void AProcNeighborhood::ChangeDirection(EDirection& CurrentDirection)
 {
 	int32 RawDirection = static_cast<int32>(CurrentDirection);
-	int32 LeftOrRight = FMath::RandBool() ? -1 : 1;
+	int32 LeftOrRight = FMath::RandRange(0,3);
+	//int32 LeftOrRight = FMath::RandBool() ? -1 : 1;
 	int32 NextRawDirection = (RawDirection + LeftOrRight + 3) % 3;
 	NextRawDirection = FMath::Clamp(NextRawDirection, 0, 3);//jus2bsafe
 	//OutParameter
@@ -391,7 +416,8 @@ void AProcNeighborhood::SpawnFinishedNeighborhood()
 		for (int32 Row = 0; Row < GridSize; Row++)
 		{
 			TSubclassOf<AActor> RoadBlueprint = nullptr;
-			FVector SpawnLocation = GetActorLocation() + FVector(Col * CellSize, -Row * CellSize, 0.0f);
+			float CenterLocOffset = GridSize * CellSize / 2;
+			FVector SpawnLocation = GetActorLocation() + FVector(Col * CellSize - CenterLocOffset, -Row * CellSize + CenterLocOffset, 0.0f);
 			UWorld* World = GetWorld();
 			if (World)
 			{
