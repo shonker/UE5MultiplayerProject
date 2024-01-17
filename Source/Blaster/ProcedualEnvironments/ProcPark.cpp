@@ -1,6 +1,7 @@
 #include "ProcPark.h"
 #include "ProcParkPart.h"
 #include "EngineUtils.h"  
+#include "Blaster/Monsters/TubeSlide/TubeSlide.h"
 
 void AProcPark::BeginPlay()
 {
@@ -63,6 +64,11 @@ void AProcPark::SpawnNextObject(const FTransform& ParentTransform, int32 Current
     if (!SelectedType.ObjectBlueprint)
         return;
 
+    if (CurrentLifetime == 1 && FMath::RandBool())
+    {
+        AActor* SpawnedHouse = GetWorld()->SpawnActor<AActor>(TubeSlideBlueprint, ParentTransform.GetLocation(), ParentTransform.GetRotation().Rotator());
+        return;
+    }
     AProcParkPart* SpawnedPart = Cast<AProcParkPart>(GetWorld()->SpawnActor<AProcParkPart>(SelectedType.ObjectBlueprint, ParentTransform.GetLocation(), ParentTransform.GetRotation().Rotator()));
     if (!SpawnedPart || SpawnedPart->OutputTransforms.Num() == 0)
         return;

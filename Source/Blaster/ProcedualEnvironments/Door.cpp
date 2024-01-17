@@ -56,17 +56,7 @@ void ADoor::BeginPlay()
 			DoorKnobButton->OnButtonReleased.AddDynamic(this, &ADoor::KnobButtonRelease);
 			DoorKnobButton->OnButtonDraggedOff.AddDynamic(this, &ADoor::KnobButtonDraggedOff);
 		}
-
 	}
-
-	/*if (LockButtonComponent)
-	{
-		AMyButton* LockButton = Cast<AMyButton>(LockButtonComponent->GetChildActor());
-		if (LockButton)
-		{
-			LockButton->OnButtonPressed.AddDynamic(this, &ADoor::LockButtonPress);
-		}
-	}*/
 }
 
 void ADoor::AttemptLockButtonCast()

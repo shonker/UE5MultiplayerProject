@@ -37,6 +37,9 @@ private:
     UPROPERTY(EditAnywhere, Category = "Procedural Generation")
         TArray<FObjectTypeInfo> ObjectTypes;
 
+    UPROPERTY(EditAnywhere, Category = "Procedural Generation")
+        TSubclassOf<AActor> TubeSlideBlueprint;
+
     FVector CalculateOutputLocation(const AActor* SpawnedObject, const FVector& OutputLocation, const FRotator& Rotation);
 
     FObjectTypeInfo GetRandomObjectTypeExcluding(const TSubclassOf<AProcParkPart>& ExcludeType);

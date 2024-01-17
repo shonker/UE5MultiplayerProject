@@ -105,7 +105,7 @@ void AProcNeighborhood::GenerateRoadBranch(int32 StartCol, int32 StartRow, int32
 			UE_LOG(LogTemp, Log, TEXT("Branch ~ Lifetime: %i StartCol: %i StartRow: %i"), Lifetime, StartCol, StartRow);
 			GenerateRoadBranch(StartCol, StartRow, Lifetime, CurrentDirection);
 		}
-		if (FMath::RandBool()) //50% chance cont straight
+		if (FMath::RandRange(1,10) > 7) //70% chance turn
 		{
 			MoveInDirection(CurrentDirection, StartCol, StartRow);
 		}
@@ -162,10 +162,10 @@ void AProcNeighborhood::MoveInDirection(EDirection Direction, int32& Col, int32&
 void AProcNeighborhood::ChangeDirection(EDirection& CurrentDirection)
 {
 	int32 RawDirection = static_cast<int32>(CurrentDirection);
-	int32 LeftOrRight = FMath::RandRange(0,3);
+	int32 LeftOrRight = 1;// FMath::RandRange(1, 3);
 	//int32 LeftOrRight = FMath::RandBool() ? -1 : 1;
-	int32 NextRawDirection = (RawDirection + LeftOrRight + 3) % 3;
-	NextRawDirection = FMath::Clamp(NextRawDirection, 0, 3);//jus2bsafe
+	int32 NextRawDirection = -RawDirection;//(RawDirection + LeftOrRight);
+	//NextRawDirection = FMath::Clamp(NextRawDirection, 0, 3);//jus2bsafe
 	//OutParameter
 	CurrentDirection = static_cast<EDirection>(NextRawDirection);
 }
