@@ -65,6 +65,8 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Road Generation")
 		int32 MinLifetime = 5;
 
+		int32 Straightness = FMath::RandRange(1,2);
+
 	UPROPERTY(EditDefaultsOnly, Category = "Road Generation")
 		int32 MaxLifetime = 10;
 

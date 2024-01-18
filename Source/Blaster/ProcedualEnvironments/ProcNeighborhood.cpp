@@ -28,28 +28,6 @@ void AProcNeighborhood::BeginPlay()
 		GenerateHouses();
 		GenerateMiscellaneousLocations();
 		SpawnFinishedNeighborhood();
-
-		//FVector navMeshBounds = GetActorLocation() + FVector(GridSize * CellSize, -GridSize * CellSize, 2000.0f);
-		/*FNavigationSystem::Build(*GetWorld(), FNavigationSystem::ECollisionChannel::ECC_Pawn, navMeshBounds);
-		
-		if (GetWorld()->GetNavigationSystem()->MainNavData != nullptr)
-		{
-			TArray<AActor*> Actors;
-			FVector LevelCentre = GetActorLocation() + (GridSize * CellSize) * 0.5f;
-
-			UGameplayStatics::GetAllActorsOfClass(GetWorld(), ANavMeshBoundsVolume::StaticClass(), Actors);
-
-			if (Actors.Num() > 0)
-			{
-				ANavMeshBoundsVolume* NMBV = Cast<ANavMeshBoundsVolume>(Actors.Last());
-				if (NMBV != nullptr)
-				{
-					NMBV->SetActorLocation(LevelCentre);
-					NMBV->SetActorScale3D((MaxBounds - MinBounds + FVector(0.0f, 0.0f, 100.0f)));
-					GetWorld()->GetNavigationSystem()->OnNavigationBoundsUpdated(NMBV);
-				}
-			}
-		}*/
 	}
 }
 
@@ -71,8 +49,8 @@ void AProcNeighborhood::GenerateRoads()
 	int32 StartRow = GridSize/2;
 	UE_LOG(LogTemp, Display, TEXT("Seed ~ Lifetime: %i StartCol: %i StartRow: %i"), Lifetime, StartCol, StartRow);
 
-	//this is sick, we use 0-3 irand to choose one of our enum options
-	EDirection CurrentDirection = static_cast<EDirection>(FMath::RandRange(0, 3));
+	EDirection CurrentDirection = EDirection::Down;
+	//ChangeDirection(CurrentDirection);
 	PlaceRoad(StartCol, StartRow);
 
 	for (int32 i = 0; i < Lifetime; Lifetime--)
@@ -82,11 +60,11 @@ void AProcNeighborhood::GenerateRoads()
 			UE_LOG(LogTemp, Log, TEXT("Branch ~ Lifetime: %i StartCol: %i StartRow: %i"), Lifetime, StartCol, StartRow);
 			GenerateRoadBranch(StartCol, StartRow, Lifetime, CurrentDirection);
 		}
-		if (FMath::RandBool()) //50% chance cont straight
+		if (FMath::RandRange(0,Straightness) > 0)
 		{
 			MoveInDirection(CurrentDirection, StartCol, StartRow);
 		}
-		else //25% chance left, and 25% right
+		else
 		{
 			ChangeDirection(CurrentDirection);
 			MoveInDirection(CurrentDirection, StartCol, StartRow);
@@ -105,11 +83,11 @@ void AProcNeighborhood::GenerateRoadBranch(int32 StartCol, int32 StartRow, int32
 			UE_LOG(LogTemp, Log, TEXT("Branch ~ Lifetime: %i StartCol: %i StartRow: %i"), Lifetime, StartCol, StartRow);
 			GenerateRoadBranch(StartCol, StartRow, Lifetime, CurrentDirection);
 		}
-		if (FMath::RandRange(1,10) > 7) //70% chance turn
+		if (FMath::RandRange(0, Straightness) > 0)
 		{
 			MoveInDirection(CurrentDirection, StartCol, StartRow);
 		}
-		else //25% chance left, and 25% right
+		else
 		{
 			ChangeDirection(CurrentDirection);
 			MoveInDirection(CurrentDirection, StartCol, StartRow);
@@ -124,7 +102,7 @@ void AProcNeighborhood::MoveInDirection(EDirection Direction, int32& Col, int32&
 	switch (Direction)
 	{
 	case EDirection::Up:
-		if (Row + 1 <= GridSize - 2) ChangeDirection(Direction);
+		if (Row + 1 <= GridSize - 1) ChangeDirection(Direction);
 		break;
 	case EDirection::Down:
 		if (Row - 1 <= 1) ChangeDirection(Direction);
@@ -133,7 +111,7 @@ void AProcNeighborhood::MoveInDirection(EDirection Direction, int32& Col, int32&
 		if (Col - 1 <= 1) ChangeDirection(Direction);
 		break;
 	case EDirection::Right:
-		if (Col + 1 >= GridSize - 2) ChangeDirection(Direction);
+		if (Col + 1 >= GridSize - 1) ChangeDirection(Direction);
 		break;
 	}
 
@@ -161,13 +139,19 @@ void AProcNeighborhood::MoveInDirection(EDirection Direction, int32& Col, int32&
 
 void AProcNeighborhood::ChangeDirection(EDirection& CurrentDirection)
 {
-	int32 RawDirection = static_cast<int32>(CurrentDirection);
-	int32 LeftOrRight = 1;// FMath::RandRange(1, 3);
-	//int32 LeftOrRight = FMath::RandBool() ? -1 : 1;
-	int32 NextRawDirection = -RawDirection;//(RawDirection + LeftOrRight);
-	//NextRawDirection = FMath::Clamp(NextRawDirection, 0, 3);//jus2bsafe
-	//OutParameter
-	CurrentDirection = static_cast<EDirection>(NextRawDirection);
+	EDirection NextDirection;
+	do
+	{
+		TArray<EDirection> Directions = {
+		EDirection::Up,
+		EDirection::Down,
+		EDirection::Left,
+		EDirection::Right
+		};
+		NextDirection = Directions[FMath::RandRange(0, Directions.Num() - 1)];
+	} while (CurrentDirection == NextDirection);
+
+	CurrentDirection = NextDirection;
 }
 
 void AProcNeighborhood::PlaceRoad(int32 Col, int32 Row)
@@ -475,7 +459,7 @@ void AProcNeighborhood::SpawnFinishedNeighborhood()
 					}
 				break;
 				case CellType::Reserved:
-					//DrawDebugSphere(GetWorld(), SpawnLocation, 500.f, 100, FColor::Blue, true);	
+					
 				break;
 
 				}
