@@ -53,6 +53,17 @@ void AHitScanWeapon::Fire(const FVector& HitTarget)
 		}
 		else
 		{
+			//regardless apply damage to the thing
+			if (HasAuthority())
+			{
+				UGameplayStatics::ApplyDamage(
+					FireHit.GetActor(),
+					Damage,
+					InstigatorController,
+					this,
+					UDamageType::StaticClass()
+				);
+			}
 			FleshImpact = false;
 		}
 		ImpactParticles = FleshImpact ? ImpactCharacterParticles : ImpactEnvironmentParticles;

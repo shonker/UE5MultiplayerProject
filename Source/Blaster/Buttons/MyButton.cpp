@@ -52,7 +52,7 @@ void AMyButton::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor
         ABlasterCharacter* BlasterCharacter = Cast<ABlasterCharacter>(OtherActor);
         if (BlasterCharacter)
         {
-            UE_LOG(LogTemp, Log, TEXT("overlap detected in button on server"));
+            ///UE_LOG(LogTemp, Log, TEXT("overlap detected in button on server"));
             BlasterCharacter->SetOverlappingButton(this);
         }
     }
