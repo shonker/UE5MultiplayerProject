@@ -54,7 +54,7 @@ void AHitScanWeapon::Fire(const FVector& HitTarget)
 		else
 		{
 			//regardless apply damage to the thing
-			if (HasAuthority())
+			if (HasAuthority() && InstigatorController)
 			{
 				UGameplayStatics::ApplyDamage(
 					FireHit.GetActor(),
