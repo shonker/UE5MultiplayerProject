@@ -830,8 +830,6 @@ void ABlasterCharacter::SimProxiesTurn()
 	ProxyRotation = GetActorRotation();
 	ProxyYaw = UKismetMathLibrary::NormalizedDeltaRotator(ProxyRotation, ProxyRotationLastFrame).Yaw;
 
-	//UE_LOG(LogTemp, Warning, TEXT("ProxyYaw: %f"), ProxyYaw);
-
 	if (FMath::Abs(ProxyYaw) > TurnThreshold)
 	{
 		if (ProxyYaw > TurnThreshold)
@@ -888,7 +886,6 @@ void ABlasterCharacter::FireButtonReleased()
 
 void ABlasterCharacter::TurnInPlace(float DeltaTime)
 {
-	//UE_LOG(LogTemp, Warning, TEXT("AO_Yaw: %f"), AO_Yaw);
 	if (AO_Yaw > 45.f)
 	{
 		TurningInPlace = ETurningInPlace::ETIP_Right;
@@ -910,11 +907,6 @@ void ABlasterCharacter::TurnInPlace(float DeltaTime)
 	}
 }
 
-//void ABlasterCharacter::MulticastHit_Implementation()
-//{
-//	PlayHitReactMontage();
-//}
-
 void ABlasterCharacter::HideCameraIfCharacterClose()
 {
 	if (!IsLocallyControlled()) return;
@@ -935,8 +927,6 @@ void ABlasterCharacter::HideCameraIfCharacterClose()
 		}
 	}
 }
-
-
 
 void ABlasterCharacter::OnRep_Health()
 {
@@ -1011,21 +1001,22 @@ void ABlasterCharacter::OnRep_InteractTargetLocation()
 
 void ABlasterCharacter::SetOverlappingButton(AMyButton* Button)
 {
-	//this exact if statement disables the widget for the server on exit. wjat
-	if (OverlappingButton)
-	{
-		//OverlappingButton->ShowPickupWidget(false);
-	}
-	UE_LOG(LogTemp, Log, TEXT("overlapping button set in abc"));
 	OverlappingButton = Button;
-	//logic to only show widget for the character controlling the pawn
-	//onsphereoverlap is only called w/in the server... what are we to do?
-	//check if THIS function being called is being called by the character being controlled
 	if (IsLocallyControlled())
 	{
 		if (OverlappingButton)
 		{
-			//OverlappingButton->ShowPickupWidget(true);
+			if (BlasterPlayerController)
+			{
+				BlasterPlayerController->SetHUDInteractText(OverlappingButton->InteractionText);
+			}
+		}
+		else
+		{
+			if (BlasterPlayerController)
+			{
+				BlasterPlayerController->SetHUDInteractText(FString{ TEXT("") });
+			}
 		}
 	}
 }
@@ -1034,30 +1025,41 @@ void ABlasterCharacter::OnRep_OverlappingButton(AMyButton* LastButton)
 {
 	if (OverlappingButton) //this is the new var, LatWeapon is the old one
 	{
-		//LastButton->ShowPickupWidget(true);
+		if (BlasterPlayerController)
+		{
+			BlasterPlayerController->SetHUDInteractText(OverlappingButton->InteractionText);
+		}
 	}
-	if (LastButton)//if lastweapon is not null then it is implied it now is... this seems like overlapping weapons could cause problems
+	else
 	{
-		//LastButton->ShowPickupWidget(false);
+		if (BlasterPlayerController)
+		{
+			BlasterPlayerController->SetHUDInteractText(FString{ TEXT("") });
+		}
 	}
 }
 
 void ABlasterCharacter::SetOverlappingWeapon(AWeapon *Weapon)
 {	
-	//this exact if statement disables the widget for the server on exit. wjat
-	if (OverlappingWeapon)
-	{
-		OverlappingWeapon->ShowPickupWidget(false);
-	}
+
 	OverlappingWeapon = Weapon;
-	//logic to only show widget for the character controlling the pawn
-	//onsphereoverlap is only called w/in the server... what are we to do?
-	//check if THIS function being called is being called by the character being controlled
+
 	if (IsLocallyControlled())
 	{
 		if (OverlappingWeapon)
 		{
-			OverlappingWeapon->ShowPickupWidget(true);
+			//OverlappingWeapon->ShowPickupWidget(true);
+			if (BlasterPlayerController)
+			{
+				BlasterPlayerController->SetHUDInteractText(OverlappingWeapon->InteractionText);
+			}
+		}
+		else
+		{
+			if (BlasterPlayerController)
+			{
+				BlasterPlayerController->SetHUDInteractText(FString{ TEXT("") });
+			}
 		}
 	}
 }
@@ -1066,13 +1068,19 @@ void ABlasterCharacter::SetOverlappingWeapon(AWeapon *Weapon)
 //gosh this is gee golly hard lmao
 void ABlasterCharacter::OnRep_OverlappingWeapon(AWeapon* LastWeapon)
 {
-	if (OverlappingWeapon) //this is the new var, LatWeapon is the old one
+	if (OverlappingWeapon)
 	{
-		OverlappingWeapon->ShowPickupWidget(true);
+		if (BlasterPlayerController)
+		{
+			BlasterPlayerController->SetHUDInteractText(OverlappingWeapon->InteractionText);
+		}
 	}
-	if (LastWeapon)//if lastweapon is not null then it is implied it now is... this seems like overlapping weapons could cause problems
+	else
 	{
-		LastWeapon->ShowPickupWidget(false);
+		if (BlasterPlayerController)
+		{
+			BlasterPlayerController->SetHUDInteractText(FString{ TEXT("") });
+		}
 	}
 }
 

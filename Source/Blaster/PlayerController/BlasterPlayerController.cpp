@@ -164,6 +164,27 @@ void ABlasterPlayerController::SetHUDDebt(float Debt)
 	}
 }
 
+
+void ABlasterPlayerController::SetHUDInteractText(FString Interaction)
+{
+	BlasterHUD = BlasterHUD == nullptr ? Cast<ABlasterHUD>(GetHUD()) : BlasterHUD;
+	bool bHUDValid = BlasterHUD
+		&& BlasterHUD->CharacterOverlay
+		&& BlasterHUD->CharacterOverlay->InteractionText;
+	
+	if (!bHUDValid) return;
+
+	if (Interaction == FString{ TEXT("") })
+	{
+		FString InteractText = FString::Printf(TEXT(""));
+		BlasterHUD->CharacterOverlay->InteractionText->SetText(FText::FromString(InteractText));
+		return;
+	}
+	FString InteractText = FString::Printf(TEXT("E: %s"), *Interaction);
+	BlasterHUD->CharacterOverlay->InteractionText->SetText(FText::FromString(InteractText));
+}
+
+
 void ABlasterPlayerController::SetHUDWeaponAmmo(int32 Ammo)
 {
 	BlasterHUD = BlasterHUD == nullptr ? Cast<ABlasterHUD>(GetHUD()) : BlasterHUD;

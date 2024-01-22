@@ -32,6 +32,10 @@ public:
     
     UPROPERTY(BlueprintAssignable, Category = "Button")
         FButtonHeldDelegate OnButtonDraggedOff;
+
+    UPROPERTY(EditAnywhere ,Category = "Button")
+    FString InteractionText{ TEXT("???") };
+
 protected:
     virtual void BeginPlay() override;
 

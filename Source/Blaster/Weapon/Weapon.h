@@ -38,6 +38,9 @@ public:
 	void Dropped();
 	void AddAmmo(int32 AmmoToAdd);
 
+	UPROPERTY(EditAnywhere, Category = Crosshairs)
+	FString InteractionText{TEXT("???")};
+
 	/*
 	textures for the weapon crosshairs
 	*/
