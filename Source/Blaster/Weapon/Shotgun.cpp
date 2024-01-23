@@ -47,6 +47,16 @@ void AShotgun::Fire(const FVector& HitTarget)
 					HitMap.Emplace(BlasterCharacter, 1);
 				}
 			}
+			else if (HasAuthority() && InstigatorController)
+			{
+				UGameplayStatics::ApplyDamage(
+					FireHit.GetActor(),
+					Damage, //here is the number associated with the key (# times char hit)
+					InstigatorController,
+					this,
+					UDamageType::StaticClass()
+				);
+			}
 
 			if (BlasterCharacter || Cast<ALimb>(FireHit.GetActor()))
 			{
