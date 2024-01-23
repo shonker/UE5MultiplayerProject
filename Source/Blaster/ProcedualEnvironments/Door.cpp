@@ -42,10 +42,10 @@ void ADoor::BeginPlay()
 		{
 			DoorKnobButton2->OnButtonPressed.AddDynamic(this, &ADoor::LockButtonPress);
 		}
-		else
+		/*else
 		{
 			if (HasAuthority()) UE_LOG(LogTemp, Warning, TEXT("cast failed for server"));
-		}
+		}*/
 	}
 	if (DoorKnobButtonComponent)
 	{
@@ -66,14 +66,14 @@ void ADoor::AttemptLockButtonCast()
 		AMyButton* LockButton = Cast<AMyButton>(LockButtonComponent->GetChildActor());
 		if (LockButton)
 		{
-			if (!HasAuthority()) UE_LOG(LogTemp, Log, TEXT("succesfully cast door lock"));
+		//	if (!HasAuthority()) UE_LOG(LogTemp, Log, TEXT("succesfully cast door lock"));
 
 			LockButton->OnButtonPressed.AddDynamic(this, &ADoor::LockButtonPress);
 			GetWorld()->GetTimerManager().ClearTimer(TimerHandle_AttemptCast);
 		}
 		else
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Lock cast failed, will reattempt in 10 seconds"));
+		//	UE_LOG(LogTemp, Warning, TEXT("Lock cast failed, will reattempt in 10 seconds"));
 			GetWorld()->GetTimerManager().SetTimer(TimerHandle_AttemptCast, this, &ADoor::AttemptLockButtonCast, 2.0f, false);
 		}
 	}

@@ -75,13 +75,6 @@ void ALimb::OnBeginHitTimer()
 	{
 		RestAfterHitRemaining--;
 	}
-	//This is hideous but I'm keeping it here for prosperity
-	/*
-	bOnBeginHit = 
-	(RestAfterHitRemaining < 0) ? 
-	false : 
-	(RestAfterHitRemaining--, bOnBeginHit);
-	*/
 }
 
 void ALimb::OnHit(
@@ -186,7 +179,6 @@ void ALimb::ServerMoveForward_Implementation(float Value, FVector_NetQuantize10 
 	{
 		MulticastMoveForward(LimbImpulse);
 	}
-	//UE_LOG(LogTemp, Log, TEXT("%f"),CurrentSpeed);
 }
 
 void ALimb::MulticastMoveForward_Implementation(FVector_NetQuantize10 LimbImpulse)

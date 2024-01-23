@@ -44,14 +44,14 @@ void UInventoryComponent::AddItem(AWeapon* Weapon)
 
 void UInventoryComponent::ShuffleItem(bool bIsShuffleLeft)
 {
-    if (GetOwner() && GetOwner()->HasAuthority())
-    {
-        UE_LOG(LogTemp, Log, TEXT("I love being the server"));
-    }
-    else
-    {
-        UE_LOG(LogTemp, Error, TEXT("I love being NOOOOOOT the server"));
-    }
+    //if (GetOwner() && GetOwner()->HasAuthority())
+    //{
+    //    UE_LOG(LogTemp, Log, TEXT("I love being the server"));
+    //}
+    //else
+    //{
+    //    UE_LOG(LogTemp, Error, TEXT("I love being NOOOOOOT the server"));
+    //}
     if (InventoryItems.Num() <= 1) return;
 
     // Find the index of the current active weapon
