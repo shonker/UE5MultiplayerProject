@@ -5,6 +5,7 @@
 
 void AProcPark::BeginPlay()
 {
+    Super::BeginPlay();
     if (HasAuthority())
     {
         FVector Location;

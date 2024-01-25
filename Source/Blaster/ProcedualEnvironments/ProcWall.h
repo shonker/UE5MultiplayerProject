@@ -28,6 +28,8 @@ protected:
     //dont forget to generate onhit collision events
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wall Settings")
         bool bBreakableOnImpact;
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wall Settings")
+        bool bBreakable;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wall Settings")
         UParticleSystem* BreakParticle;

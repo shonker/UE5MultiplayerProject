@@ -35,6 +35,7 @@ void AProjectileBullet::OnHit(
 				UDamageType::StaticClass()
 				);
 		}
+
 	}
 //#inc kis/GS
 	Super::OnHit(HitComp,OtherActor, OtherComp, NormalImpulse, Hit);

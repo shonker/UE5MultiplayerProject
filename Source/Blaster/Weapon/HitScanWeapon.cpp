@@ -48,7 +48,7 @@ void AHitScanWeapon::Fire(const FVector& HitTarget)
 		//doesnt seem like the right way to do this but... eh
 		if (BlasterCharacter || Cast<ALimb>(FireHit.GetActor()))
 		{
-			UE_LOG(LogTemp, Log, TEXT("limb hit"));
+			//UE_LOG(LogTemp, Log, TEXT("limb hit"));
 			FleshImpact = true;
 		}
 		else

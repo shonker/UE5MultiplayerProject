@@ -12,19 +12,15 @@
 
 ARoamingChaser::ARoamingChaser()
 {
-    // Initialize AI Perception Component
     AIPerception = CreateDefaultSubobject<UAIPerceptionComponent>(TEXT("AIPerceptionComponent"));
     // Configure AI Perception here as needed
 
-    // Initialize the Navigation Invoker Component
     NavigationInvoker = CreateDefaultSubobject<UNavigationInvokerComponent>(TEXT("NavigationInvokerComponent"));
 
-    // Initialize the Damage Sphere Component and attach it to the LeftHandSocket
     DamageSphere = CreateDefaultSubobject<USphereComponent>(TEXT("DamageSphere"));
-    DamageSphere->SetupAttachment(GetMesh(), FName("LeftHandSocket"));
+    DamageSphere->SetupAttachment(GetMesh(), FName("RightHandSocket"));
     DamageSphere->OnComponentBeginOverlap.AddDynamic(this, &ARoamingChaser::OnDamageSphereOverlap);
 
-    // Set the initial AI state
     CurrentAIState = EAIState::Idle;
 }
 
@@ -32,14 +28,12 @@ void ARoamingChaser::BeginPlay()
 {
     Super::BeginPlay();
 
-    // Set up initial walking speed
     GetCharacterMovement()->MaxWalkSpeed = 100.0f;
 
-    // Set up the timer for roaming
     GetWorldTimerManager().SetTimer(MovementTimer, this, &ARoamingChaser::ChooseNewLocation, FMath::RandRange(5.0f, 10.0f), true);
+  
+    AIPerception->OnPerceptionUpdated.AddDynamic(this, &ARoamingChaser::OnPerceptionUpdated);
 
-    // Set up the timer for the line of sight check
-    GetWorldTimerManager().SetTimer(LineOfSightCheckTimer, this, &ARoamingChaser::CheckPlayerLineOfSight, 1.0f, true);
 }
 
 void ARoamingChaser::ChooseNewLocation()
@@ -65,8 +59,16 @@ void ARoamingChaser::OnPerceptionUpdated(const TArray<AActor*>& UpdatedActors)
             DetectedPlayer = Cast<ABlasterCharacter>(Actor);
             if (DetectedPlayer)
             {
+                UE_LOG(LogTemp, Log, TEXT("i have detected the player"));
                 // Stop roaming and start staring at the player
                 GetWorldTimerManager().ClearTimer(MovementTimer);
+                GetWorldTimerManager().SetTimer(LineOfSightCheckTimer, this, &ARoamingChaser::CheckPlayerLineOfSight, 0.2f, true);
+                GetWorldTimerManager().SetTimer(ChaseDurationTimer,
+                    this, 
+                    &ARoamingChaser::GiveUpOnChasing, 
+                    FMath::RandRange(5,12), 
+                    false
+                );
                 CurrentAIState = EAIState::Staring;
                 break;
             }
@@ -89,68 +91,107 @@ void ARoamingChaser::CheckPlayerLineOfSight()
     ToAICharacter.Normalize();
 
     float DotProduct = FVector::DotProduct(PlayerForwardVector, ToAICharacter);
-    if (DotProduct > 0.0f)
+    if (DotProduct > 0.0f && CurrentAIState != EAIState::Chasing)
     {
-        // Player spotted the AI - transition to chasing
         CurrentAIState = EAIState::Chasing;
         GetCharacterMovement()->MaxWalkSpeed = 500.0f;
         AAIController* AIController = Cast<AAIController>(GetController());
         if (AIController)
         {
+            UE_LOG(LogTemp, Log, TEXT("i have decided the player sees me and am chasing the player"));
             AIController->MoveToActor(DetectedPlayer, 5.0f, true, true, true, 0, true);
         }
     }
+    if (CurrentAIState == EAIState::Chasing)
+    {
+        float DistanceToPlayer = (DetectedPlayer->GetActorLocation() - GetActorLocation()).Size();
+        if (DistanceToPlayer <= 600.0f)
+        {
+            UE_LOG(LogTemp, Log, TEXT("i store player location and will attack in a moment"));
+            StoredPlayerLocation = DetectedPlayer->GetActorLocation();
+            GetWorldTimerManager().ClearTimer(LineOfSightCheckTimer);
+            GetWorldTimerManager().SetTimer(StateTimer, this, &ARoamingChaser::CommenceAttack, 0.2f, false);
+        }
+    }
+}
+
+void ARoamingChaser::CommenceAttack()
+{
+    UE_LOG(LogTemp, Log, TEXT("i attack"));
+    GetCharacterMovement()->MaxWalkSpeed = 650.0f;
+    AAIController* AIController = Cast<AAIController>(GetController());
+    if (AIController)
+    {
+        AIController->MoveToLocation(StoredPlayerLocation);
+    }
+    bInitiateAttack = true; // This will be used to signal the animation blueprint
 }
 
 void ARoamingChaser::OnDamageSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-    if (OtherActor && OtherActor->IsA(ABlasterCharacter::StaticClass()))
+    if (OtherActor && OtherActor != this)
     {
-        CurrentAIState = EAIState::Laughing;
+        OverlappedActors.AddUnique(OtherActor);
+    }
+}
 
-        // Play the LaughSoundCue
+void ARoamingChaser::CheckAttackResult()
+{
+    bInitiateAttack = false;
+    bool bHitBlasterCharacter = false;
+    for (AActor* Actor : OverlappedActors)
+    {
+        if (Actor && Actor->IsA(ABlasterCharacter::StaticClass()))
+        {
+            UE_LOG(LogTemp, Log, TEXT("i hit the blaster character"));
+            bHitBlasterCharacter = true;
+            break;
+        }
+    }
+    CurrentAIState = bHitBlasterCharacter ? EAIState::Laughing : EAIState::Fleeing;
+    OverlappedActors.Empty();
+
+    if (CurrentAIState == EAIState::Laughing)
+    {
         if (LaughSoundCue)
         {
             UGameplayStatics::PlaySoundAtLocation(this, LaughSoundCue, GetActorLocation());
         }
-
-        // Set timer to return to Idle state after 10 seconds
-        GetWorldTimerManager().SetTimer(StateTimer, this, &ARoamingChaser::ReturnToIdle, 10.0f, false);
+        UE_LOG(LogTemp, Log, TEXT("i laugh"));
     }
     else
     {
-        CurrentAIState = EAIState::Fleeing;
+        GetCharacterMovement()->MaxWalkSpeed = 600.0f;
 
-        // Increase speed for fleeing
-        GetCharacterMovement()->MaxWalkSpeed = 600.0f; // Assuming 600 is the fleeing speed
-
-        // Choose a distant location to flee to
         FVector FleeLocation = ChooseFleeLocation();
         AAIController* AIController = Cast<AAIController>(GetController());
         if (AIController)
         {
+            UE_LOG(LogTemp, Log, TEXT("i cry and flee"));
             AIController->MoveToLocation(FleeLocation);
         }
-
-        // Optionally, set a timer to return to Idle state after reaching the location or after a duration
-        // ...
     }
+    GetWorldTimerManager().SetTimer(StateTimer, this, &ARoamingChaser::ReturnToIdle, 10.0f, false);
 }
 
 FVector ARoamingChaser::ChooseFleeLocation()
 {
-    // Logic to choose a distant location for fleeing
-    // This can be similar to ChooseNewLocation but with a larger radius
-   // FVector FleeLocation = ...; // Implement the logic to choose a distant location
+    UNavigationSystemV1* NavSys = FNavigationSystem::GetCurrent<UNavigationSystemV1>(GetWorld());
+    FNavLocation NewNavLocation;
+    if (NavSys && NavSys->GetRandomPointInNavigableRadius(GetActorLocation(), RoamingRadius*15, NewNavLocation))
+    {
+        return NewNavLocation;
+    }
+   
     FVector FleeLocation(0,0,0);
     return FleeLocation;
 }
 
 void ARoamingChaser::ReturnToIdle()
 {
+    UE_LOG(LogTemp, Log, TEXT(" i return to idle"));
     CurrentAIState = EAIState::Idle;
-    GetCharacterMovement()->MaxWalkSpeed = 100.0f; // Reset speed to normal walking speed
-
-    // Resume normal behavior such as roaming
+    GetCharacterMovement()->MaxWalkSpeed = 100.0f;
+    GetWorldTimerManager().ClearTimer(LineOfSightCheckTimer);
     GetWorldTimerManager().SetTimer(MovementTimer, this, &ARoamingChaser::ChooseNewLocation, FMath::RandRange(5.0f, 10.0f), true);
 }

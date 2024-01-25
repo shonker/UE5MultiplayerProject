@@ -22,7 +22,7 @@ void AProcWall::BeginPlay()
 {
     Super::BeginPlay();
 
-    if (HasAuthority())
+    if (HasAuthority() && bBreakable)
     {
         WallHealth = FMath::RandRange(WallHealthMin, WallHealthMax);
         OnTakeAnyDamage.AddDynamic(this, &AProcWall::TakeWallDamage);
@@ -119,6 +119,11 @@ void AProcWall::TakeWallDamage(AActor* DamagedActor, float Damage, const UDamage
     if (WallHealth <= 0)
     {
         BreakWindow();
+    }
+    if (DamagedParticle)
+    {
+        FVector ParticleLoc = GetActorLocation() + FVector(0, 0, 300.f);
+        UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), DamagedParticle, ParticleLoc, GetActorRotation(), FVector(1.0f));
     }
 }
 
