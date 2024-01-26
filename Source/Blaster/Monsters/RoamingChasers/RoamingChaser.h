@@ -16,7 +16,8 @@ enum class EAIState : uint8
     Staring UMETA(DisplayName = "Staring"),
     Chasing UMETA(DisplayName = "Chasing"),
     Laughing UMETA(DisplayName = "Laughing"),
-    Fleeing UMETA(DisplayName = "Fleeing")
+    Fleeing UMETA(DisplayName = "Fleeing"),
+    Attacking UMETA(DisplayName = "Attacking")
 };
 
 UCLASS()
@@ -30,23 +31,30 @@ public:
     UFUNCTION(BlueprintCallable)
         void CheckAttackResult();
     
-    UPROPERTY(BlueprintReadWrite)
+    UPROPERTY(BlueprintReadOnly)
     bool bInitiateAttack = false;
-    virtual void Tick(float DeltaTime) override;
+    UPROPERTY(BlueprintReadWrite)
+    bool bLaughing = false;
+    bool bHitBlasterCharacter = false;
+
+    class AAIController* AIController;
 
 protected:
     virtual void BeginPlay() override;
 
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AI")
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "CAYDENS Custom Setup")
     class   UAIPerceptionComponent* AIPerception;
 
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AI")
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "CAYDENS Custom Setup")
     class   UNavigationInvokerComponent* NavigationInvoker;
 
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat")
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "CAYDENS Custom Setup")
         USphereComponent* DamageSphere;
 
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AI")
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "CAYDENS Custom Setup")
+        class USphereComponent* StabSphere;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "CAYDENS Custom Setup")
     EAIState CurrentAIState;
 
     FTimerHandle MovementTimer;
@@ -55,18 +63,24 @@ protected:
 
     FTimerHandle ChaseDurationTimer;
 
-    FTimerHandle StateTimer;
+    FTimerHandle IdleReturnTimer;
 
-    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "AI", meta = (ClampMin = "0.0", UIMin = "0.0"))
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "CAYDENS Custom Setup", meta = (ClampMin = "0.0", UIMin = "0.0"))
         float RoamingRadius;
 
-    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "AI", meta = (ClampMin = "0.0", UIMin = "0.0"))
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "CAYDENS Custom Setup", meta = (ClampMin = "0.0", UIMin = "0.0"))
         float FleeingSpeed;
 
     class ABlasterCharacter* DetectedPlayer;
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sound")
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CAYDENS Custom Setup")
         USoundCue* LaughSoundCue;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CAYDENS Custom Setup")
+        USoundCue* CrySoundCue;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CAYDENS Custom Setup")
+        USoundCue* StabSoundCue;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CAYDENS Custom Setup")
+        UParticleSystem* StabParticles;
 
     void ChooseNewLocation();
 
@@ -80,14 +94,10 @@ protected:
     void GiveUpOnChasing();
 
 
-    /*
-        state functions
-    */
-
-    void Idle();
-
     UFUNCTION()
-        void OnDamageSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+    void OnDamageSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+    UFUNCTION()
+    void OnAttackSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
     FVector ChooseFleeLocation();
 
@@ -95,6 +105,4 @@ protected:
 
 private:
     FVector StoredPlayerLocation;
-
-    TArray<AActor*> OverlappedActors;
 };
