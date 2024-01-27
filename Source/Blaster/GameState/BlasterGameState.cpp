@@ -4,6 +4,22 @@
 #include "BlasterGameState.h"
 #include "Net/UnrealNetwork.h"
 #include "Blaster/BlasterPlayerState/BlasterPlayerState.h"
+#include "Blaster/PlayerController/BlasterPlayerController.h"
+
+void ABlasterGameState::StartBeginPlay()
+{
+	const ABlasterPlayerController* PC = Cast<ABlasterPlayerController>(GetWorld()->GetFirstPlayerController());
+	if (PC && PC->bClientFinishedProceduralGeneration && bReplicatedHasBegunPlay && GetLocalRole() != ROLE_Authority)
+	{
+		GetWorldSettings()->NotifyBeginPlay();
+		GetWorldSettings()->NotifyMatchStarted();
+	}
+}
+
+void ABlasterGameState::OnRep_ReplicatedHasBegunPlay()
+{
+	StartBeginPlay();
+}
 
 void ABlasterGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {

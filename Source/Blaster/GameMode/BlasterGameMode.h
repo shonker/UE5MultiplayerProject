@@ -43,9 +43,16 @@ public:
 
 	float LevelStartingTime = 0.f;
 
+	UPROPERTY()
+	class AProcNeighborhood* ProcNeighborhood;
+
+	UPROPERTY()
+	uint32 RandomSeed;
 protected:
 	virtual void BeginPlay() override;
-
+	virtual void InitGameState() override;
+	virtual bool ReadyToStartMatch_Implementation() override;
+	virtual void HandleMatchIsWaitingToStart() override;
 	virtual void OnMatchStateSet() override;
 
 private:

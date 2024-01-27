@@ -17,6 +17,10 @@ class BLASTER_API ABlasterGameState : public AGameState
 public:  
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	
+	 void StartBeginPlay();
+
+	void OnRep_ReplicatedHasBegunPlay();
 
 	void UpdateTopScore(class ABlasterPlayerState* ScoringPlayer);
 

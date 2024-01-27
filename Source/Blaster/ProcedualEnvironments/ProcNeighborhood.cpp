@@ -4,6 +4,7 @@
 #include "Engine/World.h"
 #include "Kismet/GameplayStatics.h"
 #include "DrawDebugHelpers.h"
+#include "AProcActor.h"
 #include "AI/NavigationSystemBase.h"
 
 const float AProcNeighborhood::CellSize = 100.f * 20.f;
@@ -16,10 +17,26 @@ AProcNeighborhood::AProcNeighborhood()
 	PrimaryActorTick.bCanEverTick = false;
 }
 
+
 // Called when the game starts or when spawned
 void AProcNeighborhood::BeginPlay()
 {
-	Super::BeginPlay();
+	Super::BeginPlay();	
+}
+
+void AProcNeighborhood::ProcGen(uint32 randomSeed)
+{
+
+
+	//RS = FRandomStream(randomSeed);
+
+	//if (!ProceduralActor) return;
+	//for (uint32 i = 0; i < 20; ++i)
+	//{
+	//	SpawnAt(RS);
+	//}
+	//
+	///*
 	if (HasAuthority())
 	{
 		InitializeGrid();
@@ -29,6 +46,36 @@ void AProcNeighborhood::BeginPlay()
 		GenerateMiscellaneousLocations();
 		SpawnFinishedNeighborhood();
 	}
+}
+
+void AProcNeighborhood::SpawnAt(FRandomStream& RandomStream)
+{
+	const float X = RandomStream.RandRange(-100, 100) + GetActorLocation().X;
+	const float Y = RandomStream.RandRange(-100, 100) + GetActorLocation().Y;
+	const FVector LocStream(X, Y, 92.f);
+
+	if (!ProceduralActor)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("ProceduralActorClass is null."));
+		return;
+	}
+
+	FActorSpawnParameters SpawnParams;
+	SpawnParams.Name = FName(*FString(ProceduralActor->GetName() + "_" + FString::FromInt(PGI)));
+	SpawnParams.NameMode = FActorSpawnParameters::ESpawnActorNameMode::Required_Fatal;
+	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	SpawnParams.bDeferConstruction = true;
+
+	LastProcActor = GetWorld()->SpawnActor<AAProcActor>(ProceduralActor, LocStream, FRotator::ZeroRotator, SpawnParams);
+
+	if (LastProcActor)
+	{
+		LastProcActor->bNetStartup = true;
+		LastProcActor->Tags.Add(TEXT("ProcGen"));
+		LastProcActor->FinishSpawning(FTransform(FRotator::ZeroRotator, LocStream, FVector::OneVector));
+	}
+
+	PGI++;
 }
 
 void AProcNeighborhood::InitializeGrid()

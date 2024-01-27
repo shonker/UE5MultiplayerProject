@@ -49,9 +49,15 @@ class BLASTER_API AProcNeighborhood : public AActor
 
 public:
 	AProcNeighborhood();
+	void ProcGen(uint32 randomSeed);
+	void SpawnAt(FRandomStream& RandomStream);
+	FRandomStream RS;
+	uint32 PGI = 0;
 
+	class AAProcActor* LastProcActor;
 protected:
 	virtual void BeginPlay() override;
+	//virtual void InitGameState() override;
 
 	static const int32 GridSize = 16;
 	static const float CellSize;
@@ -59,6 +65,10 @@ protected:
 	/*
 		ROADS
 	*/
+
+	UPROPERTY(EditDefaultsOnly, Category = "Road Generation")
+		TSubclassOf<AActor> ProceduralActor;
+
 	UPROPERTY(EditDefaultsOnly, Category = "Road Generation")
 		int32 BranchingFrequency = 4; //percent
 

@@ -7,6 +7,9 @@
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/PlayerStart.h"
 #include "Blaster/BlasterPlayerState/BlasterPlayerState.h"
+#include "Blaster/ProcedualEnvironments/ProcNeighborhood.h"
+#include "EngineUtils.h"
+#include "GameFramework/GameSession.h"
 #include "Blaster/GameState/BlasterGameState.h"
 
 namespace MatchState 
@@ -18,6 +21,64 @@ ABlasterGameMode::ABlasterGameMode()
 {
 	bDelayedStart = true;
 }
+
+void ABlasterGameMode::InitGameState()
+{
+	Super::InitGameState();
+
+	for (AProcNeighborhood* Spawner : TActorRange<AProcNeighborhood>(GetWorld()))
+	{
+		ProcNeighborhood = Spawner;
+		break;
+	}
+
+	if (ProcNeighborhood == nullptr) return;
+
+	RandomSeed = FMath::Rand();
+
+	ProcNeighborhood->ProcGen(RandomSeed);
+
+}
+
+bool ABlasterGameMode::ReadyToStartMatch_Implementation()
+{
+	// Check if clients have finished procgen: We delay begin play of world Actors until clients have finished procgen
+	for (FConstPlayerControllerIterator Iterator = GetWorld()->GetPlayerControllerIterator(); Iterator; ++Iterator)
+	{
+		if (ABlasterPlayerController* PC = Cast<ABlasterPlayerController>(Iterator->Get()))
+		{
+			if (!PC->bClientFinishedProceduralGeneration)
+			{
+				return false;
+			}
+		}
+	}
+
+	// If bDelayed Start is set, wait for a manual match start
+	if (bDelayedStart)
+	{
+		return false;
+	}
+
+	// By default start when we have > 0 players
+	if (GetMatchState() == MatchState::WaitingToStart)
+	{
+		if (NumPlayers + NumBots > 0)
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+void ABlasterGameMode::HandleMatchIsWaitingToStart()
+{
+	if (GameSession != nullptr)
+	{
+		GameSession->HandleMatchIsWaitingToStart();
+	}
+}
+
 
 void ABlasterGameMode::BeginPlay()
 {

@@ -25,6 +25,20 @@ public:
 	void SetHUDAnnouncementCountdown(float CountdownTime);
 	virtual void OnPossess(APawn* InPawn) override;
 	virtual void Tick(float DeltaTime) override;
+	/*
+		proc gen optimization
+	*/
+	UFUNCTION(Server, Reliable)
+	void ServerClientFinishedProcGen();
+	UFUNCTION(Server, Reliable)
+	void ServerRequestProcGenData();
+	UFUNCTION(Client, Reliable)
+		void ClientReceiveProcGenData(uint32 randomSeed);
+	/*
+	
+	*/
+	void PostNetInit();
+	void PostInitializeComponents();
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 
@@ -36,6 +50,8 @@ public:
 	void OnMatchStateSet(FName State);
 	void HandleMatchHasStarted();
 	void HandleCooldown();
+
+	bool bClientFinishedProceduralGeneration = false;
 protected:
 	virtual void BeginPlay() override;
 	void SetHUDTime();

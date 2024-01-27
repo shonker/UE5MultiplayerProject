@@ -14,7 +14,9 @@
 #include "Blaster/BlasterComponents/CombatComponent.h"
 #include "Blaster/GameState/BlasterGameState.h"
 #include "Blaster/BlasterPlayerState/BlasterPlayerState.h"
+#include "Blaster/ProcedualEnvironments/ProcNeighborhood.h"
 #include "TimerManager.h"
+#include "EngineUtils.h"
 
 void ABlasterPlayerController::BeginPlay()
 {
@@ -39,7 +41,66 @@ void ABlasterPlayerController::Tick(float DeltaTime)
 	PollInit();
 }
 
+/*
+---/////---/////---/////---/////---/////
+---/////
+---/////
+*/
+void ABlasterPlayerController::ServerClientFinishedProcGen_Implementation()
+{
+	bClientFinishedProceduralGeneration = true;
+	UE_LOG(LogTemp, Log, TEXT("we have finished gnereation"));
+}
 
+void ABlasterPlayerController::ServerRequestProcGenData_Implementation()
+{
+	ABlasterGameMode* MyGM = GetWorld()->GetAuthGameMode<ABlasterGameMode>();
+	// Client rpc forwarding the Gamemode generated seed
+	ClientReceiveProcGenData(MyGM->RandomSeed);
+}
+
+void ABlasterPlayerController::ClientReceiveProcGenData_Implementation(uint32 randomSeed)
+{
+	AProcNeighborhood* ClientSpawner = nullptr;
+
+	for (AProcNeighborhood* Spawner : TActorRange<AProcNeighborhood>(GetWorld()))
+	{
+		ClientSpawner = Spawner;
+		break;
+	}
+
+	if (ClientSpawner == nullptr) return;
+	UE_LOG(LogTemp, Log, TEXT("randseed: %i"), randomSeed);
+	ClientSpawner->ProcGen(randomSeed);
+	ServerClientFinishedProcGen();
+
+	if (ABlasterGameState* GS = GetWorld()->GetGameState<ABlasterGameState>())
+	{
+		GS->StartBeginPlay();
+	}
+}
+
+void ABlasterPlayerController::PostNetInit()
+{
+	Super::PostNetInit();
+	// Send server rpc asking for level generation data (might be my seed)
+	ServerRequestProcGenData();
+}
+
+void ABlasterPlayerController::PostInitializeComponents()
+{
+	Super::PostInitializeComponents();
+	if (IsLocalController() && GetWorld()->GetNetMode() < ENetMode::NM_Client)
+	{
+		bClientFinishedProceduralGeneration = true;
+	}
+}
+
+/*
+* ---/////
+* ---/////
+---/////---/////---/////---/////---/////
+*/
 void ABlasterPlayerController::CheckTimeSync(float DeltaTime)
 {
 	TimeSyncRunningTime += DeltaTime;
