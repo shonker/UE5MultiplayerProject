@@ -50,8 +50,8 @@ class BLASTER_API AProcNeighborhood : public AActor
 public:
 	AProcNeighborhood();
 	void ProcGen(uint32 randomSeed);
-	void SpawnAt(FRandomStream& RandomStream);
-	FRandomStream RS;
+	void SpawnAt(TSubclassOf<AActor> Actor, FVector& Location, FRotator& Rotation);
+		FRandomStream RS;
 	uint32 PGI = 0;
 
 	class AAProcActor* LastProcActor;

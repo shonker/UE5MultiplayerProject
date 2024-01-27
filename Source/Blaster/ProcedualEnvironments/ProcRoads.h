@@ -4,10 +4,11 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "AProcActor.h"
 #include "ProcRoads.generated.h"
 
 UCLASS()
-class BLASTER_API AProcRoads : public AActor
+class BLASTER_API AProcRoads : public AAProcActor
 {
 	GENERATED_BODY()
 

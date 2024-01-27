@@ -28,16 +28,16 @@ void AProcNeighborhood::ProcGen(uint32 randomSeed)
 {
 
 
-	//RS = FRandomStream(randomSeed);
+	RS = FRandomStream(randomSeed);
 
-	//if (!ProceduralActor) return;
-	//for (uint32 i = 0; i < 20; ++i)
-	//{
-	//	SpawnAt(RS);
-	//}
+	if (!ProceduralActor) return;
+	for (uint32 i = 0; i < 5; ++i)
+	{
+		SpawnAt(RS);
+	}
 	//
 	///*
-	if (HasAuthority())
+	/*if (HasAuthority())
 	{
 		InitializeGrid();
 		GenerateRoads();
@@ -45,8 +45,30 @@ void AProcNeighborhood::ProcGen(uint32 randomSeed)
 		GenerateHouses();
 		GenerateMiscellaneousLocations();
 		SpawnFinishedNeighborhood();
-	}
+	}*/
 }
+
+void AProcNeighborhood::SpawnAt(TSubclassOf<AActor> Actor, FVector &Location, FRotator &Rotation)
+{
+
+	FActorSpawnParameters SpawnParams;
+	SpawnParams.Name = FName(*FString(Actor->GetName() + "_" + FString::FromInt(PGI)));
+	SpawnParams.NameMode = FActorSpawnParameters::ESpawnActorNameMode::Required_Fatal;
+	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	SpawnParams.bDeferConstruction = true;
+
+	LastProcActor = GetWorld()->SpawnActor<AAProcActor>(Actor, Location, Rotation, SpawnParams);
+
+	if (LastProcActor)
+	{
+		LastProcActor->bNetStartup = true;
+		LastProcActor->Tags.Add(TEXT("ProcGen"));
+		LastProcActor->FinishSpawning(FTransform(Rotation, Location, FVector::OneVector));
+	}
+
+	PGI++;
+}
+/*
 
 void AProcNeighborhood::SpawnAt(FRandomStream& RandomStream)
 {
@@ -62,6 +84,7 @@ void AProcNeighborhood::SpawnAt(FRandomStream& RandomStream)
 
 	FActorSpawnParameters SpawnParams;
 	SpawnParams.Name = FName(*FString(ProceduralActor->GetName() + "_" + FString::FromInt(PGI)));
+	UE_LOG(LogTemp, Log, TEXT("Spawned Actor Name: %s, x: %f y: %f"), *SpawnParams.Name.ToString(), X, Y);
 	SpawnParams.NameMode = FActorSpawnParameters::ESpawnActorNameMode::Required_Fatal;
 	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 	SpawnParams.bDeferConstruction = true;
@@ -76,7 +99,7 @@ void AProcNeighborhood::SpawnAt(FRandomStream& RandomStream)
 	}
 
 	PGI++;
-}
+}*/
 
 void AProcNeighborhood::InitializeGrid()
 {
