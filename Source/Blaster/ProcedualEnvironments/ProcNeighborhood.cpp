@@ -17,38 +17,30 @@ AProcNeighborhood::AProcNeighborhood()
 	PrimaryActorTick.bCanEverTick = false;
 }
 
-
 // Called when the game starts or when spawned
 void AProcNeighborhood::BeginPlay()
 {
 	Super::BeginPlay();	
 }
 
-void AProcNeighborhood::ProcGen(uint32 randomSeed)
+bool AProcNeighborhood::RandBool()
 {
-
-
-	RS = FRandomStream(randomSeed);
-
-	if (!ProceduralActor) return;
-	for (uint32 i = 0; i < 5; ++i)
-	{
-		SpawnAt(RS);
-	}
-	//
-	///*
-	/*if (HasAuthority())
-	{
-		InitializeGrid();
-		GenerateRoads();
-		InferRoadTypesAndRotations();
-		GenerateHouses();
-		GenerateMiscellaneousLocations();
-		SpawnFinishedNeighborhood();
-	}*/
+	return RS.RandRange(0, 1) == 1;
 }
 
-void AProcNeighborhood::SpawnAt(TSubclassOf<AActor> Actor, FVector &Location, FRotator &Rotation)
+void AProcNeighborhood::ProcGen(uint32 randomSeed)
+{
+	UE_LOG(LogTemp, Log, TEXT("alright lfg"));
+	RS = FRandomStream(randomSeed);
+	InitializeGrid();
+	GenerateRoads();
+	InferRoadTypesAndRotations();
+	GenerateHouses();
+	GenerateMiscellaneousLocations();
+	SpawnFinishedNeighborhood();
+}
+
+AAProcActor* AProcNeighborhood::SpawnAt(TSubclassOf<AActor> Actor, FVector &Location, FRotator &Rotation)
 {
 
 	FActorSpawnParameters SpawnParams;
@@ -67,39 +59,9 @@ void AProcNeighborhood::SpawnAt(TSubclassOf<AActor> Actor, FVector &Location, FR
 	}
 
 	PGI++;
+
+	return LastProcActor;
 }
-/*
-
-void AProcNeighborhood::SpawnAt(FRandomStream& RandomStream)
-{
-	const float X = RandomStream.RandRange(-100, 100) + GetActorLocation().X;
-	const float Y = RandomStream.RandRange(-100, 100) + GetActorLocation().Y;
-	const FVector LocStream(X, Y, 92.f);
-
-	if (!ProceduralActor)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("ProceduralActorClass is null."));
-		return;
-	}
-
-	FActorSpawnParameters SpawnParams;
-	SpawnParams.Name = FName(*FString(ProceduralActor->GetName() + "_" + FString::FromInt(PGI)));
-	UE_LOG(LogTemp, Log, TEXT("Spawned Actor Name: %s, x: %f y: %f"), *SpawnParams.Name.ToString(), X, Y);
-	SpawnParams.NameMode = FActorSpawnParameters::ESpawnActorNameMode::Required_Fatal;
-	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-	SpawnParams.bDeferConstruction = true;
-
-	LastProcActor = GetWorld()->SpawnActor<AAProcActor>(ProceduralActor, LocStream, FRotator::ZeroRotator, SpawnParams);
-
-	if (LastProcActor)
-	{
-		LastProcActor->bNetStartup = true;
-		LastProcActor->Tags.Add(TEXT("ProcGen"));
-		LastProcActor->FinishSpawning(FTransform(FRotator::ZeroRotator, LocStream, FVector::OneVector));
-	}
-
-	PGI++;
-}*/
 
 void AProcNeighborhood::InitializeGrid()
 {
@@ -114,7 +76,8 @@ void AProcNeighborhood::InitializeGrid()
 
 void AProcNeighborhood::GenerateRoads()
 {
-	int32 Lifetime = FMath::RandRange(MinLifetime, MaxLifetime);
+	int32 Lifetime = RS.RandRange(MinLifetime, MaxLifetime);
+	Straightness = RS.RandRange(1, 2);
 	int32 StartCol = GridSize/2;
 	int32 StartRow = GridSize/2;
 	UE_LOG(LogTemp, Display, TEXT("Seed ~ Lifetime: %i StartCol: %i StartRow: %i"), Lifetime, StartCol, StartRow);
@@ -125,12 +88,12 @@ void AProcNeighborhood::GenerateRoads()
 
 	for (int32 i = 0; i < Lifetime; Lifetime--)
 	{
-		if (FMath::RandRange(1, 100) <= BranchingFrequency)
+		if (RS.RandRange(1, 100) <= BranchingFrequency)
 		{
 			UE_LOG(LogTemp, Log, TEXT("Branch ~ Lifetime: %i StartCol: %i StartRow: %i"), Lifetime, StartCol, StartRow);
 			GenerateRoadBranch(StartCol, StartRow, Lifetime, CurrentDirection);
 		}
-		if (FMath::RandRange(0,Straightness) > 0)
+		if (RS.RandRange(0,Straightness) > 0)
 		{
 			MoveInDirection(CurrentDirection, StartCol, StartRow);
 		}
@@ -148,12 +111,12 @@ void AProcNeighborhood::GenerateRoadBranch(int32 StartCol, int32 StartRow, int32
 	ChangeDirection(CurrentDirection);
 	for (int32 i = 0; i < Lifetime; Lifetime--)
 	{
-		if (FMath::RandRange(1, 100) <= BranchingFrequency)
+		if (RS.RandRange(1, 100) <= BranchingFrequency)
 		{
 			UE_LOG(LogTemp, Log, TEXT("Branch ~ Lifetime: %i StartCol: %i StartRow: %i"), Lifetime, StartCol, StartRow);
 			GenerateRoadBranch(StartCol, StartRow, Lifetime, CurrentDirection);
 		}
-		if (FMath::RandRange(0, Straightness) > 0)
+		if (RS.RandRange(0, Straightness) > 0)
 		{
 			MoveInDirection(CurrentDirection, StartCol, StartRow);
 		}
@@ -218,7 +181,7 @@ void AProcNeighborhood::ChangeDirection(EDirection& CurrentDirection)
 		EDirection::Left,
 		EDirection::Right
 		};
-		NextDirection = Directions[FMath::RandRange(0, Directions.Num() - 1)];
+		NextDirection = Directions[RS.RandRange(0, Directions.Num() - 1)];
 	} while (CurrentDirection == NextDirection);
 
 	CurrentDirection = NextDirection;
@@ -319,9 +282,9 @@ void AProcNeighborhood::InferRoadTypesAndRotations()
 						}
 					break;
 					case (ERoadType::FourWay):
-						GridRotations[Col][Row] = FMath::RandBool() ? 
-								(FMath::RandBool() ? CellRotation::Rotation_0DegRight : CellRotation::Rotation_270DegUp):
-								(FMath::RandBool() ? CellRotation::Rotation_90DegDown : CellRotation::Rotation_180DegLeft);
+						GridRotations[Col][Row] = RandBool() ?
+								(RandBool() ? CellRotation::Rotation_0DegRight : CellRotation::Rotation_270DegUp):
+								(RandBool() ? CellRotation::Rotation_90DegDown : CellRotation::Rotation_180DegLeft);
 					break;
 					default: //shouldnt happen
 						GridRotations[Col][Row] = CellRotation::Rotation_0DegRight;
@@ -380,14 +343,14 @@ void AProcNeighborhood::GenerateHouses()
 
 				if (PossibleRotations.Num() > 0)
 				{
-					int32 RandomIndex = FMath::RandRange(0, PossibleRotations.Num() - 1);
+					int32 RandomIndex = RS.RandRange(0, PossibleRotations.Num() - 1);
 					GridRotations[Col][Row] = PossibleRotations[RandomIndex];
 				}
 			}
 		}
 	}
 
-	uint8 HouseCount = FMath::RandRange(MinHouseCount, MaxHouseCount);
+	uint8 HouseCount = RS.RandRange(MinHouseCount, MaxHouseCount);
 	for (const auto& Entry : ConnectionCounts)
 	{
 		if (HouseCount <= 0) continue;
@@ -396,7 +359,7 @@ void AProcNeighborhood::GenerateHouses()
 		int32 Col = CandidateLocation.X;
 		int32 Row = CandidateLocation.Y;
 		
-		float Chance = ConnectionCount * FMath::RandRange(0, 50);
+		float Chance = ConnectionCount * RS.RandRange(0, 50);
 
 		if (Chance > 40)
 		{
@@ -503,7 +466,8 @@ void AProcNeighborhood::SpawnFinishedNeighborhood()
 					if (RoadBlueprint)
 					{
 						FRotator RoadRotation = FRotator(0.0f, static_cast<float>(GridRotations[Col][Row]), 0.0f);
-						AActor* SpawnedRoad = GetWorld()->SpawnActor<AActor>(RoadBlueprint, SpawnLocation, RoadRotation);
+						
+						AAProcActor* SpawnedRoad = SpawnAt(RoadBlueprint, SpawnLocation, RoadRotation);
 						if (SpawnedRoad)
 						{
 							SpawnedRoads.Add(SpawnedRoad);
@@ -511,7 +475,7 @@ void AProcNeighborhood::SpawnFinishedNeighborhood()
 					}
 				break;
 				case CellType::House:
-						if (HouseBlueprintClass)
+					/*	if (HouseBlueprintClass)
 						{
 							FRotator HouseRotation = FRotator(0.0f, static_cast<float>(GridRotations[Col][Row]), 0.0f);
 							AActor* SpawnedHouse = GetWorld()->SpawnActor<AActor>(HouseBlueprintClass, SpawnLocation, HouseRotation);
@@ -519,14 +483,14 @@ void AProcNeighborhood::SpawnFinishedNeighborhood()
 							{
 								SpawnedHouses.Add(SpawnedHouse);
 							}
-						}
+						}*/
 				break;
 				case CellType::Park:
-					if (ParkBlueprintClass)
+					/*if (ParkBlueprintClass)
 					{
 						FRotator ParkRotation = FRotator(0.0f, 0.0f, 0.0f);
 						AActor* SpawnedHouse = GetWorld()->SpawnActor<AActor>(ParkBlueprintClass, SpawnLocation, ParkRotation);
-					}
+					}*/
 				break;
 				case CellType::Reserved:
 					

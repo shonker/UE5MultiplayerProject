@@ -50,13 +50,14 @@ class BLASTER_API AProcNeighborhood : public AActor
 public:
 	AProcNeighborhood();
 	void ProcGen(uint32 randomSeed);
-	void SpawnAt(TSubclassOf<AActor> Actor, FVector& Location, FRotator& Rotation);
-		FRandomStream RS;
+	class AAProcActor* SpawnAt(TSubclassOf<AActor> Actor, FVector& Location, FRotator& Rotation);
+	FRandomStream RS;
 	uint32 PGI = 0;
 
 	class AAProcActor* LastProcActor;
 protected:
 	virtual void BeginPlay() override;
+	bool RandBool();
 	//virtual void InitGameState() override;
 
 	static const int32 GridSize = 16;
@@ -75,7 +76,7 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Road Generation")
 		int32 MinLifetime = 5;
 
-		int32 Straightness = FMath::RandRange(1,2);
+	int32 Straightness; 
 
 	UPROPERTY(EditDefaultsOnly, Category = "Road Generation")
 		int32 MaxLifetime = 10;

@@ -17,7 +17,7 @@ struct FObjectTypeInfo
 };
 
 UCLASS()
-class BLASTER_API AProcPark : public AActor
+class BLASTER_API AProcPark : public AProcActor
 {
     GENERATED_BODY()
 
