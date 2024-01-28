@@ -483,8 +483,10 @@ void AProcNeighborhood::SpawnFinishedNeighborhood()
 						if (SpawnedHouse)
 						{
 							SpawnedHouse->RS = FRandomStream(RS.RandRange(0,RAND_MAX));
+							SpawnedHouse->ProcGen();
 							SpawnedHouses.Add(SpawnedHouse);
 						}
+
 					}
 				break;
 				case CellType::Park:
@@ -495,6 +497,7 @@ void AProcNeighborhood::SpawnFinishedNeighborhood()
 						if (SpawnedPark)
 						{
 							SpawnedPark->RS = FRandomStream(RS.RandRange(0, RAND_MAX));
+							SpawnedPark->ProcGen();
 						}
 					}
 				break;

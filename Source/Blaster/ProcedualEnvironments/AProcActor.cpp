@@ -32,6 +32,12 @@ void AAProcActor::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 }
 
+void AAProcActor::ProcGen()
+{
+    //mostly for overriding to allow access to subclass functions 
+    //without needing their includes
+}
+
 void AAProcActor::InitializePGI(int32* InPGI)
 {
     PGI = InPGI;

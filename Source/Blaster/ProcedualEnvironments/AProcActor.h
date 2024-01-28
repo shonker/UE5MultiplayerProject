@@ -15,7 +15,7 @@ public:
 	// Sets default values for this actor's properties
 	AAProcActor();
 	virtual bool IsNetRelevantFor(const AActor* RealViewer, const AActor* ViewTarget, const FVector& SrcLocation) const override;
-
+	virtual void ProcGen();
 	AAProcActor* SpawnAt(TSubclassOf<AActor> Actor, FVector& Location, FRotator& Rotation);
 protected:
 	// Called when the game starts or when spawned

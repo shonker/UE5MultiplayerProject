@@ -23,20 +23,31 @@ AProcHouse::AProcHouse()
 void AProcHouse::BeginPlay()
 {
 	Super::BeginPlay();
+	
+	/*
 	InitializeFirstFloor();
 	GenerateFloors();
 	SpawnFloors();
-	if (HasAuthority())
-	{
-		//shitty self proc
-		GenerateRooms();
 
-		//prefab python proc
-		//SpawnPrefabWalls();
+	//shitty self proc
+	GenerateRooms();
 
-		//generative narrowWalls
-		//GenerateNarrowWalls();
-	}
+	*/
+	//prefab python proc
+	//SpawnPrefabWalls();A
+
+	//generative narrowWalls
+	//GenerateNarrowWalls();
+}
+
+void AProcHouse::ProcGen()
+{
+	InitializeFirstFloor();
+	GenerateFloors();
+	SpawnFloors();
+
+	//shitty self proc
+	GenerateRooms();
 }
 
 void AProcHouse::InitializeFirstFloor()
@@ -53,7 +64,10 @@ void AProcHouse::InitializeFirstFloor()
 // 10% whole house is water, otherwise all normal with 10% chance the ground is spikes.
 void AProcHouse::GenerateFloors()
 {
-	uint8 RandomValue = RS.RandRange(0, 99);
+	Randomness = RS.RandRange(0, 20);
+	Fear = RS.RandRange(0, 20);
+	Openness = RS.RandRange(0, 20);
+	int32 RandomValue = RS.RandRange(0, 99);
 	for (uint8 Col = 0; Col < GridWidth; ++Col)
 	{
 		for (uint8 Row = 0; Row < GridHeight; ++Row)
@@ -94,7 +108,6 @@ void AProcHouse::SpawnFloors()
 			FVector SpawnLocation = GetActorLocation() + FVector(Col * 600.f - 600.f, Row * 600.f - 600.f, 0.0f);
 			FRotator SpawnRotation = FRotator::ZeroRotator;
 			TSubclassOf<AActor> FloorToSpawnBlueprint = nullptr;
-			AActor* SpawnedFloor;
 
 			switch (GridFloorTypes[Col][Row])
 			{
@@ -113,7 +126,8 @@ void AProcHouse::SpawnFloors()
 			}
 			if (FloorToSpawnBlueprint != nullptr)
 			{
-				SpawnedFloor = GetWorld()->SpawnActor<AActor>(FloorToSpawnBlueprint, SpawnLocation, SpawnRotation);
+				AAProcActor* SpawnedFloor = SpawnAt(FloorToSpawnBlueprint, SpawnLocation, SpawnRotation);
+				//SpawnedFloor = GetWorld()->SpawnActor<AActor>(FloorToSpawnBlueprint, SpawnLocation, SpawnRotation);
 			}
 		}
 	}
@@ -426,7 +440,7 @@ void AProcHouse::RandomizeWallsAndWindows()
 		case EWallType::Window:
 			if (Fear > RS.RandRange(0, 100))
 			{
-				if (FMath::RandRange(1, 6) > 1)
+				if (RS.RandRange(1, 6) > 1)
 				{
 					Wall = EWallType::NotWindow;
 				}
@@ -599,6 +613,17 @@ void AProcHouse::SpawnPrefabWalls()
 		default:
 		break;
 		}
+
 		SpawnAt(WallToSpawn, SpawnLocation, SpawnRotation);
+
+		/*if (WallToSpawn == FrontDoorBlueprint)
+		{
+			if (HasAuthority()) GetWorld()->SpawnActor<AActor>(WallToSpawn, SpawnLocation, SpawnRotation);
+		}
+		else
+		{
+			SpawnAt(WallToSpawn, SpawnLocation, SpawnRotation);
+		}*/
+		
 	}
 }

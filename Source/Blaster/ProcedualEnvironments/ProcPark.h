@@ -23,7 +23,7 @@ class BLASTER_API AProcPark : public AAProcActor
     GENERATED_BODY()
 
 public:
-    //AProcPark();
+    virtual void ProcGen() override;
 
 protected:
     virtual void BeginPlay() override;

@@ -69,12 +69,13 @@ class BLASTER_API AProcHouse : public AAProcActor
 public:	
 	// Sets default values for this actor's properties
 	AProcHouse();
+	virtual void ProcGen() override;
 	/*
 		RANDOMIZERS
 	*/
-	int32 Randomness = FMath::RandRange(0, 20);
-	int32 Fear = FMath::RandRange(0, 20);
-	int32 Openness = FMath::RandRange(0,20);
+	int32 Randomness;
+	int32 Fear;
+	int32 Openness;
 
 protected:
 	// Called when the game starts or when spawned

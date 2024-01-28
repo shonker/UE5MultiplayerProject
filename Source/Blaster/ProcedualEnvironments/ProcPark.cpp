@@ -6,13 +6,16 @@
 void AProcPark::BeginPlay()
 {
     Super::BeginPlay();
+}
 
+void AProcPark::ProcGen()
+{
     FVector Location;
     Location = FVector(857, 274, 1435);
     InitializePark(Location, FRotator(0, 0, RS.RandRange(0, 1) * 180));
     Location = FVector(2006, 1746, 1436);
     InitializePark(Location, FRotator(0, 0, 0));
-        
+
     // Define the bounds
     FVector MinBounds = FVector(-1000, -1000, 0) + GetActorLocation();
     FVector MaxBounds = FVector(3000, 3000, 3000) + GetActorLocation();
