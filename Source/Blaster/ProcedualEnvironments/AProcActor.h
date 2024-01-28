@@ -19,9 +19,10 @@ public:
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
-
+	uint32 PGI = 0;
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+	FRandomStream RS;
 };

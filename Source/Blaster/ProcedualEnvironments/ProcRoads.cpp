@@ -34,7 +34,7 @@ void AProcRoads::BeginPlay()
     TArray<USceneComponent*> ChosenSpawnPoints;
     while (ChosenSpawnPoints.Num() < SpawnCount)
     {
-        USceneComponent* SelectedPoint = SpawnPoints[FMath::RandRange(0, SpawnPoints.Num() - 1)];
+        USceneComponent* SelectedPoint = SpawnPoints[RS.RandRange(0, SpawnPoints.Num() - 1)];
         if (!ChosenSpawnPoints.Contains(SelectedPoint))
         {
             ChosenSpawnPoints.Add(SelectedPoint);
@@ -45,7 +45,7 @@ void AProcRoads::BeginPlay()
 
 int32 AProcRoads::ChooseSpawnCount(const TArray<int32>& Distribution)
 {
-    int32 RandomNumber = FMath::RandRange(1, 100);
+    int32 RandomNumber = RS.RandRange(1, 100);
     int32 AccumulatedChance = 0;
 
     for (int32 i = 0; i < Distribution.Num(); ++i)
@@ -63,7 +63,7 @@ void AProcRoads::SpawnObjectAtPoint(USceneComponent* SpawnPoint)
     if (SpawnableObjects.Num() == 0)
         return;
 
-    TSubclassOf<AActor> SelectedObject = SpawnableObjects[FMath::RandRange(0, SpawnableObjects.Num() - 1)];
-    GetWorld()->SpawnActor<AActor>(SelectedObject, SpawnPoint->GetComponentLocation(), SpawnPoint->GetComponentRotation() + FRotator(0.f,FMath::RandRange(-180,180),0.f));
+    TSubclassOf<AActor> SelectedObject = SpawnableObjects[RS.RandRange(0, SpawnableObjects.Num() - 1)];
+    GetWorld()->SpawnActor<AActor>(SelectedObject, SpawnPoint->GetComponentLocation(), SpawnPoint->GetComponentRotation() + FRotator(0.f,RS.RandRange(-180,180),0.f));
 }
 

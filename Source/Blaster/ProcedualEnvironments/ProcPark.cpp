@@ -6,31 +6,29 @@
 void AProcPark::BeginPlay()
 {
     Super::BeginPlay();
-    if (HasAuthority())
-    {
-        FVector Location;
-        Location = FVector(857, 274, 1435);
-        InitializePark(Location, FRotator(0, 0, FMath::RandRange(0, 1) * 180));
-        Location = FVector(2006, 1746, 1436);
-        InitializePark(Location, FRotator(0, 0, 0));
-        
-        // Define the bounds
-        FVector MinBounds = FVector(-1000, -1000, 0) + GetActorLocation();
-        FVector MaxBounds = FVector(3000, 3000, 3000) + GetActorLocation();
 
-        // Iterate over all actors of type AProcParkPart
-        for (TActorIterator<AProcParkPart> It(GetWorld()); It; ++It)
+    FVector Location;
+    Location = FVector(857, 274, 1435);
+    InitializePark(Location, FRotator(0, 0, RS.RandRange(0, 1) * 180));
+    Location = FVector(2006, 1746, 1436);
+    InitializePark(Location, FRotator(0, 0, 0));
+        
+    // Define the bounds
+    FVector MinBounds = FVector(-1000, -1000, 0) + GetActorLocation();
+    FVector MaxBounds = FVector(3000, 3000, 3000) + GetActorLocation();
+
+    // Iterate over all actors of type AProcParkPart
+    for (TActorIterator<AProcParkPart> It(GetWorld()); It; ++It)
+    {
+        AProcParkPart* ParkPart = *It;
+        if (ParkPart)
         {
-            AProcParkPart* ParkPart = *It;
-            if (ParkPart)
+            // Check if the actor's position is outside the bounds
+            if (!IsWithinBounds(ParkPart->GetActorLocation(), MinBounds, MaxBounds))
             {
-                // Check if the actor's position is outside the bounds
-                if (!IsWithinBounds(ParkPart->GetActorLocation(), MinBounds, MaxBounds))
-                {
-                   // UE_LOG(LogTemp, Error, TEXT("DESTROY@!@"));
-                    // Destroy the actor if it's outside the bounds
-                    ParkPart->Destroy();
-                }
+                // UE_LOG(LogTemp, Error, TEXT("DESTROY@!@"));
+                // Destroy the actor if it's outside the bounds
+                ParkPart->Destroy();
             }
         }
     }
@@ -45,15 +43,39 @@ bool AProcPark::IsWithinBounds(const FVector & Position, const FVector & MinBoun
 
 void AProcPark::InitializePark(FVector Location,FRotator Rotation)
 {
-    int32 Lifetime = FMath::RandRange(5, 10);
+    int32 Lifetime = RS.RandRange(5, 10);
 
     FVector StartLocation = Location + GetActorLocation();
     FRotator StartRotation = Rotation;
 
     FTransform StartTransform(StartRotation, StartLocation);
 
-    BranchCount = FMath::RandRange(0, MaxBranchCount);
+    BranchCount = RS.RandRange(0, MaxBranchCount);
     SpawnNextObject(StartTransform, Lifetime, 0);
+}
+
+
+AAProcActor* AProcPark::SpawnAt(TSubclassOf<AActor> Actor, FVector& Location, FRotator& Rotation)
+{
+
+    FActorSpawnParameters SpawnParams;
+    SpawnParams.Name = FName(*FString(Actor->GetName() + "_" + FString::FromInt(PGI)));
+    SpawnParams.NameMode = FActorSpawnParameters::ESpawnActorNameMode::Required_Fatal;
+    SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+    SpawnParams.bDeferConstruction = true;
+
+    AAProcActor* LastProcActor = GetWorld()->SpawnActor<AAProcActor>(Actor, Location, Rotation, SpawnParams);
+
+    if (LastProcActor)
+    {
+        LastProcActor->bNetStartup = true;
+        LastProcActor->Tags.Add(TEXT("ProcGen"));
+        LastProcActor->FinishSpawning(FTransform(Rotation, Location, FVector::OneVector));
+    }
+
+    PGI++;
+
+    return LastProcActor;
 }
 
 void AProcPark::SpawnNextObject(const FTransform& ParentTransform, int32 CurrentLifetime, int32 CurrentBranchCount)
@@ -65,12 +87,14 @@ void AProcPark::SpawnNextObject(const FTransform& ParentTransform, int32 Current
     if (!SelectedType.ObjectBlueprint)
         return;
 
-    if (CurrentLifetime == 1 && FMath::RandBool())
+    if (CurrentLifetime == 1 && RS.RandRange(0, 1) == 1)
     {
         AActor* SpawnedHouse = GetWorld()->SpawnActor<AActor>(TubeSlideBlueprint, ParentTransform.GetLocation(), ParentTransform.GetRotation().Rotator());
         return;
     }
-    AProcParkPart* SpawnedPart = Cast<AProcParkPart>(GetWorld()->SpawnActor<AProcParkPart>(SelectedType.ObjectBlueprint, ParentTransform.GetLocation(), ParentTransform.GetRotation().Rotator()));
+    FVector Location = ParentTransform.GetLocation();
+    FRotator Rotation = ParentTransform.GetRotation().Rotator();
+    AProcParkPart* SpawnedPart = Cast<AProcParkPart>(SpawnAt(SelectedType.ObjectBlueprint, Location, Rotation));
     if (!SpawnedPart || SpawnedPart->OutputTransforms.Num() == 0)
         return;
 
@@ -78,7 +102,7 @@ void AProcPark::SpawnNextObject(const FTransform& ParentTransform, int32 Current
 
     ProcessSpawn(SpawnedPart, ParentTransform, CurrentLifetime, CurrentBranchCount, false, SelectedType);
 
-    if (SpawnedPart->OutputTransforms.Num() > 1 && BranchCount > 0 && FMath::RandBool())
+    if (SpawnedPart->OutputTransforms.Num() > 1 && BranchCount > 0 && RS.RandRange(0, 1) == 1)
     {
         ProcessSpawn(SpawnedPart, ParentTransform, CurrentLifetime, CurrentBranchCount + 1, true, SelectedType);
     }
@@ -86,22 +110,22 @@ void AProcPark::SpawnNextObject(const FTransform& ParentTransform, int32 Current
 
 void AProcPark::ProcessSpawn(AProcParkPart* SpawnedPart, const FTransform& ParentTransform, int32 CurrentLifetime, int32 CurrentBranchCount, bool IsBranch, FObjectTypeInfo SelectedType)
 {
-    int32 OutputIndex = FMath::RandRange(0, SpawnedPart->OutputTransforms.Num() - 1);
+    int32 OutputIndex = RS.RandRange(0, SpawnedPart->OutputTransforms.Num() - 1);
     if (IsBranch)
     {
         int32 OriginalIndex = OutputIndex;
         do {
-            OutputIndex = FMath::RandRange(0, SpawnedPart->OutputTransforms.Num() - 1);
+            OutputIndex = RS.RandRange(0, SpawnedPart->OutputTransforms.Num() - 1);
         } while (OutputIndex == OriginalIndex);
     }
 
     FTransform OutputTransform = SpawnedPart->OutputTransforms[OutputIndex];
     FTransform WorldTransform = OutputTransform * ParentTransform;
 
-    float RandomYawOffset = FMath::RandRange(-1,1) * 90.0f; // Yaw offset
+    float RandomYawOffset = RS.RandRange(-1,1) * 90.0f; // Yaw offset
     FRotator AdjustedRotation = WorldTransform.GetRotation().Rotator();
     AdjustedRotation.Yaw += RandomYawOffset;
-    AdjustedRotation.Roll += FMath::RandRange(0, 1) * 180; // Additional flip
+    AdjustedRotation.Roll += RS.RandRange(0, 1) * 180; // Additional flip
 
     WorldTransform.SetRotation(AdjustedRotation.Quaternion());
 
@@ -135,7 +159,7 @@ FObjectTypeInfo AProcPark::GetRandomObjectTypeExcluding(const TSubclassOf<AProcP
 
     if (PossibleTypes.Num() > 0)
     {
-        int32 RandomIndex = FMath::RandRange(0, PossibleTypes.Num() - 1);
+        int32 RandomIndex = RS.RandRange(0, PossibleTypes.Num() - 1);
         return PossibleTypes[RandomIndex];
     }
     return FObjectTypeInfo();

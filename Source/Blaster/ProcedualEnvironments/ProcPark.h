@@ -3,6 +3,7 @@
 #include "GameFramework/Actor.h"
 #include "DrawDebugHelpers.h"
 #include "ProcParkPart.h"  
+#include "AProcActor.h"
 #include "ProcPark.generated.h"
 
 
@@ -17,7 +18,7 @@ struct FObjectTypeInfo
 };
 
 UCLASS()
-class BLASTER_API AProcPark : public AProcActor
+class BLASTER_API AProcPark : public AAProcActor
 {
     GENERATED_BODY()
 
@@ -27,6 +28,7 @@ public:
 protected:
     virtual void BeginPlay() override;
 
+    AAProcActor* SpawnAt(TSubclassOf<AActor> Actor, FVector& Location, FRotator& Rotation);
 
 private:
     void InitializePark(FVector Location, FRotator Rotation);

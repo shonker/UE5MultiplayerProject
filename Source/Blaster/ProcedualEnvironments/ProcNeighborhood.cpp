@@ -468,6 +468,7 @@ void AProcNeighborhood::SpawnFinishedNeighborhood()
 						FRotator RoadRotation = FRotator(0.0f, static_cast<float>(GridRotations[Col][Row]), 0.0f);
 						
 						AAProcActor* SpawnedRoad = SpawnAt(RoadBlueprint, SpawnLocation, RoadRotation);
+						SpawnedRoad->RS = RS;
 						if (SpawnedRoad)
 						{
 							SpawnedRoads.Add(SpawnedRoad);
@@ -486,11 +487,12 @@ void AProcNeighborhood::SpawnFinishedNeighborhood()
 						}*/
 				break;
 				case CellType::Park:
-					/*if (ParkBlueprintClass)
+					if (ParkBlueprintClass)
 					{
 						FRotator ParkRotation = FRotator(0.0f, 0.0f, 0.0f);
-						AActor* SpawnedHouse = GetWorld()->SpawnActor<AActor>(ParkBlueprintClass, SpawnLocation, ParkRotation);
-					}*/
+						AAProcActor* SpawnedPark = SpawnAt(ParkBlueprintClass, SpawnLocation, ParkRotation);
+						SpawnedPark->RS = RS;
+					}
 				break;
 				case CellType::Reserved:
 					
