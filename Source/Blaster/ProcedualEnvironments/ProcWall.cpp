@@ -24,7 +24,7 @@ void AProcWall::BeginPlay()
 
     if (HasAuthority() && bBreakable)
     {
-        WallHealth = FMath::RandRange(WallHealthMin, WallHealthMax);
+        WallHealth = RS.RandRange(WallHealthMin, WallHealthMax);
         OnTakeAnyDamage.AddDynamic(this, &AProcWall::TakeWallDamage);
         if (bBreakableOnImpact)
         {

@@ -16,13 +16,14 @@ public:
 	AAProcActor();
 	virtual bool IsNetRelevantFor(const AActor* RealViewer, const AActor* ViewTarget, const FVector& SrcLocation) const override;
 
+	AAProcActor* SpawnAt(TSubclassOf<AActor> Actor, FVector& Location, FRotator& Rotation);
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
-	uint32 PGI = 0;
+	int32* PGI;
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
-
+	void InitializePGI(int32* InPGI);
 	FRandomStream RS;
 };

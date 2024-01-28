@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "AProcActor.h"
 #include "GameFramework/Actor.h"
 #include "ProcFloor.generated.h"
 
@@ -16,7 +17,7 @@ struct FHouseNPCTypeInfo
 };
 
 UCLASS()
-class BLASTER_API AProcFloor : public AActor
+class BLASTER_API AProcFloor : public AAProcActor
 {
 	GENERATED_BODY()
 	

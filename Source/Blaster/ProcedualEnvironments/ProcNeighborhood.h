@@ -52,9 +52,10 @@ public:
 	void ProcGen(uint32 randomSeed);
 	class AAProcActor* SpawnAt(TSubclassOf<AActor> Actor, FVector& Location, FRotator& Rotation);
 	FRandomStream RS;
-	uint32 PGI = 0;
-
+	int32* GetProceduralGenerationIndexPtr() { return &ProceduralGenerationIndex; }
 	class AAProcActor* LastProcActor;
+private:
+	int32 ProceduralGenerationIndex = 0;
 protected:
 	virtual void BeginPlay() override;
 	bool RandBool();

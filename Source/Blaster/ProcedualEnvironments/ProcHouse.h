@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "AProcActor.h"
 #include "ProcHouse.generated.h"
 
 struct FWallInfo {
@@ -61,7 +62,7 @@ enum class EWallRotation : uint32
 };
 UCLASS()
 
-class BLASTER_API AProcHouse : public AActor
+class BLASTER_API AProcHouse : public AAProcActor
 {
 	GENERATED_BODY()
 	
@@ -152,9 +153,9 @@ protected:
 	EWallType ConvertLetterToWallType(const FString& Letter);
 	void ReadPrefabLayoutsFromFile();
 	void SpawnPrefabWalls();
-	void SpawnWall(TSubclassOf<AActor> PFWallBlueprint, const FVector& Location, const FRotator& Rotation);
 
 private:
+
 	TArray<FPrefabWallLayout> PrefabWallLayouts;
 
 	//walls

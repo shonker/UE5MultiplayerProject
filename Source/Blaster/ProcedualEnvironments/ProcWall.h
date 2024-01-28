@@ -5,10 +5,11 @@
 #include "Sound/SoundCue.h"
 #include "GameFramework/Actor.h"
 #include "TimerManager.h"
+#include "AProcActor.h"
 #include "ProcWall.generated.h"
 
 UCLASS()
-class BLASTER_API AProcWall : public AActor
+class BLASTER_API AProcWall : public AAProcActor
 {
     GENERATED_BODY()
 

@@ -32,3 +32,43 @@ void AAProcActor::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 }
 
+void AAProcActor::InitializePGI(int32* InPGI)
+{
+    PGI = InPGI;
+}
+
+AAProcActor* AAProcActor::SpawnAt(TSubclassOf<AActor> Actor, FVector& Location, FRotator& Rotation)
+{
+	if (!PGI) return nullptr;
+	if (Actor == nullptr) return nullptr;
+	
+	FActorSpawnParameters SpawnParams;
+	SpawnParams.Name = FName(*FString(Actor->GetName() + "_" + FString::FromInt(*PGI)));
+	SpawnParams.NameMode = FActorSpawnParameters::ESpawnActorNameMode::Required_Fatal;
+	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	SpawnParams.bDeferConstruction = true;
+
+
+ AActor* SpawnedActor = GetWorld()->SpawnActor<AActor>(Actor, Location, Rotation, SpawnParams);
+
+    if (SpawnedActor)
+    {
+        if (SpawnedActor->IsA(AAProcActor::StaticClass()))
+        {
+            AAProcActor* SpawnedProcActor = Cast<AAProcActor>(SpawnedActor);
+            SpawnedProcActor->InitializePGI(PGI);
+            SpawnedProcActor->bNetStartup = true;
+            SpawnedProcActor->Tags.Add(TEXT("ProcGen"));
+            SpawnedProcActor->FinishSpawning(FTransform(Rotation, Location, FVector::OneVector));
+
+            (*PGI)++;
+            return SpawnedProcActor;
+        }
+        else
+        {
+            UE_LOG(LogTemp, Error, TEXT("Spawned actor is not of type AAProcActor. Actor class: %s"), *Actor->GetName());
+            // SpawnedActor->Destroy();
+        }
+    }
+    return nullptr;
+}

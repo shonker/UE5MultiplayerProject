@@ -4,12 +4,13 @@
 
 #include "CoreMinimal.h"
 #include "Blaster/Buttons/MyButton.h"
+#include "AProcActor.h"
 #include "Components/ChildActorComponent.h"
 
 #include "Door.generated.h"
 
 UCLASS()
-class BLASTER_API ADoor : public AActor
+class BLASTER_API ADoor : public AAProcActor
 {
 	GENERATED_BODY()
 	

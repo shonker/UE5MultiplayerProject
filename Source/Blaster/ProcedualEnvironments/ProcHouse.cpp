@@ -2,6 +2,7 @@
 
 
 #include "ProcHouse.h"
+#include "ProcWall.h"
 #include "DrawDebugHelpers.h"
 
 // Sets default values
@@ -22,11 +23,11 @@ AProcHouse::AProcHouse()
 void AProcHouse::BeginPlay()
 {
 	Super::BeginPlay();
+	InitializeFirstFloor();
+	GenerateFloors();
+	SpawnFloors();
 	if (HasAuthority())
 	{
-		InitializeFirstFloor();
-		GenerateFloors();
-		SpawnFloors();
 		//shitty self proc
 		GenerateRooms();
 
@@ -52,7 +53,7 @@ void AProcHouse::InitializeFirstFloor()
 // 10% whole house is water, otherwise all normal with 10% chance the ground is spikes.
 void AProcHouse::GenerateFloors()
 {
-	uint8 RandomValue = FMath::RandRange(0, 99);
+	uint8 RandomValue = RS.RandRange(0, 99);
 	for (uint8 Col = 0; Col < GridWidth; ++Col)
 	{
 		for (uint8 Row = 0; Row < GridHeight; ++Row)
@@ -66,7 +67,7 @@ void AProcHouse::GenerateFloors()
 			{
 				if ((Col == 0 || Col == GridWidth - 1) && Row == 0)
 				{
-					/*if (FMath::RandRange(1, 4) == 1)
+					/*if (RS.RandRange(1, 4) == 1)
 					{
 						GridFloorTypes[Col][Row] = EFloorType::Stairs;
 						continue;
@@ -75,7 +76,7 @@ void AProcHouse::GenerateFloors()
 					continue;
 				}
 				GridFloorTypes[Col][Row] = EFloorType::Floor;
-				if (FMath::RandRange(0, 99) < 10)
+				if (RS.RandRange(0, 99) < 10)
 				{	
 					GridFloorTypes[Col][Row] = EFloorType::Spikes;
 				}
@@ -132,12 +133,12 @@ void AProcHouse::GenerateRooms()
 		}
 	}
 	//generate
-	int32 Lifetime = FMath::RandRange(1, MaxLifetime);
-	int32 StartCol = FMath::RandRange(0, GridSize);
-	int32 StartRow = FMath::RandRange(0, GridSize);
+	int32 Lifetime = RS.RandRange(1, MaxLifetime);
+	int32 StartCol = RS.RandRange(0, GridSize);
+	int32 StartRow = RS.RandRange(0, GridSize);
 	//UE_LOG(LogTemp, Display, TEXT("Seed ~ Lifetime: %i StartCol: %i StartRow: %i"), Lifetime, StartCol, StartRow);
 	//UE_LOG(LogTemp, Log, TEXT("fear: i%, randomness: i%"),Lifetime, Fear, Randomness);
-	EPathDirection CurrentDirection = static_cast<EPathDirection>(FMath::RandRange(0, 3));
+	EPathDirection CurrentDirection = static_cast<EPathDirection>(RS.RandRange(0, 3));
 
 	RoomGrid[StartCol][StartRow] = ERoomType::Hallway;
 
@@ -196,7 +197,7 @@ void AProcHouse::ChangeDirection(EPathDirection& CurrentDirection, int32 Col, in
 		}),
 		possibleDirections.end());
 
-	CurrentDirection = possibleDirections[FMath::RandRange(0, possibleDirections.size() - 1)];
+	CurrentDirection = possibleDirections[RS.RandRange(0, possibleDirections.size() - 1)];
 }
 
 void AProcHouse::InferWallLocations()
@@ -226,7 +227,7 @@ void AProcHouse::InferWallLocations()
 					}
 					else
 					{
-						if (Randomness > FMath::RandRange(0, 100))
+						if (Randomness > RS.RandRange(0, 100))
 						{
 							WallLeft = true;
 						}
@@ -247,7 +248,7 @@ void AProcHouse::InferWallLocations()
 					}
 					else
 					{
-						if (Randomness > FMath::RandRange(0, 100))
+						if (Randomness > RS.RandRange(0, 100))
 						{
 							WallRight = true;
 						}
@@ -268,7 +269,7 @@ void AProcHouse::InferWallLocations()
 					}
 					else
 					{
-						if (Randomness > FMath::RandRange(0, 100))
+						if (Randomness > RS.RandRange(0, 100))
 						{
 							WallDown = true;
 						}
@@ -289,7 +290,7 @@ void AProcHouse::InferWallLocations()
 					}
 					else
 					{
-						if (Randomness > FMath::RandRange(0, 100))
+						if (Randomness > RS.RandRange(0, 100))
 						{
 							WallUp = true;
 						}
@@ -301,7 +302,7 @@ void AProcHouse::InferWallLocations()
 				WindowUp = true;
 			}
 
-			if (Fear > FMath::RandRange(0, 100))
+			if (Fear > RS.RandRange(0, 100))
 			{
 				if (Col + 1 <= GridSize) WallRight = true;
 				if (Row - 1 >= 0) WallDown = true;
@@ -309,7 +310,7 @@ void AProcHouse::InferWallLocations()
 				if (Row + 1 <= GridSize) WallUp = true;
 			}
 
-			/*if (Openness > FMath::RandRange(0, 200))
+			/*if (Openness > RS.RandRange(0, 200))
 			{
 				 WallRight = false;
 				 WallDown = false;
@@ -423,7 +424,7 @@ void AProcHouse::RandomizeWallsAndWindows()
 		switch (Wall)
 		{
 		case EWallType::Window:
-			if (Fear > FMath::RandRange(0, 100))
+			if (Fear > RS.RandRange(0, 100))
 			{
 				if (FMath::RandRange(1, 6) > 1)
 				{
@@ -432,23 +433,23 @@ void AProcHouse::RandomizeWallsAndWindows()
 			} 
 			else
 			{
-				if (FMath::RandRange(1, 3) > 1)
+				if (RS.RandRange(1, 3) > 1)
 				{
 					Wall = EWallType::NotWindow;
 				}
 			}
 			break;
 		case EWallType::Wall:
-			if (Openness > FMath::RandRange(0, 100))
+			if (Openness > RS.RandRange(0, 100))
 			{
-				if (FMath::RandRange(1, 3) == 1)
+				if (RS.RandRange(1, 3) == 1)
 				{
 					Wall = EWallType::Doorway;
 				}
 			}
 			else
 			{
-				if (FMath::RandRange(1, 6) == 1)
+				if (RS.RandRange(1, 6) == 1)
 				{
 					Wall = EWallType::Doorway;
 				}
@@ -493,13 +494,12 @@ void AProcHouse::SpawnWalls()
 			break;		
 		case EWallType::FrontDoor:
 			WallToSpawnBlueprint = FrontDoorBlueprint;
-			//DrawDebugSphere(GetWorld(), SpawnLocation, 80.f, 12, FColor::Green, true);
 			break;		
 		}
 
 		if (WallToSpawnBlueprint != nullptr)
 		{
-			AActor* SpawnedWall = GetWorld()->SpawnActor<AActor>(WallToSpawnBlueprint, SpawnLocation, WallRotation);
+			AAProcActor* SpawnedWall = SpawnAt(WallToSpawnBlueprint, SpawnLocation, WallRotation);
 		}
 	}
 }
@@ -560,7 +560,7 @@ void AProcHouse::SpawnPrefabWalls()
 		return;
 	}
 	//choose random layout
-	int32 LayoutIndex = FMath::RandRange(0, PrefabWallLayouts.Num() - 1);
+	int32 LayoutIndex = RS.RandRange(0, PrefabWallLayouts.Num() - 1);
 	FPrefabWallLayout SelectedLayout = PrefabWallLayouts[LayoutIndex];
 
 	for (const FWallInfo& WallInfo : SelectedLayout.WallInfos) {
@@ -571,63 +571,34 @@ void AProcHouse::SpawnPrefabWalls()
 		float YawRotation = IsHorizontal ? 0.f : 90.f;
 		FRotator SpawnRotation = FRotator(0.0f, YawRotation, 0.0f);
 
+		TSubclassOf<AActor> WallToSpawn;
+
 		switch (WallInfo.WallType) {
 		case EWallType::ExtraNothing:
 			break;
-
 		case EWallType::Nothing:
-			//UE_LOG(LogTemp, Log, TEXT("nothing"));
-
-			
 			break;
-
 		case EWallType::Wall:
-			//UE_LOG(LogTemp, Log, TEXT("wall"));
-			SpawnWall(WallBlueprint, SpawnLocation, SpawnRotation);
+			WallToSpawn = WallBlueprint;
 			break;
-
 		case EWallType::Doorway:
-			//UE_LOG(LogTemp, Log, TEXT("doorway"));
-
-			SpawnWall(DoorwayBlueprint, SpawnLocation, SpawnRotation);
+			WallToSpawn = DoorwayBlueprint;
 			break;
-
 		case EWallType::Window:
-			//UE_LOG(LogTemp, Log, TEXT("window"));
-
-			SpawnWall(WindowBlueprint, SpawnLocation, SpawnRotation);
+			WallToSpawn = WindowBlueprint;
 			break;
-
 		case EWallType::NotWindow:
-			//UE_LOG(LogTemp, Log, TEXT("not window"));
-
-			SpawnWall(NotWindowBlueprint, SpawnLocation, SpawnRotation);
+			WallToSpawn = NotWindowBlueprint;
 			break;
-
 		case EWallType::FrontDoor:
-			///UE_LOG(LogTemp, Log, TEXT("front door"));
-			SpawnWall(FrontDoorBlueprint, SpawnLocation, SpawnRotation);
+			WallToSpawn = FrontDoorBlueprint;
 			break;
-
 		case EWallType::LockedFrontDoor:
-			//UE_LOG(LogTemp, Log, TEXT("locked door"));
-
-			SpawnWall(LockedFrontDoorBlueprint, SpawnLocation, SpawnRotation);
+			WallToSpawn = LockedFrontDoorBlueprint;
 			break;
-
 		default:
-
-			break;
+		break;
 		}
-	}
-}
-
-//initial prefab concept
-void AProcHouse::SpawnWall(TSubclassOf<AActor> PFWallBlueprint, const FVector& Location, const FRotator& Rotation)
-{
-	if (PFWallBlueprint != nullptr)
-	{
-		//DrawDebugSphere(GetWorld(), Location, 100.f, 12, FColor::Purple, true);
-		GetWorld()->SpawnActor<AActor>(PFWallBlueprint, Location, Rotation);
+		SpawnAt(WallToSpawn, SpawnLocation, SpawnRotation);
 	}
 }

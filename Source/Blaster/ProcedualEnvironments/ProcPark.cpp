@@ -54,30 +54,6 @@ void AProcPark::InitializePark(FVector Location,FRotator Rotation)
     SpawnNextObject(StartTransform, Lifetime, 0);
 }
 
-
-AAProcActor* AProcPark::SpawnAt(TSubclassOf<AActor> Actor, FVector& Location, FRotator& Rotation)
-{
-
-    FActorSpawnParameters SpawnParams;
-    SpawnParams.Name = FName(*FString(Actor->GetName() + "_" + FString::FromInt(PGI)));
-    SpawnParams.NameMode = FActorSpawnParameters::ESpawnActorNameMode::Required_Fatal;
-    SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-    SpawnParams.bDeferConstruction = true;
-
-    AAProcActor* LastProcActor = GetWorld()->SpawnActor<AAProcActor>(Actor, Location, Rotation, SpawnParams);
-
-    if (LastProcActor)
-    {
-        LastProcActor->bNetStartup = true;
-        LastProcActor->Tags.Add(TEXT("ProcGen"));
-        LastProcActor->FinishSpawning(FTransform(Rotation, Location, FVector::OneVector));
-    }
-
-    PGI++;
-
-    return LastProcActor;
-}
-
 void AProcPark::SpawnNextObject(const FTransform& ParentTransform, int32 CurrentLifetime, int32 CurrentBranchCount)
 {
     if (CurrentLifetime <= 0 || ObjectTypes.Num() == 0)

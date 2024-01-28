@@ -23,7 +23,6 @@ void AProcFloor::BeginPlay()
 void AProcFloor::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
 }
 
 
@@ -45,7 +44,7 @@ FHouseNPCTypeInfo AProcFloor::GetRandomObjectType()
     //todo: weighted influence based on floor type
     if (NPCTypes.Num() > 0)
     {
-        int32 RandomIndex = FMath::RandRange(0, NPCTypes.Num() - 1);
+        int32 RandomIndex = RS.RandRange(0, NPCTypes.Num() - 1);
         return NPCTypes[RandomIndex];
     }
 

@@ -40,11 +40,11 @@ void AProcNeighborhood::ProcGen(uint32 randomSeed)
 	SpawnFinishedNeighborhood();
 }
 
-AAProcActor* AProcNeighborhood::SpawnAt(TSubclassOf<AActor> Actor, FVector &Location, FRotator &Rotation)
+AAProcActor* AProcNeighborhood::SpawnAt(TSubclassOf<AActor> Actor, FVector& Location, FRotator& Rotation) 
 {
 
 	FActorSpawnParameters SpawnParams;
-	SpawnParams.Name = FName(*FString(Actor->GetName() + "_" + FString::FromInt(PGI)));
+	SpawnParams.Name = FName(*FString(Actor->GetName() + "_" + FString::FromInt(ProceduralGenerationIndex)));
 	SpawnParams.NameMode = FActorSpawnParameters::ESpawnActorNameMode::Required_Fatal;
 	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 	SpawnParams.bDeferConstruction = true;
@@ -53,12 +53,13 @@ AAProcActor* AProcNeighborhood::SpawnAt(TSubclassOf<AActor> Actor, FVector &Loca
 
 	if (LastProcActor)
 	{
+		LastProcActor->InitializePGI(&ProceduralGenerationIndex);
 		LastProcActor->bNetStartup = true;
 		LastProcActor->Tags.Add(TEXT("ProcGen"));
 		LastProcActor->FinishSpawning(FTransform(Rotation, Location, FVector::OneVector));
 	}
 
-	PGI++;
+	ProceduralGenerationIndex++;
 
 	return LastProcActor;
 }
@@ -466,32 +467,35 @@ void AProcNeighborhood::SpawnFinishedNeighborhood()
 					if (RoadBlueprint)
 					{
 						FRotator RoadRotation = FRotator(0.0f, static_cast<float>(GridRotations[Col][Row]), 0.0f);
-						
 						AAProcActor* SpawnedRoad = SpawnAt(RoadBlueprint, SpawnLocation, RoadRotation);
-						SpawnedRoad->RS = RS;
 						if (SpawnedRoad)
 						{
+							SpawnedRoad->RS = FRandomStream(RS.RandRange(0, RAND_MAX));
 							SpawnedRoads.Add(SpawnedRoad);
 						}
 					}
 				break;
 				case CellType::House:
-					/*	if (HouseBlueprintClass)
+					if (HouseBlueprintClass)
+					{
+						FRotator HouseRotation = FRotator(0.0f, static_cast<float>(GridRotations[Col][Row]), 0.0f);
+						AAProcActor* SpawnedHouse = SpawnAt(HouseBlueprintClass, SpawnLocation, HouseRotation);
+						if (SpawnedHouse)
 						{
-							FRotator HouseRotation = FRotator(0.0f, static_cast<float>(GridRotations[Col][Row]), 0.0f);
-							AActor* SpawnedHouse = GetWorld()->SpawnActor<AActor>(HouseBlueprintClass, SpawnLocation, HouseRotation);
-							if (SpawnedHouse)
-							{
-								SpawnedHouses.Add(SpawnedHouse);
-							}
-						}*/
+							SpawnedHouse->RS = FRandomStream(RS.RandRange(0,RAND_MAX));
+							SpawnedHouses.Add(SpawnedHouse);
+						}
+					}
 				break;
 				case CellType::Park:
 					if (ParkBlueprintClass)
 					{
 						FRotator ParkRotation = FRotator(0.0f, 0.0f, 0.0f);
 						AAProcActor* SpawnedPark = SpawnAt(ParkBlueprintClass, SpawnLocation, ParkRotation);
-						SpawnedPark->RS = RS;
+						if (SpawnedPark)
+						{
+							SpawnedPark->RS = FRandomStream(RS.RandRange(0, RAND_MAX));
+						}
 					}
 				break;
 				case CellType::Reserved:

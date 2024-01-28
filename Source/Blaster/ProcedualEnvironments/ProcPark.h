@@ -28,8 +28,6 @@ public:
 protected:
     virtual void BeginPlay() override;
 
-    AAProcActor* SpawnAt(TSubclassOf<AActor> Actor, FVector& Location, FRotator& Rotation);
-
 private:
     void InitializePark(FVector Location, FRotator Rotation);
 
