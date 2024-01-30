@@ -17,6 +17,7 @@ class BLASTER_API ABlasterCharacter : public ACharacter, public IInteractWithCro
 	GENERATED_BODY()
 
 public:
+	friend class UDeathComponent;
 	// Sets default values for this character's properties
 	ABlasterCharacter();
 	// Called every frame
@@ -33,18 +34,14 @@ public:
 
 	virtual void OnRep_ReplicatedMovement() override;
 
+	bool bElimmed = false;
 	void Elim();
-	float CameraTransitionDelay = 4.f;
-	void TransitionToSpectateCamera();
 
-	UFUNCTION(NetMulticast, Reliable)
-	void MulticastElim();
-
-	ABlasterCharacter* OverlappedBody;
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Physics")
-	class UBoxComponent* PhysicsBox;
+	UPROPERTY(ReplicatedUsing = OnRep_OverlappedBody)
+	class ARagdollCube* OverlappedBody;
+	
 	UFUNCTION()
-	void OnPhysicsBoxOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+	void OnRep_OverlappedBody(ARagdollCube* LastCube);
 
 	UPROPERTY(Replicated)
 	bool bDisableGameplay = false;
@@ -74,8 +71,9 @@ protected:
 	void Turn(float Value);
 	void LookUp(float Value);
 	void EquipButtonPressed();
-	void EquipButtonHeld();
+	void HandleEquipButtonPressed();
 	void EquipButtonReleased();
+	void HandleEquipButtonReleased();
 	void CrouchButtonPressed();
 	void ReloadButtonPressed();
 	void AimButtonPressed();
@@ -141,6 +139,8 @@ private:
 	//meta specifier allows private variables to be blueprintreadonly
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	class UCombatComponent* Combat;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	class UDeathComponent* Death;
 
 	FVector_NetQuantize LastHitTarget = FVector();
 
@@ -230,7 +230,6 @@ private:
 	UPROPERTY()
 	class ABlasterPlayerController* BlasterPlayerController;
 
-	bool bElimmed = false;
 	FTimerHandle ElimTimer;
 	UPROPERTY(EditDefaultsOnly)
 	float ElimDelay = 1.5f;

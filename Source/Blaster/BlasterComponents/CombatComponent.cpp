@@ -293,6 +293,7 @@ void UCombatComponent::ServerThrow_Implementation(FVector_NetQuantize10 Provided
 
 void UCombatComponent::NetMulticastThrow_Implementation(FVector_NetQuantize10 ProvidedThrowVector)
 {
+	RemoveHUDElements();
 	CombatState = ECombatState::ECS_Throwing;
 	if (Character)
 	{
@@ -692,4 +693,22 @@ void UCombatComponent::ServerSetAiming_Implementation(bool bIsAiming)
 	}
 }
 
+void UCombatComponent::RemoveHUDElements()
+{
+	if (!Character) return;
+	if (!Character->IsLocallyControlled()) return;
 
+	Character->GetFollowCamera()->SetFieldOfView(DefaultFOV);
+
+	bool bHideSniperScope =
+		Character
+		&& Character->IsLocallyControlled()
+		&& bAiming
+		&& EquippedWeapon
+		&& EquippedWeapon->GetWeaponType() == EWeaponType::EWT_SniperRifle;
+	if (bHideSniperScope)
+	{
+		Character->ShowSniperScopeWidget(false);
+	}
+
+}

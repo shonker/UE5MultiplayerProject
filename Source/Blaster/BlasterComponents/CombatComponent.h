@@ -41,6 +41,8 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	class UInventoryComponent* InventoryComponent;
 
+	void RemoveHUDElements();
+
 protected:
 	virtual void BeginPlay() override;
 	void SetAiming(bool bIsAiming);

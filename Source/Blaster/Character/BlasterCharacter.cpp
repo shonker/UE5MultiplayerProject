@@ -11,6 +11,9 @@
 #include "Blaster/Buttons/MyButton.h"
 #include "Blaster/BlasterComponents/CombatComponent.h"
 #include "Blaster/BlasterComponents/InventoryComponent.h" 
+#include "Blaster/BlasterComponents/RagdollCube.h" 
+#include "Components/BoxComponent.h"
+#include "Blaster/BlasterComponents/DeathComponent.h" 
 #include "Kismet/KismetMathLibrary.h"
 #include "Kismet/GameplayStatics.h"
 #include "Sound/SoundCue.h"
@@ -23,7 +26,6 @@
 #include "Blaster/BlasterPlayerState/BlasterPlayerState.h"
 #include "Blaster/Weapon/WeaponTypes.h"
 #include "Components/SphereComponent.h"
-#include "Components/BoxComponent.h"
 #include "Blaster/BlasterTypes/CombatState.h"
 #include "DrawDebugHelpers.h"
 
@@ -56,6 +58,10 @@ ABlasterCharacter::ABlasterCharacter()
 	Combat = CreateDefaultSubobject<UCombatComponent>(TEXT("CombatComponent"));
 	Combat->SetIsReplicated(true);
 
+	Death = CreateDefaultSubobject<UDeathComponent>(TEXT("DeathComponent"));
+	Death->Combat = Combat;
+	Death->SetIsReplicated(true);
+
 	InventoryComponent = CreateDefaultSubobject<UInventoryComponent>(TEXT("InventoryComponent"));
 	InventoryComponent->Combat = Combat;
 	Combat->InventoryComponent = InventoryComponent;
@@ -72,12 +78,6 @@ ABlasterCharacter::ABlasterCharacter()
 	VisualTargetSphere->SetupAttachment(RootComponent);
 	VisualTargetSphere->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
 	VisualTargetSphere->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-
-	PhysicsBox = CreateDefaultSubobject<UBoxComponent>(TEXT("PhysicsBox"));
-	PhysicsBox->SetupAttachment(RootComponent);
-	PhysicsBox->SetCollisionEnabled(ECollisionEnabled::NoCollision); // Initially disable collision
-	PhysicsBox->SetVisibility(false); // Initially hidden
-	PhysicsBox->SetSimulatePhysics(false); // Initially disable physics simulation
 
 	//this prevents the camera from moving when another player is between camera and player mesh
 	GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
@@ -99,6 +99,7 @@ void ABlasterCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 
 	DOREPLIFETIME_CONDITION(ABlasterCharacter, OverlappingWeapon, COND_OwnerOnly);
 	DOREPLIFETIME_CONDITION(ABlasterCharacter, OverlappingButton, COND_OwnerOnly);
+	DOREPLIFETIME_CONDITION(ABlasterCharacter, OverlappedBody, COND_OwnerOnly);
 	DOREPLIFETIME_CONDITION(ABlasterCharacter, InteractTargetLocation, COND_SkipOwner);
 	DOREPLIFETIME(ABlasterCharacter, Health);
 	DOREPLIFETIME(ABlasterCharacter, bDisableGameplay);
@@ -154,7 +155,7 @@ void ABlasterCharacter::BeginPlay()
 void ABlasterCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	if (IsLocallyControlled())
+	if (IsLocallyControlled() && !bElimmed)
 	{
 		ManageVisualInteractionTargetLocations();
 	}
@@ -192,11 +193,8 @@ void ABlasterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
-	//overridden the old with our custom
-	//PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump);
 	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ABlasterCharacter::Jump);
 
-	//bind proj settings input axes to our custom functions here
 	PlayerInputComponent->BindAxis("MoveForward", this, &ABlasterCharacter::MoveForward);
 	PlayerInputComponent->BindAxis("MoveRight", this, &ABlasterCharacter::MoveRight);
 	
@@ -228,6 +226,10 @@ void ABlasterCharacter::PostInitializeComponents()
 	if (Combat)
 	{
 		Combat->Character = this;
+	}
+	if (Death)
+	{
+		Death->Character = this;
 	}
 }
 
@@ -308,124 +310,7 @@ void ABlasterCharacter::Elim()
 	{
 		InventoryComponent->RemoveAllItems();
 	}
-	MulticastElim();
-}
-
-void ABlasterCharacter::MulticastElim_Implementation()
-{
-	if (BlasterPlayerController)
-	{
-		BlasterPlayerController->SetHUDWeaponAmmo(0);
-	}
-	bElimmed = true;
-	bDisableGameplay = true;
-
-
-	PhysicsBox = NewObject<UBoxComponent>(this, UBoxComponent::StaticClass(), TEXT("PhysicsBox"));
-	if (PhysicsBox)
-	{
-		PhysicsBox->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-		PhysicsBox->SetVisibility(true);
-		PhysicsBox->SetSimulatePhysics(true);
-		PhysicsBox->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
-		PhysicsBox->SetWorldLocation(GetMesh()->GetComponentLocation());
-		PhysicsBox->SetCollisionResponseToAllChannels(ECR_Block);
-
-		if (HasAuthority())PhysicsBox->OnComponentBeginOverlap.AddDynamic(this, &ABlasterCharacter::OnPhysicsBoxOverlap);
-	}
-
-	FTimerHandle TimerHandle;
-	GetWorld()->GetTimerManager().SetTimer(TimerHandle, [this]()
-		{
-			GetMesh()->AttachToComponent(PhysicsBox, FAttachmentTransformRules::KeepRelativeTransform);
-			GetMesh()->SetSimulatePhysics(true);
-			GetMesh()->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
-			GetMesh()->bReplicatePhysicsToAutonomousProxy = false;
-		}, 0.01f, false);
-
-	GetCharacterMovement()->DisableMovement();
-	GetCharacterMovement()->StopMovementImmediately();
-
-	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-
-	FTimerHandle CameraTransitionTimer;
-	GetWorldTimerManager().SetTimer(CameraTransitionTimer, this, &ABlasterCharacter::TransitionToSpectateCamera, CameraTransitionDelay, false);
-	
-	if (BlasterPlayerController)
-	{
-		DisableInput(BlasterPlayerController);
-	}
-
-	if (Combat)
-	{
-		Combat->FireButtonPressed(false);
-	}
-
-	bool bHideSniperScope =
-		IsLocallyControlled()
-		&& Combat
-		&& Combat->bAiming
-		&& Combat->EquippedWeapon
-		&& Combat->EquippedWeapon->GetWeaponType() == EWeaponType::EWT_SniperRifle;
-	if (bHideSniperScope)
-	{
-		ShowSniperScopeWidget(false);
-	}
-}
-
-void ABlasterCharacter::OnPhysicsBoxOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
-{
-	if (OtherComp && OtherComp->GetName() == FString("InteractSphere"))
-	{
-		OverlappedBody = this;
-	}
-}
-
-
-void ABlasterCharacter::HandleDeathTransition()
-{
-	FVector SocketLocation = GetMesh()->GetSocketLocation(FName("headSocket"));
-
-	if (ALimb* LimbPawn = GetWorld()->SpawnActor<ALimb>(LimbClass, SocketLocation, GetActorRotation()))
-	{
-		USpringArmComponent* PlayerCameraArm = CameraBoom;
-		USpringArmComponent* LimbCameraArm = LimbPawn->FindComponentByClass<USpringArmComponent>();
-
-		float CameraTransitionSpeed = 5.0f; 
-		PlayerCameraArm->TargetArmLength = FMath::FInterpTo(PlayerCameraArm->TargetArmLength, LimbCameraArm->TargetArmLength, GetWorld()->GetDeltaSeconds(), CameraTransitionSpeed);
-		PlayerCameraArm->SetWorldRotation(FMath::RInterpTo(PlayerCameraArm->GetComponentRotation(), LimbCameraArm->GetComponentRotation(), GetWorld()->GetDeltaSeconds(), CameraTransitionSpeed));
-
-		BlasterPlayerController = BlasterPlayerController == nullptr ? Cast<ABlasterPlayerController>(Controller) : BlasterPlayerController;
-		if (BlasterPlayerController)
-		{
-			BlasterPlayerController->Possess(LimbPawn);
-		}
-	}
-}
-
-void ABlasterCharacter::TransitionToSpectateCamera()
-{
-	TArray<AActor*> FoundPlayers;
-	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ABlasterCharacter::StaticClass(), FoundPlayers);
-
-	ABlasterCharacter* NextPlayerToSpectate = nullptr;
-	for (AActor* Actor : FoundPlayers)
-	{
-		ABlasterCharacter* BlasterChar = Cast<ABlasterCharacter>(Actor);
-		if (BlasterChar && BlasterChar != this && !BlasterChar->bElimmed)
-		{
-			NextPlayerToSpectate = BlasterChar;
-			break;
-		}
-	}
-
-	if (NextPlayerToSpectate)
-	{
-		CameraBoom->AttachToComponent(NextPlayerToSpectate->GetRootComponent(), FAttachmentTransformRules::SnapToTargetNotIncludingScale);
-		CameraBoom->TargetArmLength = 100.0f; 
-		CameraBoom->SetWorldRotation(FRotator(-20.0f, 0.0f, 0.0f));
-		EnableInput(BlasterPlayerController);
-	}
+	Death->MulticastElim();
 }
 
 void ABlasterCharacter::ThrowButtonPressed()
@@ -605,35 +490,23 @@ void ABlasterCharacter::LookUp(float Value)
 void ABlasterCharacter::EquipButtonPressed()
 {
 	if (bDisableGameplay) return;
-	if (InventoryComponent)
+
+	if (HasAuthority())
 	{
-		if (HasAuthority())
-		{
-			if (OverlappingWeapon)
-			{
-				InventoryComponent->AddItem(OverlappingWeapon);
-				return;
-			}
-			if (OverlappingButton)
-			{
-				OverlappingButton->OnInitPress();
-				return;
-			}
-			if (OverlappedBody && OverlappedBody->PhysicsBox)
-			{
-				OverlappedBody->PhysicsBox->AttachToComponent(InteractSphere, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
-				OverlappedBody->PhysicsBox->SetSimulatePhysics(false);
-				return;
-			}
-		}
-		else
-		{
-			ServerEquipButtonPressed();
-		}
+		HandleEquipButtonPressed();
+	}
+	else
+	{
+		ServerEquipButtonPressed();
 	}
 }
 
 void ABlasterCharacter::ServerEquipButtonPressed_Implementation()
+{
+	HandleEquipButtonPressed();
+}
+
+void ABlasterCharacter::HandleEquipButtonPressed()
 {
 	if (InventoryComponent)
 	{
@@ -650,9 +523,25 @@ void ABlasterCharacter::ServerEquipButtonPressed_Implementation()
 	}
 	if (OverlappedBody && OverlappedBody->PhysicsBox)
 	{
-		OverlappedBody->PhysicsBox->AttachToComponent(InteractSphere, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
+		OverlappedBody->bFollowPlayer = true;
+		OverlappedBody->FollowChar = this;
 		OverlappedBody->PhysicsBox->SetSimulatePhysics(false);
 		return;
+	}
+}
+
+void ABlasterCharacter::HandleEquipButtonReleased()
+{
+	if (OverlappingButton)
+	{
+		OverlappingButton->OnRelease();
+	}
+	if (OverlappedBody && OverlappedBody->PhysicsBox)
+	{
+		OverlappedBody->bFollowPlayer = false;
+		OverlappedBody->FollowChar = false;
+		OverlappedBody->PhysicsBox->SetSimulatePhysics(true);
+		OverlappedBody = nullptr;
 	}
 }
 
@@ -661,16 +550,7 @@ void ABlasterCharacter::EquipButtonReleased()
 	if (bDisableGameplay) return;
 	if (HasAuthority())
 	{
-		if (OverlappingButton)
-		{
-			OverlappingButton->OnRelease();
-		}
-		if (OverlappedBody && OverlappedBody->PhysicsBox)
-		{
-			OverlappedBody->PhysicsBox->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
-			OverlappedBody->PhysicsBox->SetSimulatePhysics(true);
-			OverlappedBody = nullptr;
-		}
+		HandleEquipButtonReleased();
 	}
 	else
 	{
@@ -681,16 +561,7 @@ void ABlasterCharacter::EquipButtonReleased()
 
 void ABlasterCharacter::ServerEquipButtonReleased_Implementation()
 {
-	if (OverlappingButton)
-	{
-		OverlappingButton->OnRelease();
-	}
-	if (OverlappedBody && OverlappedBody->PhysicsBox)
-	{
-		OverlappedBody->PhysicsBox->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
-		OverlappedBody->PhysicsBox->SetSimulatePhysics(true);
-		OverlappedBody = nullptr;
-	}
+	HandleEquipButtonReleased();
 }
 
 void ABlasterCharacter::ItemShuffleLeft()
@@ -1035,6 +906,24 @@ void ABlasterCharacter::OnRep_OverlappingButton(AMyButton* LastButton)
 		if (BlasterPlayerController)
 		{
 			BlasterPlayerController->SetHUDInteractText(OverlappingButton->InteractionText);
+		}
+	}
+	else
+	{
+		if (BlasterPlayerController)
+		{
+			BlasterPlayerController->SetHUDInteractText(FString{ TEXT("") });
+		}
+	}
+}
+
+void ABlasterCharacter::OnRep_OverlappedBody(ARagdollCube* LastCube)
+{
+	if (OverlappedBody) //this is the new var, LatWeapon is the old one
+	{
+		if (BlasterPlayerController)
+		{
+			BlasterPlayerController->SetHUDInteractText(FString{ TEXT("E: Drag Body") });
 		}
 	}
 	else
