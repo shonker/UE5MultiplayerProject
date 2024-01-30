@@ -61,7 +61,6 @@ void UBlasterAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
     AO_Pitch = BlasterCharacter->GetAOPitch();
  
 
-    //incl header for "AWeapon"
     if (bWeaponEquipped && EquippedWeapon && EquippedWeapon->GetWeaponMesh() && BlasterCharacter->GetMesh())
     {
         //make left hand transform to barrel

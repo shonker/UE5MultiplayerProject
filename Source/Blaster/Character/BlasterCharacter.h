@@ -34,9 +34,17 @@ public:
 	virtual void OnRep_ReplicatedMovement() override;
 
 	void Elim();
+	float CameraTransitionDelay = 4.f;
+	void TransitionToSpectateCamera();
 
 	UFUNCTION(NetMulticast, Reliable)
 	void MulticastElim();
+
+	ABlasterCharacter* OverlappedBody;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Physics")
+	class UBoxComponent* PhysicsBox;
+	UFUNCTION()
+	void OnPhysicsBoxOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
 	UPROPERTY(Replicated)
 	bool bDisableGameplay = false;

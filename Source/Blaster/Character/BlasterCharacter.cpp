@@ -23,21 +23,15 @@
 #include "Blaster/BlasterPlayerState/BlasterPlayerState.h"
 #include "Blaster/Weapon/WeaponTypes.h"
 #include "Components/SphereComponent.h"
+#include "Components/BoxComponent.h"
 #include "Blaster/BlasterTypes/CombatState.h"
 #include "DrawDebugHelpers.h"
 
-//	if (HasAuthority() && !IsLocallyControlled()) 
-//	{
-//			UE_LOG(LogTemp, Warning, TEXT("AO_Pitch: %f"), AO_Pitch);
-//	}
 
-// Sets default values
 ABlasterCharacter::ABlasterCharacter()
 {
- 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 	SpawnCollisionHandlingMethod = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
-
 
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
 	CameraBoom->SetupAttachment(GetMesh());
@@ -57,11 +51,8 @@ ABlasterCharacter::ABlasterCharacter()
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 
 	OverheadWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("OverheadWidget"));
-	//components are special n dont need to be registered in GetLifetimeReplicated
-	//but we do need to incl the header	
 	OverheadWidget->SetupAttachment(RootComponent);  
 
-	//i believe this is bad practice to set these here but it sure is the easiest :)
 	Combat = CreateDefaultSubobject<UCombatComponent>(TEXT("CombatComponent"));
 	Combat->SetIsReplicated(true);
 
@@ -82,6 +73,12 @@ ABlasterCharacter::ABlasterCharacter()
 	VisualTargetSphere->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
 	VisualTargetSphere->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
+	PhysicsBox = CreateDefaultSubobject<UBoxComponent>(TEXT("PhysicsBox"));
+	PhysicsBox->SetupAttachment(RootComponent);
+	PhysicsBox->SetCollisionEnabled(ECollisionEnabled::NoCollision); // Initially disable collision
+	PhysicsBox->SetVisibility(false); // Initially hidden
+	PhysicsBox->SetSimulatePhysics(false); // Initially disable physics simulation
+
 	//this prevents the camera from moving when another player is between camera and player mesh
 	GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
 	GetMesh()->SetCollisionObjectType(ECC_SkeletalMesh);
@@ -89,13 +86,12 @@ ABlasterCharacter::ABlasterCharacter()
 	GetMesh()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Visibility, ECollisionResponse::ECR_Block);
 	GetCharacterMovement()->RotationRate = FRotator(0.f, 0.f, 850);
 
-		TurningInPlace = ETurningInPlace::ETIP_NotTurning;
-		NetUpdateFrequency = 66.f;
-		MinNetUpdateFrequency = 33.f;
+	TurningInPlace = ETurningInPlace::ETIP_NotTurning;
+	NetUpdateFrequency = 66.f;
+	MinNetUpdateFrequency = 33.f;
 
-		DissolveTimeline = CreateDefaultSubobject<UTimelineComponent>(TEXT("DissolveTimelineComponent"));
+	DissolveTimeline = CreateDefaultSubobject<UTimelineComponent>(TEXT("DissolveTimelineComponent"));
 }
-
 
 void ABlasterCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
@@ -120,7 +116,6 @@ void ABlasterCharacter::Destroyed()
 		Combat->EquippedWeapon->Destroy();
 	}
 }
-
 
 // Called when the game starts or when spawned
 void ABlasterCharacter::BeginPlay()
@@ -191,6 +186,7 @@ void ABlasterCharacter::RotateInPlace(float DeltaTime)
 		CalculateAO_Pitch();
 	}
 }
+
 // Called to bind functionality to input
 void ABlasterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
@@ -226,7 +222,6 @@ void ABlasterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 	PlayerInputComponent->BindAction("ItemShuffleRight", IE_Pressed, this, &ABlasterCharacter::ItemShuffleRight);
 }
 
-
 void ABlasterCharacter::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
@@ -249,7 +244,6 @@ void ABlasterCharacter::PlayFireMontage(bool bAiming)
 		AnimInstance->Montage_JumpToSection(SectionName);
 	}
 }
-
 
 //so the way this works for the future
 //is there is a reload montage in the blueprints/character/animations folder
@@ -299,8 +293,6 @@ void ABlasterCharacter::PlayReloadMontage()
 	}
 }
 
-
-
 void ABlasterCharacter::PlayElimMontage()
 {
 	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
@@ -310,7 +302,6 @@ void ABlasterCharacter::PlayElimMontage()
 	}
 }
 
-
 void ABlasterCharacter::Elim()
 {
 	if (InventoryComponent)
@@ -318,14 +309,7 @@ void ABlasterCharacter::Elim()
 		InventoryComponent->RemoveAllItems();
 	}
 	MulticastElim();
-	GetWorldTimerManager().SetTimer(
-		ElimTimer,
-		this,
-		&ABlasterCharacter::ElimTimerFinished,
-		ElimDelay
-	);
 }
-
 
 void ABlasterCharacter::MulticastElim_Implementation()
 {
@@ -334,62 +318,50 @@ void ABlasterCharacter::MulticastElim_Implementation()
 		BlasterPlayerController->SetHUDWeaponAmmo(0);
 	}
 	bElimmed = true;
-	PlayElimMontage();
-	
-	//start dissolve effect
-	if (DissolveMaterialInstance)
-	{
-		DynamicDissolveMaterialInstance = UMaterialInstanceDynamic::Create(
-			DissolveMaterialInstance,
-			this);
+	bDisableGameplay = true;
 
-		/// <summary>
-		/// HEY this is where you set the element index as the 0th one
-		/// so alternate indexes may be used if desired
-		/// </summary>
-		GetMesh()->SetMaterial(0, DynamicDissolveMaterialInstance);
-		DynamicDissolveMaterialInstance->SetScalarParameterValue(TEXT("Dissolve"), 0.f);
-		DynamicDissolveMaterialInstance->SetScalarParameterValue(TEXT("Glow"), 10.f);
+
+	PhysicsBox = NewObject<UBoxComponent>(this, UBoxComponent::StaticClass(), TEXT("PhysicsBox"));
+	if (PhysicsBox)
+	{
+		PhysicsBox->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+		PhysicsBox->SetVisibility(true);
+		PhysicsBox->SetSimulatePhysics(true);
+		PhysicsBox->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
+		PhysicsBox->SetWorldLocation(GetMesh()->GetComponentLocation());
+		PhysicsBox->SetCollisionResponseToAllChannels(ECR_Block);
+
+		if (HasAuthority())PhysicsBox->OnComponentBeginOverlap.AddDynamic(this, &ABlasterCharacter::OnPhysicsBoxOverlap);
 	}
 
-	if (InvisibleMaterialInstance)
-	{
-		GetMesh()->SetMaterial(1, InvisibleMaterialInstance);
-		GetMesh()->SetMaterial(2, InvisibleMaterialInstance);
-		GetMesh()->SetMaterial(3, InvisibleMaterialInstance);
-		GetMesh()->SetMaterial(4, InvisibleMaterialInstance);
+	FTimerHandle TimerHandle;
+	GetWorld()->GetTimerManager().SetTimer(TimerHandle, [this]()
+		{
+			GetMesh()->AttachToComponent(PhysicsBox, FAttachmentTransformRules::KeepRelativeTransform);
+			GetMesh()->SetSimulatePhysics(true);
+			GetMesh()->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
+			GetMesh()->bReplicatePhysicsToAutonomousProxy = false;
+		}, 0.01f, false);
 
-	}
-
-	StartDissolve();
-
-
-	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-
-	if (HasAuthority()
-		//&& GetController() != nullptr && GetController()->IsLocalController()
-		&& LimbClass != nullptr)
-	{
-		HandleDeathTransition();
-	}
-
-	//disable char movement
 	GetCharacterMovement()->DisableMovement();
 	GetCharacterMovement()->StopMovementImmediately();
-	//if (BlasterPlayerController)
-	//{
-	//	DisableInput(BlasterPlayerController);
-	//}
-	////disable collision
-	bDisableGameplay = true;
+
+	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	FTimerHandle CameraTransitionTimer;
+	GetWorldTimerManager().SetTimer(CameraTransitionTimer, this, &ABlasterCharacter::TransitionToSpectateCamera, CameraTransitionDelay, false);
+	
+	if (BlasterPlayerController)
+	{
+		DisableInput(BlasterPlayerController);
+	}
+
 	if (Combat)
 	{
 		Combat->FireButtonPressed(false);
 	}
 
-	//FUCKING POINTERS
-	bool bHideSniperScope = 
+	bool bHideSniperScope =
 		IsLocallyControlled()
 		&& Combat
 		&& Combat->bAiming
@@ -399,44 +371,61 @@ void ABlasterCharacter::MulticastElim_Implementation()
 	{
 		ShowSniperScopeWidget(false);
 	}
-
 }
+
+void ABlasterCharacter::OnPhysicsBoxOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	if (OtherComp && OtherComp->GetName() == FString("InteractSphere"))
+	{
+		OverlappedBody = this;
+	}
+}
+
 
 void ABlasterCharacter::HandleDeathTransition()
 {
-	
 	FVector SocketLocation = GetMesh()->GetSocketLocation(FName("headSocket"));
 
-	// Spawn ALimb pawn
 	if (ALimb* LimbPawn = GetWorld()->SpawnActor<ALimb>(LimbClass, SocketLocation, GetActorRotation()))
 	{
-		// Smooth camera transition
-		USpringArmComponent* PlayerCameraArm = CameraBoom; // Reference to your camera arm component
+		USpringArmComponent* PlayerCameraArm = CameraBoom;
 		USpringArmComponent* LimbCameraArm = LimbPawn->FindComponentByClass<USpringArmComponent>();
 
-		// Interpolate camera location and rotation over time
-		float CameraTransitionSpeed = 5.0f; // Adjust the speed as needed
+		float CameraTransitionSpeed = 5.0f; 
 		PlayerCameraArm->TargetArmLength = FMath::FInterpTo(PlayerCameraArm->TargetArmLength, LimbCameraArm->TargetArmLength, GetWorld()->GetDeltaSeconds(), CameraTransitionSpeed);
 		PlayerCameraArm->SetWorldRotation(FMath::RInterpTo(PlayerCameraArm->GetComponentRotation(), LimbCameraArm->GetComponentRotation(), GetWorld()->GetDeltaSeconds(), CameraTransitionSpeed));
 
-		// Possess ALimb pawn
 		BlasterPlayerController = BlasterPlayerController == nullptr ? Cast<ABlasterPlayerController>(Controller) : BlasterPlayerController;
 		if (BlasterPlayerController)
 		{
 			BlasterPlayerController->Possess(LimbPawn);
 		}
 	}
-	else
+}
+
+void ABlasterCharacter::TransitionToSpectateCamera()
+{
+	TArray<AActor*> FoundPlayers;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ABlasterCharacter::StaticClass(), FoundPlayers);
+
+	ABlasterCharacter* NextPlayerToSpectate = nullptr;
+	for (AActor* Actor : FoundPlayers)
 	{
-		//UE_LOG(LogTemp, Log, TEXT("FailedToSpawnLimb"));
+		ABlasterCharacter* BlasterChar = Cast<ABlasterCharacter>(Actor);
+		if (BlasterChar && BlasterChar != this && !BlasterChar->bElimmed)
+		{
+			NextPlayerToSpectate = BlasterChar;
+			break;
+		}
 	}
 
-	// Disable input and character movement for ABlasterCharacter
-	//DisableInput(BlasterPlayerController);
-	//GetCharacterMovement()->DisableMovement();
-	//GetCharacterMovement()->StopMovementImmediately();
-
-	// You can also disable collision for ABlasterCharacter and perform other necessary cleanup.
+	if (NextPlayerToSpectate)
+	{
+		CameraBoom->AttachToComponent(NextPlayerToSpectate->GetRootComponent(), FAttachmentTransformRules::SnapToTargetNotIncludingScale);
+		CameraBoom->TargetArmLength = 100.0f; 
+		CameraBoom->SetWorldRotation(FRotator(-20.0f, 0.0f, 0.0f));
+		EnableInput(BlasterPlayerController);
+	}
 }
 
 void ABlasterCharacter::ThrowButtonPressed()
@@ -630,6 +619,12 @@ void ABlasterCharacter::EquipButtonPressed()
 				OverlappingButton->OnInitPress();
 				return;
 			}
+			if (OverlappedBody && OverlappedBody->PhysicsBox)
+			{
+				OverlappedBody->PhysicsBox->AttachToComponent(InteractSphere, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
+				OverlappedBody->PhysicsBox->SetSimulatePhysics(false);
+				return;
+			}
 		}
 		else
 		{
@@ -638,7 +633,6 @@ void ABlasterCharacter::EquipButtonPressed()
 	}
 }
 
-    //here we have the server rpc so non-authority can pickup weapon
 void ABlasterCharacter::ServerEquipButtonPressed_Implementation()
 {
 	if (InventoryComponent)
@@ -654,8 +648,13 @@ void ABlasterCharacter::ServerEquipButtonPressed_Implementation()
 		OverlappingButton->OnInitPress();
 		return;
 	}
+	if (OverlappedBody && OverlappedBody->PhysicsBox)
+	{
+		OverlappedBody->PhysicsBox->AttachToComponent(InteractSphere, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
+		OverlappedBody->PhysicsBox->SetSimulatePhysics(false);
+		return;
+	}
 }
-
 
 void ABlasterCharacter::EquipButtonReleased()
 {
@@ -666,6 +665,12 @@ void ABlasterCharacter::EquipButtonReleased()
 		{
 			OverlappingButton->OnRelease();
 		}
+		if (OverlappedBody && OverlappedBody->PhysicsBox)
+		{
+			OverlappedBody->PhysicsBox->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
+			OverlappedBody->PhysicsBox->SetSimulatePhysics(true);
+			OverlappedBody = nullptr;
+		}
 	}
 	else
 	{
@@ -674,12 +679,17 @@ void ABlasterCharacter::EquipButtonReleased()
 	
 }
 
-    //here we have the server rpc so non-authority can pickup weapon
 void ABlasterCharacter::ServerEquipButtonReleased_Implementation()
 {
 	if (OverlappingButton)
 	{
 		OverlappingButton->OnRelease();
+	}
+	if (OverlappedBody && OverlappedBody->PhysicsBox)
+	{
+		OverlappedBody->PhysicsBox->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
+		OverlappedBody->PhysicsBox->SetSimulatePhysics(true);
+		OverlappedBody = nullptr;
 	}
 }
 
@@ -727,8 +737,6 @@ void ABlasterCharacter::ReloadButtonPressed()
 	}
 }
 
-
-
 void ABlasterCharacter::AimButtonPressed()
 {
 	if (bDisableGameplay) return;
@@ -745,6 +753,7 @@ void ABlasterCharacter::AimButtonPressed()
 
 	}
 }
+
 void ABlasterCharacter::AimButtonReleased()
 {
 	if (bDisableGameplay) return;
@@ -766,34 +775,34 @@ float ABlasterCharacter::CalculateSpeed()
 void ABlasterCharacter::AimOffset(float DeltaTime)
 {
 	if (bDisableGameplay) return;
-	if (Combat && Combat->EquippedWeapon == nullptr)
-	{
-		return;
-	}
+	//if (Combat && Combat->EquippedWeapon == nullptr)
+	//{
+	//	return;
+	//}
 
 	bool bIsInAir = GetCharacterMovement()->IsFalling();
 	float Speed = CalculateSpeed();
 	if (Speed == 0.f && !bIsInAir) //standing still && not jumping
 	{
-		bRotateRootBone = true;
-		FRotator CurrentAimRotation = FRotator(0.f, GetBaseAimRotation().Yaw, 0.f);
-		FRotator DeltaAimRotation = UKismetMathLibrary::NormalizedDeltaRotator(CurrentAimRotation, StartingAimRotation);
-		AO_Yaw = DeltaAimRotation.Yaw;
-		if (TurningInPlace == ETurningInPlace::ETIP_NotTurning)
-		{
-			InterpAO_Yaw = AO_Yaw;
-		}
-		bUseControllerRotationYaw = true;
-		TurnInPlace(DeltaTime);
+	//	bRotateRootBone = true;
+	//	FRotator CurrentAimRotation = FRotator(0.f, GetBaseAimRotation().Yaw, 0.f);
+	//	FRotator DeltaAimRotation = UKismetMathLibrary::NormalizedDeltaRotator(CurrentAimRotation, StartingAimRotation);
+	//	AO_Yaw = DeltaAimRotation.Yaw;
+	//	if (TurningInPlace == ETurningInPlace::ETIP_NotTurning)
+	//	{
+	//		InterpAO_Yaw = AO_Yaw;
+	//	}
+	//	bUseControllerRotationYaw = true;
+	TurnInPlace(DeltaTime);
 	}
-	if (Speed > 0.f || bIsInAir) //running || jumping
-	{
-		bRotateRootBone = false;
-		bUseControllerRotationYaw = true;
-		StartingAimRotation = FRotator(0.f, GetBaseAimRotation().Yaw, 0.f);
-		AO_Yaw = 0.f;
-		TurningInPlace = ETurningInPlace::ETIP_NotTurning;
-	}
+	//if (Speed > 0.f || bIsInAir) //running || jumping
+	//{
+	//	bRotateRootBone = false;
+	//	bUseControllerRotationYaw = true;
+	//	StartingAimRotation = FRotator(0.f, GetBaseAimRotation().Yaw, 0.f);
+	//	AO_Yaw = 0.f;
+	//	TurningInPlace = ETurningInPlace::ETIP_NotTurning;
+	//}
 
 	CalculateAO_Pitch();
 }
@@ -819,33 +828,33 @@ void ABlasterCharacter::SimProxiesTurn()
 	if (Combat == nullptr || Combat->EquippedWeapon == nullptr) return;
 	bRotateRootBone = false;
 
-	float Speed = CalculateSpeed();
-	if (Speed > 0.f)
-	{
-		TurningInPlace = ETurningInPlace::ETIP_NotTurning;
-		return;
-	}
+	//float Speed = CalculateSpeed();
+	//if (Speed > 0.f)
+	//{
+	//	TurningInPlace = ETurningInPlace::ETIP_NotTurning;
+	//	return;
+	//}
 
-	ProxyRotationLastFrame = ProxyRotation;
-	ProxyRotation = GetActorRotation();
-	ProxyYaw = UKismetMathLibrary::NormalizedDeltaRotator(ProxyRotation, ProxyRotationLastFrame).Yaw;
+	//ProxyRotationLastFrame = ProxyRotation;
+	//ProxyRotation = GetActorRotation();
+	//ProxyYaw = UKismetMathLibrary::NormalizedDeltaRotator(ProxyRotation, ProxyRotationLastFrame).Yaw;
 
-	if (FMath::Abs(ProxyYaw) > TurnThreshold)
-	{
-		if (ProxyYaw > TurnThreshold)
-		{
-			TurningInPlace = ETurningInPlace::ETIP_Right;
-		}
-		else if (ProxyYaw < -TurnThreshold)
-		{
-			TurningInPlace = ETurningInPlace::ETIP_Left;
-		}
-		else
-		{
-			TurningInPlace = ETurningInPlace::ETIP_NotTurning;
-		}
-		return;
-	}
+	//if (FMath::Abs(ProxyYaw) > TurnThreshold)
+	//{
+	//	if (ProxyYaw > TurnThreshold)
+	//	{
+	//		TurningInPlace = ETurningInPlace::ETIP_Right;
+	//	}
+	//	else if (ProxyYaw < -TurnThreshold)
+	//	{
+	//		TurningInPlace = ETurningInPlace::ETIP_Left;
+	//	}
+	//	else
+	//	{
+	//		TurningInPlace = ETurningInPlace::ETIP_NotTurning;
+	//	}
+	//	return;
+	//}
 	TurningInPlace = ETurningInPlace::ETIP_NotTurning;
 
 }
@@ -896,14 +905,14 @@ void ABlasterCharacter::TurnInPlace(float DeltaTime)
 	}
 	if (TurningInPlace != ETurningInPlace::ETIP_NotTurning)
 	{
-		InterpAO_Yaw = FMath::FInterpTo(InterpAO_Yaw, 0.f, DeltaTime, 4.f);
-		AO_Yaw = InterpAO_Yaw;
-		if (FMath::Abs(AO_Yaw) < 15.f)
-		{
+		//InterpAO_Yaw = FMath::FInterpTo(InterpAO_Yaw, 0.f, DeltaTime, 4.f);
+		//AO_Yaw = InterpAO_Yaw;
+		///*if (FMath::Abs(AO_Yaw) < 15.f)
+		//{*/
 			TurningInPlace = ETurningInPlace::ETIP_NotTurning;
 			StartingAimRotation = FRotator(0.f, GetBaseAimRotation().Yaw, 0.f);
 
-		}
+		//}
 	}
 }
 
@@ -974,7 +983,6 @@ void ABlasterCharacter::SetInteractAndVisualTargetSphereLocation(FVector_NetQuan
 	float Distance = FVector::Dist(CharacterLocation, Target);
 	if (IsLocallyControlled() || HasAuthority())
 	{
-		//UE_LOG(LogTemp, Log, TEXT("%f"), Distance);
 		if (Distance < 156.f)
 		{
 			InteractSphere->SetWorldLocation(Target);
@@ -986,7 +994,6 @@ void ABlasterCharacter::SetInteractAndVisualTargetSphereLocation(FVector_NetQuan
 	}
 	VisualTargetSphere->SetWorldLocation(Target);
 }
-
 
 void ABlasterCharacter::ServerSetInteractTarget_Implementation(FVector_NetQuantize InteractTarget)
 {
@@ -1083,7 +1090,6 @@ void ABlasterCharacter::OnRep_OverlappingWeapon(AWeapon* LastWeapon)
 		}
 	}
 }
-
 
 //currently called by anim instance
 bool ABlasterCharacter::IsWeaponEquipped()
