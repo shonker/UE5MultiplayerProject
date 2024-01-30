@@ -38,7 +38,7 @@ public:
 	UPROPERTY(BlueprintReadWrite)
 	float MatchTime= 120.f;
 
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	float CooldownTime= 10.f;
 
 	float LevelStartingTime = 0.f;

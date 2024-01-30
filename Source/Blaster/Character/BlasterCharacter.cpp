@@ -313,9 +313,9 @@ void ABlasterCharacter::PlayElimMontage()
 
 void ABlasterCharacter::Elim()
 {
-	if (Combat && Combat->EquippedWeapon)
+	if (InventoryComponent)
 	{
-		Combat->EquippedWeapon->Dropped();
+		InventoryComponent->RemoveAllItems();
 	}
 	MulticastElim();
 	GetWorldTimerManager().SetTimer(

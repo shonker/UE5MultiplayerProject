@@ -451,6 +451,7 @@ void UCombatComponent::StoreEquippedWeapon()
 	EquippedWeapon->SetWeaponState(EWeaponState::EWS_Stored);
 	/*if (InventoryComponent)
 	{
+		InventoryComponent->InventoryItems
 		InventoryComponent->ShuffleItem(false);
 	}*/
 }
@@ -559,7 +560,7 @@ void UCombatComponent::TraceUnderCrosshairs(FHitResult& TraceHitResult)
 			End,
 			ECollisionChannel::ECC_Visibility
 		);
-		
+
 		if (TraceHitResult.GetActor() && TraceHitResult.GetActor()->Implements<UInteractWithCrosshairsInterface>())
 		{
 			HUDPackage.CrosshairsColor = FLinearColor::Red;

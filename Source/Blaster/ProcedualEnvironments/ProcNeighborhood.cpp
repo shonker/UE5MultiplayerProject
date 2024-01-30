@@ -471,6 +471,7 @@ void AProcNeighborhood::SpawnFinishedNeighborhood()
 						if (SpawnedRoad)
 						{
 							SpawnedRoad->RS = FRandomStream(RS.RandRange(0, RAND_MAX));
+							SpawnedRoad->ProcGen();
 							SpawnedRoads.Add(SpawnedRoad);
 						}
 					}

@@ -26,26 +26,28 @@ AWeapon::AWeapon()
 
 	WeaponMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("WeaponMesh"));
 	SetRootComponent(WeaponMesh);
-
-	WeaponMesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Block);
-	WeaponMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Ignore);
-	WeaponMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-
-	WeaponMesh->SetCustomDepthStencilValue(CUSTOM_DEPTH_PURPLE);
-	WeaponMesh->MarkRenderStateDirty();
-	EnableCustomDepth(true);
+	if (WeaponMesh)
+	{
+		WeaponMesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Block);
+		WeaponMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Ignore);
+		WeaponMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Visibility, ECollisionResponse::ECR_Ignore);
+		WeaponMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		if (WeaponMesh->IsSimulatingPhysics()) WeaponMesh->SetSimulatePhysics(false);
+	}
 
 	AreaBox = CreateDefaultSubobject<UBoxComponent>(TEXT("AreaBox"));
-	AreaBox->SetupAttachment(RootComponent);
+	if (AreaBox)
+	{
+		AreaBox->SetupAttachment(RootComponent);
+		AreaBox->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+		AreaBox->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+		AreaBox->SetCollisionResponseToChannel(ECollisionChannel::ECC_WorldDynamic, ECollisionResponse::ECR_Overlap);
 
-	//in mp its imp for things like this do be done on server side
-	//such as detect overlap
-	AreaBox->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
-	//this will be enabled on the server in begin play
-	AreaBox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	}
+	
 
 	PickupWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("PickupWidget"));
-	PickupWidget->SetupAttachment(RootComponent);
+	if (PickupWidget) PickupWidget->SetupAttachment(RootComponent);
 }
 
 void AWeapon::EnableCustomDepth(bool bEnable)
@@ -60,29 +62,35 @@ void AWeapon::EnableCustomDepth(bool bEnable)
 void AWeapon::BeginPlay()
 {
 	Super::BeginPlay();
-	//here we check if we are the server and enable collision for the weapons
+
 	if (HasAuthority())
 	{
-		AreaBox->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-		AreaBox->SetCollisionResponseToChannel(ECollisionChannel::ECC_WorldDynamic, ECollisionResponse::ECR_Overlap);
-
-		//binding overlap function on server side
-		//if you peek OnCompBegOverlap, you see FCompBegOverSignature 
-		//peek it to find they dec a dyn multi sparse delegate w/ six params
-		//that is where the func def args are found for the func
-		//here we bind our funcs to these events
 		AreaBox->OnComponentBeginOverlap.AddDynamic(this, &AWeapon::OnSphereOverlap);
 		AreaBox->OnComponentEndOverlap.AddDynamic(this, &AWeapon::OnSphereEndOverlap);
 	}
-	SetWeaponState(EWeaponState::EWS_Dropped);
-	AreaBox->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-	AreaBox->SetCollisionResponseToChannel(ECollisionChannel::ECC_Visibility, ECollisionResponse::ECR_Block);
+
+	if (WeaponMesh)
+	{
+		WeaponMesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Block);
+		WeaponMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Ignore);
+		WeaponMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Visibility, ECollisionResponse::ECR_Ignore);
+		WeaponMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		if (WeaponMesh->IsSimulatingPhysics()) WeaponMesh->SetSimulatePhysics(false);
+	}
+
+	if (AreaBox)
+	{
+		AreaBox->SetupAttachment(RootComponent);
+		AreaBox->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+		AreaBox->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+		AreaBox->SetCollisionResponseToChannel(ECollisionChannel::ECC_WorldDynamic, ECollisionResponse::ECR_Overlap);
+		AreaBox->SetCollisionResponseToChannel(ECollisionChannel::ECC_Visibility, ECollisionResponse::ECR_Block);
+	}
 
 	if (PickupWidget)
 	{
 		PickupWidget->SetVisibility(false);
 	}
-	
 }
 
 // Called every frame
@@ -190,12 +198,11 @@ void AWeapon::SetWeaponState(EWeaponState State)
 	case EWeaponState::EWS_Equipped:
 		ShowPickupWidget(false);
 		WeaponMesh->SetVisibility(true);
-		WeaponMesh->SetSimulatePhysics(false);
+		if (WeaponMesh->IsSimulatingPhysics()) WeaponMesh->SetSimulatePhysics(false);
 		WeaponMesh->SetEnableGravity(false);
 		WeaponMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 		AreaBox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
-		//this is done to enable the physics on the strap, make sure done in onrep as well!
 		if (WeaponType == EWeaponType::EWT_SubmachineGun) 
 		{
 			WeaponMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
@@ -203,26 +210,22 @@ void AWeapon::SetWeaponState(EWeaponState State)
 			WeaponMesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
 			WeaponMesh->WakeAllRigidBodies();
 		}
-		EnableCustomDepth(false);
 		break;
 
 	case EWeaponState::EWS_Dropped:
-		if (HasAuthority())
-		{
-			AreaBox->SetCollisionResponseToChannel(ECollisionChannel::ECC_WorldDynamic, ECollisionResponse::ECR_Overlap);
-		}
+		AreaBox->SetCollisionResponseToChannel(ECollisionChannel::ECC_WorldDynamic, ECollisionResponse::ECR_Overlap);
+		AreaBox->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+		AreaBox->SetCollisionResponseToChannel(ECollisionChannel::ECC_Visibility, ECollisionResponse::ECR_Block);
+		
+		WeaponMesh->SetVisibility(true);
 		WeaponMesh->SetSimulatePhysics(true);
 		WeaponMesh->SetEnableGravity(true);
 		WeaponMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 		WeaponMesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Block);
 		WeaponMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Ignore);
 		WeaponMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
-		AreaBox->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-		AreaBox->SetCollisionResponseToChannel(ECollisionChannel::ECC_Visibility, ECollisionResponse::ECR_Block);
+		WeaponMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Visibility, ECollisionResponse::ECR_Ignore);
 
-		WeaponMesh->SetCustomDepthStencilValue(CUSTOM_DEPTH_PURPLE);
-		WeaponMesh->MarkRenderStateDirty();
-		EnableCustomDepth(true);
 		break;
 
 	case EWeaponState::EWS_Stored:
@@ -238,11 +241,14 @@ void AWeapon::OnRep_WeaponState()
 	switch (WeaponState)
 	{
 	case EWeaponState::EWS_Equipped:
+
 		ShowPickupWidget(false);
 		WeaponMesh->SetVisibility(true);
-		WeaponMesh->SetSimulatePhysics(false);
+		if (WeaponMesh->IsSimulatingPhysics()) WeaponMesh->SetSimulatePhysics(false);
 		WeaponMesh->SetEnableGravity(false);
 		WeaponMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		AreaBox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
 		if (WeaponType == EWeaponType::EWT_SubmachineGun)
 		{
 			WeaponMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
@@ -250,20 +256,23 @@ void AWeapon::OnRep_WeaponState()
 			WeaponMesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
 			WeaponMesh->WakeAllRigidBodies();
 		}
-		EnableCustomDepth(false);
-		break;
+	break;
+
 	case EWeaponState::EWS_Dropped:
+		AreaBox->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+		AreaBox->SetCollisionResponseToChannel(ECollisionChannel::ECC_WorldDynamic, ECollisionResponse::ECR_Overlap);
+		AreaBox->SetCollisionResponseToChannel(ECollisionChannel::ECC_Visibility, ECollisionResponse::ECR_Block);
+
+		WeaponMesh->SetVisibility(true);
 		WeaponMesh->SetSimulatePhysics(true);
 		WeaponMesh->SetEnableGravity(true);
 		WeaponMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 		WeaponMesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Block);
 		WeaponMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Ignore);
 		WeaponMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
+		WeaponMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Visibility, ECollisionResponse::ECR_Ignore);
 
-		WeaponMesh->SetCustomDepthStencilValue(CUSTOM_DEPTH_PURPLE);
-		WeaponMesh->MarkRenderStateDirty();
-		EnableCustomDepth(true);
-		break;
+	break;
 
 	case EWeaponState::EWS_Stored:
 		WeaponMesh->SetVisibility(false);
@@ -309,6 +318,7 @@ void AWeapon::Fire(const FVector& HitTarget)
 
 void AWeapon::Dropped()
 {
+	UE_LOG(LogTemp, Log, TEXT("i am the dropped weapon"));
 	SetWeaponState(EWeaponState::EWS_Dropped);
 	FDetachmentTransformRules DetachRules(EDetachmentRule::KeepWorld, true);
 	WeaponMesh->DetachFromComponent(DetachRules);

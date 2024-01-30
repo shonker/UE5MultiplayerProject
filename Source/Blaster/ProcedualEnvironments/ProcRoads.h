@@ -17,6 +17,8 @@ private:
 	UStaticMeshComponent* RoadMesh;
 
 public:
+	virtual void ProcGen() override;
+
 	AProcRoads();
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spawning")

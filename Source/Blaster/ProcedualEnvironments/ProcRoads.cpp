@@ -23,7 +23,10 @@ AProcRoads::AProcRoads()
 void AProcRoads::BeginPlay()
 {
     Super::BeginPlay();
+}
 
+void AProcRoads::ProcGen()
+{
     if (SpawnableObjects.Num() == 0 || SpawnPoints.Num() == 0)
         return;
 
@@ -64,6 +67,10 @@ void AProcRoads::SpawnObjectAtPoint(USceneComponent* SpawnPoint)
         return;
 
     TSubclassOf<AActor> SelectedObject = SpawnableObjects[RS.RandRange(0, SpawnableObjects.Num() - 1)];
-    GetWorld()->SpawnActor<AActor>(SelectedObject, SpawnPoint->GetComponentLocation(), SpawnPoint->GetComponentRotation() + FRotator(0.f,RS.RandRange(-180,180),0.f));
+
+    FVector Location = SpawnPoint->GetComponentLocation();
+    FRotator Rotation = SpawnPoint->GetComponentRotation() + FRotator(0.f, RS.RandRange(-180, 180), 0.f);
+
+    SpawnAt(SelectedObject, Location, Rotation);
 }
 

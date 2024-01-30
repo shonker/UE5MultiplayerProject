@@ -21,7 +21,7 @@ ALimb::ALimb()
 	PrimaryActorTick.bCanEverTick = true;
 
 	LimbMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Limb"));
-	//SetRootComponent(LimbMesh);
+	SetRootComponent(LimbMesh);
 
 	LimbMesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Block);
 	LimbMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Ignore);
@@ -45,7 +45,6 @@ ALimb::ALimb()
 void ALimb::BeginPlay()
 {
 	Super::BeginPlay();
-	this->SetReplicates(true);
 	if (HasAuthority())
 	{
 		LimbMesh->OnComponentHit.AddDynamic(this, &ALimb::OnHit);

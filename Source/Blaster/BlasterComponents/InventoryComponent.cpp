@@ -44,21 +44,11 @@ void UInventoryComponent::AddItem(AWeapon* Weapon)
 
 void UInventoryComponent::ShuffleItem(bool bIsShuffleLeft)
 {
-    //if (GetOwner() && GetOwner()->HasAuthority())
-    //{
-    //    UE_LOG(LogTemp, Log, TEXT("I love being the server"));
-    //}
-    //else
-    //{
-    //    UE_LOG(LogTemp, Error, TEXT("I love being NOOOOOOT the server"));
-    //}
     if (InventoryItems.Num() <= 1) return;
 
-    // Find the index of the current active weapon
     int32 CurrentIndex = InventoryItems.IndexOfByKey(ActiveWeapon);
     int32 NextIndex;
 
-    // Determine the next index based on the shuffle direction
     if (bIsShuffleLeft)
     {
         NextIndex = (CurrentIndex - 1 + InventoryItems.Num()) % InventoryItems.Num();
@@ -68,13 +58,30 @@ void UInventoryComponent::ShuffleItem(bool bIsShuffleLeft)
         NextIndex = (CurrentIndex + 1) % InventoryItems.Num();
     }
 
-    // Update the active weapon
     ActiveWeapon = InventoryItems[NextIndex];
 
     if (Combat)
     {
         Combat->EquipWeapon(ActiveWeapon);
     }
+}
+
+void UInventoryComponent::RemoveAllItems()
+{
+    for (int32 i = 0; i < InventoryItems.Num(); i++)
+    {
+        if (!InventoryItems[i]) continue;
+        UE_LOG(LogTemp, Log, TEXT("dropping weapons"));
+        InventoryItems[i]->Dropped();
+
+        if (!InventoryItems[i]->GetWeaponMesh()) continue;
+        float RandX = FMath::RandRange(-10.f, 10.f);
+        float RandY = FMath::RandRange(-10.f, 10.f);
+        float RandZ = FMath::RandRange(0.f, 10.f);
+        FVector DropImpulse = FVector(RandX, RandY, RandZ) * 10;
+        InventoryItems[i]->GetWeaponMesh()->AddImpulse(DropImpulse, NAME_None, true);
+    }
+    InventoryItems.Empty();
 }
 
 void UInventoryComponent::RemoveItem()
