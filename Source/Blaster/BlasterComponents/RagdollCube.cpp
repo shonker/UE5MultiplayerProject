@@ -3,6 +3,8 @@
 #include "RagdollCube.h"
 #include "Components/BoxComponent.h"
 #include "Blaster/Character/BlasterCharacter.h"
+#include "PhysicsEngine/PhysicsHandleComponent.h"
+#include "Net/UnrealNetwork.h"
 
 // Sets default values
 ARagdollCube::ARagdollCube()
@@ -14,14 +16,12 @@ ARagdollCube::ARagdollCube()
 	PhysicsBox->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	PhysicsBox->SetVisibility(true);
 	PhysicsBox->SetSimulatePhysics(false);
-	PhysicsBox->bReplicatePhysicsToAutonomousProxy = false;
-	if (HasAuthority())
-	{
-		PhysicsBox->SetSimulatePhysics(true);
-		PhysicsBox->bReplicatePhysicsToAutonomousProxy = true;
-	}
-	PhysicsBox->SetCollisionResponseToAllChannels(ECR_Block);
-	PhysicsBox->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
+	PhysicsBox->SetCollisionResponseToAllChannels(ECR_Overlap);
+	PhysicsBox->SetCollisionResponseToChannel(ECC_Visibility, ECR_Block);
+	PhysicsBox->SetIsReplicated(true);
+
+	PhysicsHandle = CreateDefaultSubobject<UPhysicsHandleComponent>(TEXT("PhysicsHandle"));
+
 	bReplicates = true;
 }
 
@@ -34,6 +34,7 @@ void ARagdollCube::BeginPlay()
 		PhysicsBox->OnComponentBeginOverlap.AddDynamic(this, &ARagdollCube::OnPhysicsBoxOverlap);
 		PhysicsBox->OnComponentEndOverlap.AddDynamic(this, &ARagdollCube::OnPhysicsBoxEndOverlap);
 	}
+	GrabBodyAtSocket();
 }
 
 // Called every frame
@@ -41,24 +42,66 @@ void ARagdollCube::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if (bFollowPlayer && HasAuthority())
+	if (HasAuthority())
 	{
-		if (FollowChar)
+		if (bFollowPlayer)
 		{
-			FVector CharLocation = FollowChar->GetActorLocation();
-			FVector DirectionToChar = (GetActorLocation() - CharLocation).GetSafeNormal();
-			FVector TeleportLocation = CharLocation + DirectionToChar * 100.f; // 100 units away from character
+			if (FollowChar)
+			{
+				FVector CharLocation = FollowChar->GetActorLocation();
+				FVector DirectionToChar = (GetActorLocation() - CharLocation).GetSafeNormal();
+				FVector TeleportLocation = CharLocation + DirectionToChar * 100.f; // 100 units away from character
 
-			SetActorLocation(TeleportLocation, true, nullptr, ETeleportType::TeleportPhysics);
+				SetActorLocation(TeleportLocation, true, nullptr, ETeleportType::TeleportPhysics);
+			}
+		}
+		else
+		{
+			if (CharacterMesh)
+			{
+				FVector CharLocation = CharacterMesh->GetSocketLocation(TEXT("spine_001"));
+				SetActorLocation(CharLocation, true, nullptr, ETeleportType::TeleportPhysics);
+			}
 		}
 	}
-	
-	if (CharacterMesh)
+
+	if (PhysicsHandle && PhysicsHandle->GrabbedComponent)
 	{
-		CharacterMesh->SetWorldLocationAndRotation(GetActorLocation(), GetActorRotation(), false, nullptr, ETeleportType::TeleportPhysics);
+		// Update to the desired target location
+		FVector NewTargetLocation = GetActorLocation() /* Calculate or get the new target location */;
+		FRotator NewTargetRotation = GetActorRotation()/* Calculate or get the new target rotation */;
+
+		PhysicsHandle->SetTargetLocationAndRotation(NewTargetLocation, NewTargetRotation);
 	}
 }
 
+void ARagdollCube::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	DOREPLIFETIME(ARagdollCube, CharacterMesh);
+}
+void ARagdollCube::GrabBodyAtSocket()
+{
+	if (CharacterMesh && PhysicsHandle)
+	{
+		CharacterMesh->WakeAllRigidBodies();
+		UE_LOG(LogTemp, Log, TEXT("grabb"));
+
+		FName SocketName = TEXT("spine");
+		FVector SocketLocation = CharacterMesh->GetSocketLocation(SocketName);
+
+		// Find the bone name associated with the socket
+		FName BoneName = CharacterMesh->GetSocketBoneName(SocketName);
+		UE_LOG(LogTemp, Warning, TEXT("Bone Name: %s"), *BoneName.ToString());
+
+		// Grab the component (the skeletal mesh) at the location of the socket
+		PhysicsHandle->GrabComponentAtLocationWithRotation(
+			CharacterMesh,
+			BoneName,
+			SocketLocation,
+			FRotator::ZeroRotator // Or the desired rotation
+		);
+	}
+}
 void ARagdollCube::OnPhysicsBoxOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	if (OtherComp && OtherComp->GetName() == FString("InteractSphere"))

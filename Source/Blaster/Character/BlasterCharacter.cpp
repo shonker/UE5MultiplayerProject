@@ -523,10 +523,24 @@ void ABlasterCharacter::HandleEquipButtonPressed()
 	}
 	if (OverlappedBody && OverlappedBody->PhysicsBox)
 	{
-		OverlappedBody->bFollowPlayer = true;
-		OverlappedBody->FollowChar = this;
-		OverlappedBody->PhysicsBox->SetSimulatePhysics(false);
-		return;
+		if (OverlappedBody->FollowChar)
+		{ //drop them
+		//	OverlappedBody->Lift(false);
+			OverlappedBody->bFollowPlayer = false;
+			OverlappedBody->FollowChar = false;
+
+		//	OverlappedBody->PhysicsBox->SetSimulatePhysics(true);
+		}
+		else
+		{//pick them up
+		//	OverlappedBody->Lift(true);
+			OverlappedBody->bFollowPlayer = true;
+			OverlappedBody->FollowChar = this;
+			OverlappedBody->GrabBodyAtSocket();
+
+		//	OverlappedBody->PhysicsBox->SetSimulatePhysics(false);
+			return;
+		}
 	}
 }
 
@@ -535,13 +549,6 @@ void ABlasterCharacter::HandleEquipButtonReleased()
 	if (OverlappingButton)
 	{
 		OverlappingButton->OnRelease();
-	}
-	if (OverlappedBody && OverlappedBody->PhysicsBox)
-	{
-		OverlappedBody->bFollowPlayer = false;
-		OverlappedBody->FollowChar = false;
-		OverlappedBody->PhysicsBox->SetSimulatePhysics(true);
-		OverlappedBody = nullptr;
 	}
 }
 

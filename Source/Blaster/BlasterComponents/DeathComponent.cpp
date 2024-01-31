@@ -59,22 +59,18 @@ void UDeathComponent::MulticastElim_Implementation()
 		FActorSpawnParameters SpawnParams;
 		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 		SpawnParams.Owner = Character;
-
 		SpawnedPhysicsBox = Character->GetWorld()->SpawnActor<ARagdollCube>(PhysicsBoxBlueprint, Character->GetActorLocation(), Character->GetActorRotation(), SpawnParams);
 	}
+	
+	if (SpawnedPhysicsBox)
+	{
+		SpawnedPhysicsBox->SetCharacterMesh(Character->GetMesh());
+	}
 
-	FTimerHandle TimerHandle;
-	GetWorld()->GetTimerManager().SetTimer(TimerHandle, [this]()
-		{
-			if (SpawnedPhysicsBox)
-			{
-				Character->GetMesh()->AttachToComponent(SpawnedPhysicsBox->PhysicsBox, FAttachmentTransformRules::KeepWorldTransform);
-				Character->GetMesh()->SetSimulatePhysics(true);
-				Character->GetMesh()->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
-				Character->GetMesh()->bReplicatePhysicsToAutonomousProxy = false;
-				SpawnedPhysicsBox->SetCharacterMesh(Character->GetMesh());
-			}
-		}, 0.01f, false);
+	Character->GetMesh()->SetSimulatePhysics(true);
+	Character->GetMesh()->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
+	Character->GetMesh()->bReplicatePhysicsToAutonomousProxy = true;
+
 	Character->GetCharacterMovement()->DisableMovement();
 	Character->GetCharacterMovement()->StopMovementImmediately();
 
