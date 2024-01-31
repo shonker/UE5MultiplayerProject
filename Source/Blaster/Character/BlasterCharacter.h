@@ -31,6 +31,7 @@ public:
 	void PlayReloadMontage();
 	void PlayElimMontage();
 	void PlayThrowMontage();
+	void PlayKissMontage();
 
 	virtual void OnRep_ReplicatedMovement() override;
 
@@ -39,6 +40,11 @@ public:
 
 	UPROPERTY(ReplicatedUsing = OnRep_OverlappedBody)
 	class ARagdollCube* OverlappedBody;
+
+	UPROPERTY(Replicated)
+	class ABlasterCharacter* OverlappingFriend;
+
+	void Kiss(bool StartOrEnd);
 	
 	UFUNCTION()
 	void OnRep_OverlappedBody(ARagdollCube* LastCube);
@@ -134,6 +140,10 @@ private:
 	UFUNCTION()
 	void OnRep_OverlappingWeapon(AWeapon* LastWeapon);
 	UFUNCTION()
+	void OnInteractSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+	UFUNCTION()
+	void OnInteractSphereEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+	UFUNCTION()
 	void OnRep_OverlappingButton(AMyButton* LastButton);
 
 	//meta specifier allows private variables to be blueprintreadonly
@@ -197,6 +207,9 @@ private:
 
 	UPROPERTY(EditAnywhere, Category = Combat)
 	UAnimMontage* ThrowMontage;
+
+	UPROPERTY(EditAnywhere, Category = Combat)
+	UAnimMontage* KissMontage;
 
 	UPROPERTY(EditAnywhere, Category = Elim)
 	UParticleSystem* DeathParticles;

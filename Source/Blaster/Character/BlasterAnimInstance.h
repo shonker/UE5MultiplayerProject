@@ -88,8 +88,15 @@ private:
 	bool bUseAimOffsets;
 
 	UPROPERTY(BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
-	bool bTransformRightHand;
+	bool bTransformRightHand;	
+	UFUNCTION()
+		void AnimNotify_StartKiss();
+	UFUNCTION()
+		void AnimNotify_EndKiss();
 
-
-
+	UPROPERTY(BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
+	bool bKissing;	
+	
+	UPROPERTY(BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
+	bool bSawing;
 };

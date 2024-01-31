@@ -100,6 +100,7 @@ void ABlasterCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 	DOREPLIFETIME_CONDITION(ABlasterCharacter, OverlappingWeapon, COND_OwnerOnly);
 	DOREPLIFETIME_CONDITION(ABlasterCharacter, OverlappingButton, COND_OwnerOnly);
 	DOREPLIFETIME_CONDITION(ABlasterCharacter, OverlappedBody, COND_OwnerOnly);
+	DOREPLIFETIME_CONDITION(ABlasterCharacter, OverlappingFriend, COND_OwnerOnly);
 	DOREPLIFETIME_CONDITION(ABlasterCharacter, InteractTargetLocation, COND_SkipOwner);
 	DOREPLIFETIME(ABlasterCharacter, Health);
 	DOREPLIFETIME(ABlasterCharacter, bDisableGameplay);
@@ -128,10 +129,10 @@ void ABlasterCharacter::BeginPlay()
 	if (HasAuthority())
 	{
 		OnTakeAnyDamage.AddDynamic(this, &ABlasterCharacter::ReceiveDamage);
-	}
+		
+		GetMesh()->OnComponentBeginOverlap.AddDynamic(this, &ABlasterCharacter::OnInteractSphereOverlap);
+		GetMesh()->OnComponentEndOverlap.AddDynamic(this, &ABlasterCharacter::OnInteractSphereEndOverlap);
 
-	if (HasAuthority())
-	{
 		InteractSphere->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 		InteractSphere->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Overlap);
 		VisualTargetSphere->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
@@ -398,6 +399,14 @@ void ABlasterCharacter::PlayThrowMontage()
 		AnimInstance->Montage_Play(ThrowMontage);
 	}
 }
+void ABlasterCharacter::PlayKissMontage()
+{
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if (AnimInstance && KissMontage)
+	{
+		AnimInstance->Montage_Play(KissMontage);
+	}
+}
 
 void ABlasterCharacter::PlayHitReactMontage()
 {
@@ -521,6 +530,11 @@ void ABlasterCharacter::HandleEquipButtonPressed()
 		OverlappingButton->OnInitPress();
 		return;
 	}
+	if (OverlappingFriend)
+	{
+		Kiss(true);
+		return;
+	}
 	if (OverlappedBody && OverlappedBody->PhysicsBox)
 	{
 		if (OverlappedBody->FollowChar)
@@ -549,6 +563,20 @@ void ABlasterCharacter::HandleEquipButtonReleased()
 	if (OverlappingButton)
 	{
 		OverlappingButton->OnRelease();
+	}
+	Kiss(false);
+}
+
+void ABlasterCharacter::Kiss(bool StartOrEnd)
+{
+	if (Combat == nullptr) return;
+	if (StartOrEnd)//starting
+	{
+		Combat->StartKissCharging();
+	}
+	else//ending
+	{
+		Combat->Kiss();
 	}
 }
 
@@ -987,6 +1015,36 @@ void ABlasterCharacter::OnRep_OverlappingWeapon(AWeapon* LastWeapon)
 	}
 }
 
+
+void ABlasterCharacter::OnInteractSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	if (OtherActor == this) return;
+	if (OtherComp && OtherComp->GetName() == FString("InteractSphere"))
+	{
+		ABlasterCharacter* BChar = Cast<ABlasterCharacter>(OtherActor);
+		if (BChar)
+		{
+			UE_LOG(LogTemp, Log, TEXT("i have been targeted for kissing"));
+
+			BChar->OverlappingFriend = this;
+		}
+	}
+}
+
+void ABlasterCharacter::OnInteractSphereEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+	if (OtherActor == this) return;
+	if (OtherComp && OtherComp->GetName() == FString("InteractSphere"))
+	{
+		ABlasterCharacter* BChar = Cast<ABlasterCharacter>(OtherActor);
+		if (BChar)
+		{
+			UE_LOG(LogTemp, Log, TEXT("NO KISSES"));
+
+			BChar->OverlappingFriend = nullptr;
+		}
+	}
+}
 //currently called by anim instance
 bool ABlasterCharacter::IsWeaponEquipped()
 {

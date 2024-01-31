@@ -38,6 +38,10 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void ThrowFinished();
 
+	void StartKissCharging();
+
+	void Kiss();
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	class UInventoryComponent* InventoryComponent;
 
@@ -54,6 +58,12 @@ protected:
 	void OnRep_EquippedWeapon();
 
 	void Fire();
+	
+	UFUNCTION(Server, Reliable)
+	void ServerKiss();
+
+	UFUNCTION(NetMulticast, Reliable)
+	void NetMulticastKiss();
 
 	UFUNCTION(Server, Reliable)
 	void ServerFire(const FVector_NetQuantize& TraceHitTarget);

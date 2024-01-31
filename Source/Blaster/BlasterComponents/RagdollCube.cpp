@@ -72,6 +72,7 @@ void ARagdollCube::Tick(float DeltaTime)
 		FRotator NewTargetRotation = GetActorRotation()/* Calculate or get the new target rotation */;
 
 		PhysicsHandle->SetTargetLocationAndRotation(NewTargetLocation, NewTargetRotation);
+		CharacterMesh->WakeAllRigidBodies();
 	}
 }
 

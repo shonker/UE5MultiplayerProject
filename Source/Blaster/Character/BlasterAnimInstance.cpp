@@ -106,3 +106,12 @@ void UBlasterAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
     bTransformRightHand = BlasterCharacter->GetCombatState() == ECombatState::ECS_Unoccupied && !BlasterCharacter->GetDisableGameplay();
 }
 
+void UBlasterAnimInstance::AnimNotify_StartKiss()
+{
+    bKissing = true;
+}
+
+void UBlasterAnimInstance::AnimNotify_EndKiss()
+{
+    bKissing = false;
+}

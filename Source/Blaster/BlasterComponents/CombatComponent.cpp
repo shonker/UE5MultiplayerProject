@@ -266,7 +266,6 @@ void UCombatComponent::ThrowCharging()
 		ThrowForce = FMath::Clamp(ThrowForce + ThrowForceIncrement, 0, ThrowForceMax);
 	}
 }
-
 void UCombatComponent::Throw()
 {
 	CombatState = ECombatState::ECS_Throwing;
@@ -314,7 +313,41 @@ void UCombatComponent::NetMulticastThrow_Implementation(FVector_NetQuantize10 Pr
 void UCombatComponent::ThrowFinished()
 {
 	CombatState = ECombatState::ECS_Unoccupied;
-	//AttachActorToRightHand(EquippedWeapon);
+}
+
+
+void UCombatComponent::StartKissCharging()
+{
+	if (CombatState != ECombatState::ECS_Unoccupied) return;
+	CombatState = ECombatState::ECS_KissCharging;
+}
+
+void UCombatComponent::Kiss()
+{
+	if (CombatState != ECombatState::ECS_KissCharging)
+	if (Character == nullptr) return;
+	if (Character->HasAuthority())
+	{
+		NetMulticastKiss();
+	}
+	else
+	{
+		ServerKiss();
+	}
+}
+
+void UCombatComponent::ServerKiss_Implementation()
+{
+	NetMulticastKiss();
+}
+
+void UCombatComponent::NetMulticastKiss_Implementation()
+{
+	CombatState = ECombatState::ECS_Unoccupied;
+	if (Character)
+	{
+		Character->PlayKissMontage();
+	}
 }
 
 void UCombatComponent::UpdateAmmoValues()
