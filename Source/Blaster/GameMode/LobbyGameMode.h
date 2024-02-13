@@ -6,16 +6,21 @@
 #include "GameFramework/GameMode.h"
 #include "LobbyGameMode.generated.h"
 
-/**
- * 
- */
 UCLASS()
 class BLASTER_API ALobbyGameMode : public AGameMode
 {
 	GENERATED_BODY()
 	
-	public:
+public:
 	virtual void PostLogin(APlayerController* NewPlayer) override;
-	
+	virtual void Logout(AController* Exiting) override;
+	virtual void BeginPlay() override;
+	void TravelToNextLevel();
+	void StartGame();
 
+private:
+	void SpawnHostPlayerCharacter();
+	class ABedroom* FoundBedroom = nullptr;
+	ABedroom* FindBedroomActor();
+	
 };

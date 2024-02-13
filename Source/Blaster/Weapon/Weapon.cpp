@@ -110,12 +110,9 @@ void AWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty> &OutLifetimeP
 
 void AWeapon::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	//check includes to see where we included blaster char
 	if (OtherComp->GetName() == FString("InteractSphere"))
 	{
 		ABlasterCharacter* BlasterCharacter = Cast<ABlasterCharacter>(OtherComp->GetOwner());
-		//ABlasterCharacter* BlasterCharacter = Cast<ABlasterCharacter>(OtherActor);
-		UE_LOG(LogTemp, Display, TEXT("Overlap Detected"));
 		if (BlasterCharacter)
 		{
 			BlasterCharacter->SetOverlappingWeapon(this);
@@ -128,8 +125,6 @@ void AWeapon::OnSphereEndOverlap(UPrimitiveComponent *OverlappedComponent, AActo
 	if (OtherComp->GetName() == FString("InteractSphere"))
 	{
 		ABlasterCharacter* BlasterCharacter = Cast<ABlasterCharacter>(OtherComp->GetOwner());
-		//ABlasterCharacter* BlasterCharacter = Cast<ABlasterCharacter>(OtherActor);
-		UE_LOG(LogTemp, Display, TEXT("Unoverlap Detected"));
 		if (BlasterCharacter)
 		{
 			BlasterCharacter->SetOverlappingWeapon(nullptr);

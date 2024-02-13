@@ -99,7 +99,7 @@ void ABlasterCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 
 	DOREPLIFETIME_CONDITION(ABlasterCharacter, OverlappingWeapon, COND_OwnerOnly);
 	DOREPLIFETIME_CONDITION(ABlasterCharacter, OverlappingButton, COND_OwnerOnly);
-	DOREPLIFETIME_CONDITION(ABlasterCharacter, OverlappedBody, COND_OwnerOnly);
+	DOREPLIFETIME_CONDITION(ABlasterCharacter, OverlappingBody, COND_OwnerOnly);
 	DOREPLIFETIME_CONDITION(ABlasterCharacter, OverlappingFriend, COND_OwnerOnly);
 	DOREPLIFETIME_CONDITION(ABlasterCharacter, InteractTargetLocation, COND_SkipOwner);
 	DOREPLIFETIME(ABlasterCharacter, Health);
@@ -535,24 +535,18 @@ void ABlasterCharacter::HandleEquipButtonPressed()
 		Kiss(true);
 		return;
 	}
-	if (OverlappedBody && OverlappedBody->PhysicsBox)
+	if (OverlappingBody && OverlappingBody->PhysicsBox)
 	{
-		if (OverlappedBody->FollowChar)
-		{ //drop them
-		//	OverlappedBody->Lift(false);
-			OverlappedBody->bFollowPlayer = false;
-			OverlappedBody->FollowChar = false;
-
-		//	OverlappedBody->PhysicsBox->SetSimulatePhysics(true);
+		if (OverlappingBody->FollowChar)
+		{ 
+			OverlappingBody->bFollowPlayer = false;
+			OverlappingBody->FollowChar = false;
 		}
 		else
-		{//pick them up
-		//	OverlappedBody->Lift(true);
-			OverlappedBody->bFollowPlayer = true;
-			OverlappedBody->FollowChar = this;
-			OverlappedBody->GrabBodyAtSocket();
-
-		//	OverlappedBody->PhysicsBox->SetSimulatePhysics(false);
+		{
+			OverlappingBody->bFollowPlayer = true;
+			OverlappingBody->FollowChar = this;
+			OverlappingBody->GrabBodyAtSocket();
 			return;
 		}
 	}
@@ -912,6 +906,16 @@ void ABlasterCharacter::OnRep_InteractTargetLocation()
 	SetInteractAndVisualTargetSphereLocation(InteractTargetLocation);
 }
 
+
+void ABlasterCharacter::ClearHUDInteractText()
+{
+	if (BlasterPlayerController)
+	{
+		FString EmptyText(TEXT(""));
+		BlasterPlayerController->SetHUDInteractText(EmptyText);
+	}
+}
+
 void ABlasterCharacter::SetOverlappingButton(AMyButton* Button)
 {
 	OverlappingButton = Button;
@@ -926,10 +930,7 @@ void ABlasterCharacter::SetOverlappingButton(AMyButton* Button)
 		}
 		else
 		{
-			if (BlasterPlayerController)
-			{
-				BlasterPlayerController->SetHUDInteractText(FString{ TEXT("") });
-			}
+			ClearHUDInteractText();
 		}
 	}
 }
@@ -945,34 +946,90 @@ void ABlasterCharacter::OnRep_OverlappingButton(AMyButton* LastButton)
 	}
 	else
 	{
-		if (BlasterPlayerController)
+		ClearHUDInteractText();
+	}
+}
+
+
+void ABlasterCharacter::SetOverlappingBody(ARagdollCube* Cube)
+{
+	OverlappingBody = Cube;
+
+	if (IsLocallyControlled())
+	{
+		if (OverlappingBody)
 		{
-			BlasterPlayerController->SetHUDInteractText(FString{ TEXT("") });
+			if (BlasterPlayerController)
+			{
+				FString Interaction(TEXT("DRAG BODY"));
+				BlasterPlayerController->SetHUDInteractText(Interaction);
+			}
+		}
+		else
+		{
+			ClearHUDInteractText();
 		}
 	}
 }
 
-void ABlasterCharacter::OnRep_OverlappedBody(ARagdollCube* LastCube)
+
+void ABlasterCharacter::OnRep_OverlappingBody(ARagdollCube* LastCube)
 {
-	if (OverlappedBody) //this is the new var, LatWeapon is the old one
+	if (OverlappingBody) //this is the new var, LatWeapon is the old one
 	{
 		if (BlasterPlayerController)
 		{
-			BlasterPlayerController->SetHUDInteractText(FString{ TEXT("E: Drag Body") });
+			FString Interaction(TEXT("DRAG BODY"));
+			BlasterPlayerController->SetHUDInteractText(Interaction);
 		}
 	}
 	else
 	{
+		ClearHUDInteractText();
+	}
+}
+
+
+void ABlasterCharacter::SetOverlappingFriend(ABlasterCharacter* Friend)
+{
+	OverlappingFriend = Friend;
+
+	if (IsLocallyControlled())
+	{
+		if (OverlappingFriend)
+		{
+			if (BlasterPlayerController)
+			{
+				FString Interaction(TEXT("KISS <3"));
+				BlasterPlayerController->SetHUDInteractText(Interaction);
+			}
+		}
+		else
+		{
+			ClearHUDInteractText();
+		}
+	}
+}
+
+
+void ABlasterCharacter::OnRep_OverlappingFriend()
+{
+	if (OverlappingFriend) //this is the new var, LatWeapon is the old one
+	{
 		if (BlasterPlayerController)
 		{
-			BlasterPlayerController->SetHUDInteractText(FString{ TEXT("") });
+			FString Interaction(TEXT("KISS <3"));
+			BlasterPlayerController->SetHUDInteractText(Interaction);
 		}
+	}
+	else
+	{
+		ClearHUDInteractText();
 	}
 }
 
 void ABlasterCharacter::SetOverlappingWeapon(AWeapon *Weapon)
 {	
-
 	OverlappingWeapon = Weapon;
 
 	if (IsLocallyControlled())
@@ -987,16 +1044,11 @@ void ABlasterCharacter::SetOverlappingWeapon(AWeapon *Weapon)
 		}
 		else
 		{
-			if (BlasterPlayerController)
-			{
-				BlasterPlayerController->SetHUDInteractText(FString{ TEXT("") });
-			}
+			ClearHUDInteractText();
 		}
 	}
 }
 
-//repnotify is not called on server. 
-//gosh this is gee golly hard lmao
 void ABlasterCharacter::OnRep_OverlappingWeapon(AWeapon* LastWeapon)
 {
 	if (OverlappingWeapon)
@@ -1008,13 +1060,9 @@ void ABlasterCharacter::OnRep_OverlappingWeapon(AWeapon* LastWeapon)
 	}
 	else
 	{
-		if (BlasterPlayerController)
-		{
-			BlasterPlayerController->SetHUDInteractText(FString{ TEXT("") });
-		}
+		ClearHUDInteractText();
 	}
 }
-
 
 void ABlasterCharacter::OnInteractSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
@@ -1024,9 +1072,7 @@ void ABlasterCharacter::OnInteractSphereOverlap(UPrimitiveComponent* OverlappedC
 		ABlasterCharacter* BChar = Cast<ABlasterCharacter>(OtherActor);
 		if (BChar)
 		{
-			UE_LOG(LogTemp, Log, TEXT("i have been targeted for kissing"));
-
-			BChar->OverlappingFriend = this;
+			BChar->SetOverlappingFriend(this);
 		}
 	}
 }
@@ -1039,9 +1085,7 @@ void ABlasterCharacter::OnInteractSphereEndOverlap(UPrimitiveComponent* Overlapp
 		ABlasterCharacter* BChar = Cast<ABlasterCharacter>(OtherActor);
 		if (BChar)
 		{
-			UE_LOG(LogTemp, Log, TEXT("NO KISSES"));
-
-			BChar->OverlappingFriend = nullptr;
+			BChar->SetOverlappingFriend(nullptr);
 		}
 	}
 }

@@ -19,15 +19,15 @@ ADoor::ADoor()
 		DoorKnobButtonComponent->SetChildActorClass(AMyButton::StaticClass());
 		DoorKnobButtonComponent->SetIsReplicated(true);
 		
-		DoorKnobButtonComponent2 = CreateDefaultSubobject<UChildActorComponent>(TEXT("Door Knob Button2"));
-		DoorKnobButtonComponent2->SetupAttachment(DoorMesh, FName("DoorKnobsSocket"));
-		DoorKnobButtonComponent2->SetChildActorClass(AMyButton::StaticClass());
-		DoorKnobButtonComponent2->SetIsReplicated(true);
+		LockButton = CreateDefaultSubobject<UChildActorComponent>(TEXT("Slide Lock Button"));
+		LockButton->SetupAttachment(DoorMesh, FName("LockSocket"));
+		LockButton->SetChildActorClass(AMyButton::StaticClass());
+		LockButton->SetIsReplicated(true);
 
-		LockButtonComponent = CreateDefaultSubobject<UChildActorComponent>(TEXT("Lock Button"));
+	/*	LockButtonComponent = CreateDefaultSubobject<UChildActorComponent>(TEXT("Lock Button"));
 		LockButtonComponent->SetupAttachment(DoorMesh, FName("LockSocket"));
 		LockButtonComponent->SetChildActorClass(AMyButton::StaticClass());
-		LockButtonComponent->SetIsReplicated(true);
+		LockButtonComponent->SetIsReplicated(true);*/
 
 }
 
@@ -35,19 +35,16 @@ ADoor::ADoor()
 void ADoor::BeginPlay()
 {
 	Super::BeginPlay();	
-	if (DoorKnobButtonComponent2)
+	if (LockButton && LockButton->GetChildActor())
 	{
-		AMyButton* DoorKnobButton2 = Cast<AMyButton>(DoorKnobButtonComponent2->GetChildActor());
-		if (DoorKnobButton2)
+		AMyButton* SlideLock = Cast<AMyButton>(LockButton->GetChildActor());
+		if (SlideLock)
 		{
-			DoorKnobButton2->OnButtonPressed.AddDynamic(this, &ADoor::LockButtonPress);
+			SlideLock->OnButtonPressed.AddDynamic(this, &ADoor::LockButtonPress);
+			SlideLock->InteractionText = TEXT("LOCK");
 		}
-		/*else
-		{
-			if (HasAuthority()) UE_LOG(LogTemp, Warning, TEXT("cast failed for server"));
-		}*/
 	}
-	if (DoorKnobButtonComponent)
+	if (DoorKnobButtonComponent && DoorKnobButtonComponent->GetChildActor())
 	{
 		AMyButton* DoorKnobButton = Cast<AMyButton>(DoorKnobButtonComponent->GetChildActor());
 		if (DoorKnobButton)
@@ -55,26 +52,7 @@ void ADoor::BeginPlay()
 			DoorKnobButton->OnButtonPressed.AddDynamic(this, &ADoor::KnobButtonPress);
 			DoorKnobButton->OnButtonReleased.AddDynamic(this, &ADoor::KnobButtonRelease);
 			DoorKnobButton->OnButtonDraggedOff.AddDynamic(this, &ADoor::KnobButtonDraggedOff);
-		}
-	}
-}
-
-void ADoor::AttemptLockButtonCast()
-{
-	if (LockButtonComponent)
-	{
-		AMyButton* LockButton = Cast<AMyButton>(LockButtonComponent->GetChildActor());
-		if (LockButton)
-		{
-		//	if (!HasAuthority()) UE_LOG(LogTemp, Log, TEXT("succesfully cast door lock"));
-
-			LockButton->OnButtonPressed.AddDynamic(this, &ADoor::LockButtonPress);
-			GetWorld()->GetTimerManager().ClearTimer(TimerHandle_AttemptCast);
-		}
-		else
-		{
-		//	UE_LOG(LogTemp, Warning, TEXT("Lock cast failed, will reattempt in 10 seconds"));
-			GetWorld()->GetTimerManager().SetTimer(TimerHandle_AttemptCast, this, &ADoor::AttemptLockButtonCast, 2.0f, false);
+			DoorKnobButton->InteractionText = TEXT("OPEN");
 		}
 	}
 }
@@ -94,7 +72,6 @@ void ADoor::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimePro
 	DOREPLIFETIME(ADoor, bAttemptOpen);
 	DOREPLIFETIME(ADoor, bIsOpen);
 	DOREPLIFETIME(ADoor, bIsLocked);
-	
 }
 
 
@@ -126,23 +103,5 @@ void ADoor::KnobButtonDraggedOff()
 
 void ADoor::LockButtonPress()
 {
-	if (HasAuthority())	UE_LOG(LogTemp, Log, TEXT("as server:"));
-	if (!HasAuthority())	UE_LOG(LogTemp, Log, TEXT("as not server:"));
-	if (bIsLocked)
-	{
-		UE_LOG(LogTemp, Log, TEXT("I was locked"));
-	}
-	else
-	{
-		UE_LOG(LogTemp, Log, TEXT("I was NOT locked"));
-	}
 	bIsLocked = !bIsLocked;
-	if (bIsLocked)
-	{
-		UE_LOG(LogTemp, Log, TEXT("Now i am locked"));
-	}
-	else
-	{
-		UE_LOG(LogTemp, Log, TEXT("Now I'm NOT locked"));
-	}
 }

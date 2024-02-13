@@ -5,18 +5,43 @@
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
 #include "Interfaces/OnlineSessionInterface.h"
+#include "OnlineSessionSettings.h"
+#include "OnlineSubsystem.h"
+#include "Interfaces/OnlineSessionInterface.h"
 #include "Menu.generated.h"
 
 /**
  * 
  */
+USTRUCT(BlueprintType)
+struct FBlueprintSessionInfo
+{
+	GENERATED_BODY()
+
+public:
+	UPROPERTY(BlueprintReadOnly)
+		FString SessionName;
+
+	// todo: other session details 
+};
+
 UCLASS()
 class MULTIPLAYERSESSIONS_API UMenu : public UUserWidget
 {
 	GENERATED_BODY()
 public:
+
 	UFUNCTION(BlueprintCallable)
 	void MenuSetup(int32 NumberOfPublicConnections = 4, FString TypeOfMatch = FString(TEXT("FreeForAll")), FString LobbyPath = FString(TEXT("/Game/ThirdPersonCPP/Maps/Lobby")));
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Menu")
+	void CreateSessionList(const TArray<FBlueprintSessionInfo>& SessionResults);
+
+	UFUNCTION(BlueprintCallable)
+	void JoinSelectedSession(int32 SelectedIndex);
+
+	UPROPERTY(BlueprintReadWrite)
+	int32 SelectedSessionID;
 
 protected:
 
@@ -37,14 +62,23 @@ protected:
 
 private:
 
+	// New property to store session search results
+	TArray<FOnlineSessionSearchResult> SearchResults;
+
 	UPROPERTY(meta = (BindWidget))
 	class UButton* HostButton;
 
 	UPROPERTY(meta = (BindWidget))
-	UButton* JoinButton;
+	UButton* FindSessionsButton;
+
+	UPROPERTY(meta = (BindWidget))
+	UButton* JoinSelectedButton;
 
 	UFUNCTION()
 	void HostButtonClicked();
+
+	UFUNCTION()
+	void FindSessionsButtonClicked();
 
 	UFUNCTION()
 	void JoinButtonClicked();
@@ -57,4 +91,8 @@ private:
 	int32 NumPublicConnections{4};
 	FString MatchType{TEXT("FreeForAll")};
 	FString PathToLobby{TEXT("")};
+
+public:
+	UFUNCTION(BlueprintCallable, Category = "Menu")
+	FBlueprintSessionInfo GetSessionInfoAt(int32 Index);
 };

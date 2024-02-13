@@ -78,6 +78,8 @@ void ARagdollCube::Tick(float DeltaTime)
 
 void ARagdollCube::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
 	DOREPLIFETIME(ARagdollCube, CharacterMesh);
 }
 void ARagdollCube::GrabBodyAtSocket()
@@ -111,7 +113,7 @@ void ARagdollCube::OnPhysicsBoxOverlap(UPrimitiveComponent* OverlappedComponent,
 		ABlasterCharacter* BChar = Cast<ABlasterCharacter>(OtherActor);
 		if (BChar)
 		{
-			BChar->OverlappedBody = this;
+			BChar->SetOverlappingBody(this);
 		}
 	}
 }
@@ -123,7 +125,7 @@ void ARagdollCube::OnPhysicsBoxEndOverlap(UPrimitiveComponent* OverlappedCompone
 		ABlasterCharacter* BChar = Cast<ABlasterCharacter>(OtherActor);
 		if (BChar)
 		{
-			BChar->OverlappedBody = nullptr;
+			BChar->SetOverlappingBody(nullptr);
 		}
 	}
 }

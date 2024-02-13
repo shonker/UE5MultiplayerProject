@@ -38,17 +38,6 @@ public:
 	bool bElimmed = false;
 	void Elim();
 
-	UPROPERTY(ReplicatedUsing = OnRep_OverlappedBody)
-	class ARagdollCube* OverlappedBody;
-
-	UPROPERTY(Replicated)
-	class ABlasterCharacter* OverlappingFriend;
-
-	void Kiss(bool StartOrEnd);
-	
-	UFUNCTION()
-	void OnRep_OverlappedBody(ARagdollCube* LastCube);
-
 	UPROPERTY(Replicated)
 	bool bDisableGameplay = false;
 
@@ -105,6 +94,7 @@ protected:
 		AActor* DamageCauser
 	);
 	void UpdateHUDHealth();
+	void ClearHUDInteractText();
 	//Poll for any relevant classes and initialize HUD
 	void PollInit();
 	void RotateInPlace(float DeltaTime);
@@ -126,25 +116,36 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	class UWidgetComponent* OverheadWidget;
 
-	//makes it so only when this is updated on server, it is repped on clients
-	//replication only works when the var is changed
-	//also repusing = onrep_overWeap sets or_ol up to be called when the var changes
 	UPROPERTY(ReplicatedUsing = OnRep_OverlappingWeapon)
 	class AWeapon* OverlappingWeapon;
 
 	UPROPERTY(ReplicatedUsing = OnRep_OverlappingButton)
 	class AMyButton* OverlappingButton;
 
-	//rep vars can ONLY have input params of the var being repd
-	//what gets passed in? the last var, BEFORE the update to the var :)
-	UFUNCTION()
-	void OnRep_OverlappingWeapon(AWeapon* LastWeapon);
+	//for kissing
+	UPROPERTY(ReplicatedUsing = OnRep_OverlappingFriend)
+	class ABlasterCharacter* OverlappingFriend;
+
+	//for ragdoll dragging
+	UPROPERTY(ReplicatedUsing = OnRep_OverlappingBody)
+	class ARagdollCube* OverlappingBody;
+
+	
 	UFUNCTION()
 	void OnInteractSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 	UFUNCTION()
 	void OnInteractSphereEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+	
 	UFUNCTION()
 	void OnRep_OverlappingButton(AMyButton* LastButton);
+	UFUNCTION()
+	void OnRep_OverlappingWeapon(AWeapon* LastWeapon);
+	UFUNCTION()
+	void OnRep_OverlappingBody(ARagdollCube* LastCube);
+	UFUNCTION()
+	void OnRep_OverlappingFriend();
+
+	void Kiss(bool StartOrEnd);
 
 	//meta specifier allows private variables to be blueprintreadonly
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
@@ -161,8 +162,6 @@ private:
 	class USphereComponent* VisualTargetSphere;
 
 	void SetInteractAndVisualTargetSphereLocation(FVector_NetQuantize Target);
-
-	//uint32 InteractTargetRecheckTimer = 1;
 
 	UFUNCTION(Server, Unreliable)
 	void ServerSetInteractTarget(FVector_NetQuantize InteractTarget);
@@ -280,9 +279,12 @@ private:
 	UPROPERTY()
 	class ABlasterPlayerState* BlasterPlayerState;
 public:	
+
 	//here it is updated for all clients AND server (logic for that inside)
 	void SetOverlappingWeapon(AWeapon* Weapon);
 	void SetOverlappingButton(AMyButton* Button);
+	void SetOverlappingBody(ARagdollCube* Cube);
+	void SetOverlappingFriend(ABlasterCharacter* Friend);
 	bool IsWeaponEquipped();
 	bool IsAiming();
 	FORCEINLINE float GetAOYaw() const { return AO_Yaw; }

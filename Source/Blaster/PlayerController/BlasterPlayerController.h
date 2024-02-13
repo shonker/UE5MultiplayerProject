@@ -18,7 +18,7 @@ public:
 	void SetHUDHealth(float Health, float MaxHealth);
 	void SetHUDScore(float Score);
 	void SetHUDDebt(float Debt);
-	void SetHUDInteractText(FString Interaction);
+	void SetHUDInteractText(const FString& Interaction);
 	void SetHUDWeaponAmmo(int32 Ammo);
 	void SetHUDCarriedAmmo(int32 Ammo);
 	void SetHUDMatchCountdownText(float CountdownTime);
@@ -33,7 +33,7 @@ public:
 	UFUNCTION(Server, Reliable)
 	void ServerRequestProcGenData();
 	UFUNCTION(Client, Reliable)
-		void ClientReceiveProcGenData(uint32 randomSeed);
+	void ClientReceiveProcGenData(uint32 randomSeed);
 	/*
 	
 	*/
@@ -114,5 +114,8 @@ private:
 	void BlinkTimerFinished();
 	UFUNCTION()
 	void TimeRunningOut();
+	
+	FString GetUserAssignedInputFor(const FName ActionName);
+
 
 }; 

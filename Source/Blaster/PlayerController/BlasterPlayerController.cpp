@@ -15,6 +15,7 @@
 #include "Blaster/GameState/BlasterGameState.h"
 #include "Blaster/BlasterPlayerState/BlasterPlayerState.h"
 #include "Blaster/ProcedualEnvironments/ProcNeighborhood.h"
+#include "GameFramework/InputSettings.h"
 #include "TimerManager.h"
 #include "EngineUtils.h"
 
@@ -226,25 +227,42 @@ void ABlasterPlayerController::SetHUDDebt(float Debt)
 }
 
 
-void ABlasterPlayerController::SetHUDInteractText(FString Interaction)
+// ABlasterPlayerController.cpp
+FString ABlasterPlayerController::GetUserAssignedInputFor(const FName ActionName)
 {
-	BlasterHUD = BlasterHUD == nullptr ? Cast<ABlasterHUD>(GetHUD()) : BlasterHUD;
-	bool bHUDValid = BlasterHUD
-		&& BlasterHUD->CharacterOverlay
-		&& BlasterHUD->CharacterOverlay->InteractionText;
-	
-	if (!bHUDValid) return;
+	const UInputSettings* InputSettings = UInputSettings::GetInputSettings();
+	if (!InputSettings) return TEXT("E");
 
-	if (Interaction == FString{ TEXT("") })
+	TArray<FInputActionKeyMapping> ActionMappings;
+	InputSettings->GetActionMappingByName(ActionName, ActionMappings);
+
+	for (const FInputActionKeyMapping& Mapping : ActionMappings)
 	{
-		FString InteractText = FString::Printf(TEXT(""));
-		BlasterHUD->CharacterOverlay->InteractionText->SetText(FText::FromString(InteractText));
-		return;
+		if (Mapping.Key.IsValid())
+		{
+			return Mapping.Key.GetDisplayName().ToString();
+		}
 	}
-	FString InteractText = FString::Printf(TEXT("E: %s"), *Interaction);
-	BlasterHUD->CharacterOverlay->InteractionText->SetText(FText::FromString(InteractText));
+
+	return TEXT("E");
 }
 
+void ABlasterPlayerController::SetHUDInteractText(const FString& Interaction)
+{
+	BlasterHUD = BlasterHUD == nullptr ? Cast<ABlasterHUD>(GetHUD()) : BlasterHUD;
+	if (!BlasterHUD || !BlasterHUD->CharacterOverlay || !BlasterHUD->CharacterOverlay->InteractionText)
+		return;
+
+	if (Interaction.IsEmpty())
+	{
+		BlasterHUD->CharacterOverlay->InteractionText->SetText(FText::GetEmpty());
+		return;
+	}
+
+	FString KeyName = GetUserAssignedInputFor("Equip");
+	FString InteractText = FString::Printf(TEXT("%s: %s"), *KeyName, *Interaction);
+	BlasterHUD->CharacterOverlay->InteractionText->SetText(FText::FromString(InteractText));
+}
 
 void ABlasterPlayerController::SetHUDWeaponAmmo(int32 Ammo)
 {

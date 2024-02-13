@@ -16,7 +16,8 @@ public class Blaster : ModuleRules
 			"Niagara", 
 			"GeometryCollectionEngine",  
 			"AIModule",
-			"NavigationSystem"
+			"NavigationSystem",
+			"CinematicCamera"
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[] {"Slate", "SlateCore" });

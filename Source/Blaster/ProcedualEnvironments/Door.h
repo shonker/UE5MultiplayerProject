@@ -31,20 +31,11 @@ public:
 	UFUNCTION()
 	void KnobButtonDraggedOff();
 
-	/*UPROPERTY(EditAnywhere, Category = "Buttons")
-	AMyButton* DoorKnobButton;
-
-	UPROPERTY(EditAnywhere,Category = "Buttons")
-	AMyButton* LockButton;*/
-
 	UPROPERTY(EditAnywhere, Category = "Components")
 		UChildActorComponent* DoorKnobButtonComponent;
 
 	UPROPERTY(EditAnywhere, Category = "Components")
-		UChildActorComponent* DoorKnobButtonComponent2;
-
-	UPROPERTY(EditAnywhere, Category = "Components")
-		UChildActorComponent* LockButtonComponent;
+		UChildActorComponent* LockButton;
 
 protected:
 

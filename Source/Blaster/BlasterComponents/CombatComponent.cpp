@@ -324,7 +324,7 @@ void UCombatComponent::StartKissCharging()
 
 void UCombatComponent::Kiss()
 {
-	if (CombatState != ECombatState::ECS_KissCharging)
+	if (CombatState != ECombatState::ECS_KissCharging) return;
 	if (Character == nullptr) return;
 	if (Character->HasAuthority())
 	{

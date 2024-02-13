@@ -4,8 +4,6 @@
 #include "Menu.h"
 #include "Components/Button.h"
 #include "MultiplayerSessionsSubsystem.h"
-#include "OnlineSessionSettings.h"
-#include "OnlineSubsystem.h"
 
 void UMenu::MenuSetup(int32 NumberOfPublicConnections, FString TypeOfMatch, FString LobbyPath)
 {
@@ -57,9 +55,13 @@ bool UMenu::Initialize()
 	{
 		HostButton->OnClicked.AddDynamic(this, &ThisClass::HostButtonClicked);
 	}
-	if (JoinButton)
+	if (FindSessionsButton)
 	{
-		JoinButton->OnClicked.AddDynamic(this, &ThisClass::JoinButtonClicked);
+		FindSessionsButton->OnClicked.AddDynamic(this, &ThisClass::FindSessionsButtonClicked);
+	}
+	if (JoinSelectedButton)
+	{
+		JoinSelectedButton->OnClicked.AddDynamic(this, &ThisClass::JoinButtonClicked);
 	}
 
 	return true;
@@ -98,24 +100,31 @@ void UMenu::OnCreateSession(bool bWasSuccessful)
 
 void UMenu::OnFindSessions(const TArray<FOnlineSessionSearchResult>& SessionResults, bool bWasSuccessful)
 {
-	if (MultiplayerSessionsSubsystem == nullptr)
+	TArray<FBlueprintSessionInfo> BlueprintSessions;
+
+	for (const FOnlineSessionSearchResult& SearchResult : SessionResults)
 	{
-		return;
+		FBlueprintSessionInfo Info;
+		Info.SessionName = SearchResult.GetSessionIdStr();
+		// Fill in other desired details from SearchResult
+
+		BlueprintSessions.Add(Info);
 	}
 
-	for (auto Result : SessionResults)
+	CreateSessionList(BlueprintSessions);
+}
+
+void UMenu::JoinButtonClicked()
+{
+	JoinSelectedSession(SelectedSessionID);
+}
+
+
+void UMenu::JoinSelectedSession(int32 SelectedIndex)
+{
+	if (MultiplayerSessionsSubsystem && SearchResults.IsValidIndex(SelectedIndex))
 	{
-		FString SettingsValue;
-		Result.Session.SessionSettings.Get(FName("MatchType"), SettingsValue);
-		if (SettingsValue == MatchType)
-		{
-			MultiplayerSessionsSubsystem->JoinSession(Result);
-			return;
-		}
-	}
-	if (!bWasSuccessful || SessionResults.Num() == 0)
-	{
-		JoinButton->SetIsEnabled(true);
+		MultiplayerSessionsSubsystem->JoinSession(SearchResults[SelectedIndex]);
 	}
 }
 
@@ -156,9 +165,9 @@ void UMenu::HostButtonClicked()
 	}
 }
 
-void UMenu::JoinButtonClicked()
+void UMenu::FindSessionsButtonClicked()
 {
-	JoinButton->SetIsEnabled(false);
+	FindSessionsButton->SetIsEnabled(false);
 	if (MultiplayerSessionsSubsystem)
 	{
 		MultiplayerSessionsSubsystem->FindSessions(10000);
@@ -179,4 +188,18 @@ void UMenu::MenuTearDown()
 			PlayerController->SetShowMouseCursor(false);
 		}
 	}
+}
+
+FBlueprintSessionInfo UMenu::GetSessionInfoAt(int32 Index)
+{
+	FBlueprintSessionInfo Info;
+
+	if (SearchResults.IsValidIndex(Index))
+	{
+		const auto& SearchResult = SearchResults[Index];
+		Info.SessionName = SearchResult.GetSessionIdStr(); // Example, adjust according to actual data you want to expose
+		// Populate other fields of Info as needed
+	}
+
+	return Info;
 }
