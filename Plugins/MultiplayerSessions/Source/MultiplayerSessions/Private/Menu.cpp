@@ -98,20 +98,36 @@ void UMenu::OnCreateSession(bool bWasSuccessful)
 	}
 }
 
+void UMenu::FindSessionsButtonClicked()
+{
+	FindSessionsButton->SetIsEnabled(false);
+	if (MultiplayerSessionsSubsystem)
+	{
+		MultiplayerSessionsSubsystem->FindSessions(10000);
+	}
+}
+
 void UMenu::OnFindSessions(const TArray<FOnlineSessionSearchResult>& SessionResults, bool bWasSuccessful)
 {
-	TArray<FBlueprintSessionInfo> BlueprintSessions;
 
-	for (const FOnlineSessionSearchResult& SearchResult : SessionResults)
+	if (bWasSuccessful && SessionResults.Num() > 0)
 	{
-		FBlueprintSessionInfo Info;
-		Info.SessionName = SearchResult.GetSessionIdStr();
-		// Fill in other desired details from SearchResult
+		SearchResults.Empty();
+		SearchResults = SessionResults;
 
-		BlueprintSessions.Add(Info);
+		TArray<FBlueprintSessionInfo> BlueprintSessions;
+		for (const FOnlineSessionSearchResult& SearchResult : SessionResults)
+		{
+			FBlueprintSessionInfo Info;
+			Info.SessionName = SearchResult.GetSessionIdStr();
+			BlueprintSessions.Add(Info);
+		}
+		CreateSessionList(BlueprintSessions);
 	}
-
-	CreateSessionList(BlueprintSessions);
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("No sessions found or search failed."));
+	}
 }
 
 void UMenu::JoinButtonClicked()
@@ -125,6 +141,18 @@ void UMenu::JoinSelectedSession(int32 SelectedIndex)
 	if (MultiplayerSessionsSubsystem && SearchResults.IsValidIndex(SelectedIndex))
 	{
 		MultiplayerSessionsSubsystem->JoinSession(SearchResults[SelectedIndex]);
+	}
+	else
+	{
+		if (GEngine)
+		{
+			GEngine->AddOnScreenDebugMessage(
+				-1,
+				15.f,
+				FColor::Red,
+				FString(TEXT("Failed to find selected session index: %i=d"), SelectedIndex)
+			);
+		}
 	}
 }
 
@@ -162,15 +190,6 @@ void UMenu::HostButtonClicked()
 	if (MultiplayerSessionsSubsystem)
 	{
 		MultiplayerSessionsSubsystem->CreateSession(NumPublicConnections, MatchType);
-	}
-}
-
-void UMenu::FindSessionsButtonClicked()
-{
-	FindSessionsButton->SetIsEnabled(false);
-	if (MultiplayerSessionsSubsystem)
-	{
-		MultiplayerSessionsSubsystem->FindSessions(10000);
 	}
 }
 
