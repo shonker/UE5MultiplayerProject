@@ -7,7 +7,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/PlayerStart.h"
 #include "Blaster/BlasterPlayerState/BlasterPlayerState.h"
-#include "Blaster/ProcedualEnvironments/ProcNeighborhood.h"
+#include "Blaster/ProceduralEnvironments/ProcNeighborhood.h"
 #include "EngineUtils.h"
 #include "GameFramework/GameSession.h"
 #include "Blaster/GameState/BlasterGameState.h"

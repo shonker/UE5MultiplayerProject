@@ -14,7 +14,7 @@
 #include "Blaster/BlasterComponents/CombatComponent.h"
 #include "Blaster/GameState/BlasterGameState.h"
 #include "Blaster/BlasterPlayerState/BlasterPlayerState.h"
-#include "Blaster/ProcedualEnvironments/ProcNeighborhood.h"
+#include "Blaster/ProceduralEnvironments/ProcNeighborhood.h"
 #include "GameFramework/InputSettings.h"
 #include "TimerManager.h"
 #include "EngineUtils.h"
