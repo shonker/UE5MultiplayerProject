@@ -30,7 +30,6 @@ bool AProcNeighborhood::RandBool()
 
 void AProcNeighborhood::ProcGen(uint32 randomSeed)
 {
-	UE_LOG(LogTemp, Log, TEXT("alright lfg"));
 	RS = FRandomStream(randomSeed);
 	InitializeGrid();
 	GenerateRoads();
@@ -405,6 +404,17 @@ void AProcNeighborhood::GenerateMiscellaneousLocations()
 				}
 				uint8 ConnectionCount = ConnectedRight + ConnectedLeft + ConnectedDown + ConnectedUp;
 
+				/*
+				origin is D3
+				6|
+				5|
+				4|    
+				3|        
+				2|		  
+				1|___________________
+				  A  B  C  D  E  F  G
+				*/
+
 				if (ConnectionCount == 1)
 				{
 					if (!bParkGenerated)
@@ -421,28 +431,26 @@ void AProcNeighborhood::GenerateMiscellaneousLocations()
 							GridCellTypes[TargetX][TargetY - 1] = CellType::Reserved;
 							GridCellTypes[TargetX + 1][TargetY - 1] = CellType::Reserved;
 							MiscThingsToGenerateCount--;
+							bParkGenerated = true;
 						}
 						continue;
 					}
 					if (!bCurvedTowerGenerated)
 					{
-						//todo:create connection grid bools for determining eligibility
-
-						int32 TargetX = Col - ConnectedUp + ConnectedDown;
-						int32 TargetY = Row - ConnectedRight + ConnectedLeft;
-
-						if (GridCellTypes[TargetX][TargetY] == CellType::Empty
-							&& GridCellTypes[TargetX + 1][TargetY] == CellType::Empty
-							&& GridCellTypes[TargetX][TargetY - 1] == CellType::Empty
-							&& GridCellTypes[TargetX + 1][TargetY - 1] == CellType::Empty)
-						{
-							GridCellTypes[TargetX][TargetY] = CellType::Park;
-							GridCellTypes[TargetX + 1][TargetY] = CellType::Reserved;
-							GridCellTypes[TargetX][TargetY - 1] = CellType::Reserved;
-							GridCellTypes[TargetX + 1][TargetY - 1] = CellType::Reserved;
-							MiscThingsToGenerateCount--;
+						TArray<FIntPoint> RelativePositions = {
+							FIntPoint(0, 0),
+							FIntPoint(-1, 0),
+							FIntPoint(-1, -1),
+							FIntPoint(0, -1),
+							FIntPoint(0, -2),
+							FIntPoint(1, -2),
+							FIntPoint(1, -1)
+						};
+						if (CheckAndFill(Col, Row, RelativePositions, CellType::CTower, CellType::Reserved)) {
+							--MiscThingsToGenerateCount;
+							bCurvedTowerGenerated = true;
 						}
-						continue;
+						
 					}
 				}
 			}
@@ -450,6 +458,34 @@ void AProcNeighborhood::GenerateMiscellaneousLocations()
 	}
 }
 
+bool AProcNeighborhood::CheckAndFill(int32 Col, int32 Row, const TArray<FIntPoint>& RelativePositions, CellType InitialType, CellType FillType) {
+	// Ensure all relative positions are valid and empty
+	for (const FIntPoint& Pos : RelativePositions) {
+		int32 NewCol = Col + Pos.X;
+		int32 NewRow = Row + Pos.Y;
+
+		// Check bounds
+		if (NewCol < 0 || NewCol >= GridSize || NewRow < 0 || NewRow >= GridSize) {
+			return false;
+		}
+
+		// Check if the cell is not empty
+		if (GridCellTypes[NewCol][NewRow] != CellType::Empty) {
+			return false;
+		}
+	}
+
+	// All checks passed, set the initial cell and fill the rest
+	GridCellTypes[Col][Row] = InitialType; // Set the initial cell
+	for (const FIntPoint& Pos : RelativePositions) {
+		if (Pos != FIntPoint(0, 0)) { // Skip the initial cell
+			int32 NewCol = Col + Pos.X;
+			int32 NewRow = Row + Pos.Y;
+			GridCellTypes[NewCol][NewRow] = FillType; // Set to reserved or specified fill type
+		}
+	}
+	return true;
+}
 
 void AProcNeighborhood::SpawnFinishedNeighborhood()
 {
@@ -526,8 +562,23 @@ void AProcNeighborhood::SpawnFinishedNeighborhood()
 						}
 					}
 				break;
+
+				case CellType::CTower:
+					if (CTowerBlueprintClass)
+					{
+						UE_LOG(LogTemp, Error, TEXT("is its spawaned"));
+						FRotator CurvedRotation = FRotator(0.0f, 0.0f, 0.0f);
+						AAProcActor* SpawnedCurve = SpawnAt(CTowerBlueprintClass, SpawnLocation, CurvedRotation);
+						if (SpawnedCurve)
+						{
+							SpawnedCurve->RS = FRandomStream(RS.RandRange(0, RAND_MAX));
+							SpawnedCurve->ProcGen();
+							UE_LOG(LogTemp, Error, TEXT("yep its spawaned"));
+						}
+					}
+				break;
 				case CellType::Reserved:
-					
+					DrawDebugSphere(GetWorld(),SpawnLocation, 1000.f, 12, FColor::Blue, true);
 				break;
 
 				}

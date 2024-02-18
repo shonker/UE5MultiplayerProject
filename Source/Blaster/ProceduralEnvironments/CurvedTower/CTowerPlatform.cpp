@@ -12,7 +12,7 @@ void ACTowerPlatform::ProcGen()
 		int32 OutputIndex = RS.RandRange(0, OutputTransforms.Num() - 1);
 		FRotator Rotation = OutputTransforms[OutputIndex].GetRotation().Rotator();
 		Rotation.Yaw = RS.RandRange(-180, 180);
-		FVector Location = OutputTransforms[OutputIndex].GetLocation();
+		FVector Location = OutputTransforms[OutputIndex].GetLocation() + GetActorLocation();
 
 		int32 TowerIndex = RS.RandRange(0, TowerTypes.Num() - 1);
 

@@ -143,10 +143,13 @@ protected:
 	bool bParkGenerated = false;
 	bool bCurvedTowerGenerated = false;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Park Generation")
+	UPROPERTY(EditDefaultsOnly, Category = "Misc Generation")
 		TSubclassOf<AActor> ParkBlueprintClass;
-	UPROPERTY(EditDefaultsOnly, Category = "House Generation")
+	UPROPERTY(EditDefaultsOnly, Category = "Misc Generation")
 		TSubclassOf<AActor> CurvedBlueprintClass;
+	UPROPERTY(EditDefaultsOnly, Category = "Misc Generation")
+		TSubclassOf<AActor> CTowerBlueprintClass;
 
+	bool CheckAndFill(int32 Col, int32 Row, const TArray<FIntPoint>& RelativePositions, CellType InitialType, CellType FillType);
 	void GenerateMiscellaneousLocations();
 };
