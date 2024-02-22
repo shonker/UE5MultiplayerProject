@@ -578,7 +578,7 @@ void AProcNeighborhood::SpawnFinishedNeighborhood()
 					}
 				break;
 				case CellType::Reserved:
-					DrawDebugSphere(GetWorld(),SpawnLocation, 1000.f, 12, FColor::Blue, true);
+					//DrawDebugSphere(GetWorld(),SpawnLocation, 1000.f, 12, FColor::Blue, true);
 				break;
 
 				}

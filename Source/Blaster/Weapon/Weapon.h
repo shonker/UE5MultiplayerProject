@@ -141,6 +141,9 @@ private:
 	UPROPERTY(EditAnywhere)
 	int32 MagCapacity;
 
+	UPROPERTY(EditAnywhere)
+	int32 CurseValue = 5;
+
 	UPROPERTY()
 	class ABlasterCharacter* BlasterOwnerCharacter;
 	UPROPERTY()
@@ -160,4 +163,5 @@ public:
 	FORCEINLINE EWeaponType GetWeaponType() const { return WeaponType; }
 	FORCEINLINE int32 GetAmmo() const { return Ammo; }
 	FORCEINLINE int32 GetMagCapacity() const { return MagCapacity; }
+	FORCEINLINE int32 GetCurseValue() const { return CurseValue; }
 };
