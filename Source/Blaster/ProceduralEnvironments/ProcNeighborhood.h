@@ -32,6 +32,7 @@ enum class CellType : uint8
 	Road,
 	Park,
 	CTower,
+	HomeBase,
 	Reserved
 };
 
@@ -119,6 +120,7 @@ protected:
 	void InitializeGrid();
 	void GenerateRoads();
 	void GenerateRoadBranch(int32 StartRow, int32 StartCol, int32 Lifetime, EDirection CurrentDirection);
+	void PlaceHomeBase();
 
 	void GenerateHouses();
 
@@ -149,6 +151,8 @@ protected:
 		TSubclassOf<AActor> CurvedBlueprintClass;
 	UPROPERTY(EditDefaultsOnly, Category = "Misc Generation")
 		TSubclassOf<AActor> CTowerBlueprintClass;
+	UPROPERTY(EditDefaultsOnly, Category = "Misc Generation")
+		TSubclassOf<AActor> HomeBaseBlueprintClass;
 
 	bool CheckAndFill(int32 Col, int32 Row, const TArray<FIntPoint>& RelativePositions, CellType InitialType, CellType FillType);
 	void GenerateMiscellaneousLocations();

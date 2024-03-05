@@ -50,7 +50,7 @@ AAProcActor* AAProcActor::SpawnAt(TSubclassOf<AActor> Actor, FVector& Location, 
 	
 	FActorSpawnParameters SpawnParams;
 	SpawnParams.Name = FName(*FString(Actor->GetName() + "_" + FString::FromInt(*PGI)));
-	SpawnParams.NameMode = FActorSpawnParameters::ESpawnActorNameMode::Required_Fatal;
+	SpawnParams.NameMode = FActorSpawnParameters::ESpawnActorNameMode::Required_ErrorAndReturnNull;
 	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 	SpawnParams.bDeferConstruction = true;
 
@@ -73,8 +73,11 @@ AAProcActor* AAProcActor::SpawnAt(TSubclassOf<AActor> Actor, FVector& Location, 
         else
         {
             UE_LOG(LogTemp, Error, TEXT("Spawned actor is not of type AAProcActor. Actor class: %s"), *Actor->GetName());
-            // SpawnedActor->Destroy();
         }
+    }
+    else
+    {
+        UE_LOG(LogTemp, Error, TEXT("Actor unable to spawn: %s"), *SpawnParams.Name.ToString());
     }
     return nullptr;
 }

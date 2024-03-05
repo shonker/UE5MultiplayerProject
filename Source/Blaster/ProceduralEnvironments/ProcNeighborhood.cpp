@@ -33,6 +33,7 @@ void AProcNeighborhood::ProcGen(uint32 randomSeed)
 	RS = FRandomStream(randomSeed);
 	InitializeGrid();
 	GenerateRoads();
+	PlaceHomeBase();
 	InferRoadTypesAndRotations();
 	GenerateHouses();
 	GenerateMiscellaneousLocations();
@@ -72,6 +73,14 @@ void AProcNeighborhood::InitializeGrid()
 			GridCellTypes[Col][Row] = CellType::Empty;
 		}
 	}
+}
+
+void AProcNeighborhood::PlaceHomeBase()
+{
+	int32 StartCol = GridSize / 2;
+	int32 StartRow = GridSize / 2;
+	GridCellTypes[StartCol][StartRow] = CellType::HomeBase;
+	GridCellTypes[StartCol][StartRow - 1] = CellType::Reserved;
 }
 
 void AProcNeighborhood::GenerateRoads()
@@ -566,16 +575,29 @@ void AProcNeighborhood::SpawnFinishedNeighborhood()
 				case CellType::CTower:
 					if (CTowerBlueprintClass)
 					{
-						UE_LOG(LogTemp, Error, TEXT("is its spawaned"));
 						FRotator CurvedRotation = FRotator(0.0f, 0.0f, 0.0f);
 						AAProcActor* SpawnedCurve = SpawnAt(CTowerBlueprintClass, SpawnLocation, CurvedRotation);
 						if (SpawnedCurve)
 						{
 							SpawnedCurve->RS = FRandomStream(RS.RandRange(0, RAND_MAX));
 							SpawnedCurve->ProcGen();
-							UE_LOG(LogTemp, Error, TEXT("yep its spawaned"));
 						}
 					}
+				break;
+
+				case CellType::HomeBase:
+					//player starts must be placed in level, so we are not dynamically spawning the home base
+					/*if (HomeBaseBlueprintClass)
+					{
+						FRotator CurvedRotation = FRotator(0.0f, 0.0f, 0.0f);
+						AAProcActor* SpawnedHB = SpawnAt(HomeBaseBlueprintClass, SpawnLocation, CurvedRotation);
+						if (SpawnedHB)
+						{
+							SpawnedHB->RS = FRandomStream(RS.RandRange(0, RAND_MAX));
+							SpawnedHB->ProcGen();
+						}
+					}*/
+
 				break;
 				case CellType::Reserved:
 					//DrawDebugSphere(GetWorld(),SpawnLocation, 1000.f, 12, FColor::Blue, true);
