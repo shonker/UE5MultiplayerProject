@@ -113,11 +113,6 @@ private:
 	UPROPERTY(ReplicatedUsing = OnRep_EquippedWeapon)
 	AWeapon* EquippedWeapon;
 
-	//all you would need for single player functionality
-	//bool bAiming;
-
-	//multiplayer functional v.v
-	//note that it is "registered" in the DOREPLIFETIME in CC.cpp
 	UPROPERTY(Replicated)
 	bool bAiming;
 

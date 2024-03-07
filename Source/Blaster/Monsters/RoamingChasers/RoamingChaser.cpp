@@ -132,8 +132,12 @@ void ARoamingChaser::OnAttackSphereOverlap(UPrimitiveComponent* OverlappedCompon
 {
     if (CurrentAIState != EAIState::Chasing) return;
     if (!OtherActor || !OtherActor->IsA(ABlasterCharacter::StaticClass())) return;
-    CurrentAIState = EAIState::Attacking;
-    CommenceAttack();
+    FString ComponentName = OtherComp->GetName();
+    if (ComponentName == FString("CollisionCylinder"))
+    {
+        CurrentAIState = EAIState::Attacking;
+        CommenceAttack();
+    }
 }
 
 

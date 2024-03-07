@@ -581,18 +581,22 @@ void UCombatComponent::TraceUnderCrosshairs(FHitResult& TraceHitResult)
 		if (Character)
 		{
 			float DistanceToCharacter = (Character->GetActorLocation() - Start).Size();
-			Start += CrosshairWorldDirection * (DistanceToCharacter/1.2);
+			Start += CrosshairWorldDirection * (DistanceToCharacter);
 		}
 
 		//CrossWD is one unit in the direction, 80k is arbitrary to extend that reach
 		FVector End = Start + CrosshairWorldDirection * TRACE_LENGTH; 
-
+		FCollisionQueryParams ColParams;
+		if (Character) {
+			ColParams.AddIgnoredActor(Character);
+		}
 		//get impact result and store it in traceHR
 		GetWorld()->LineTraceSingleByChannel(
 			TraceHitResult,
 			Start,
 			End,
-			ECollisionChannel::ECC_Visibility
+			ECollisionChannel::ECC_Visibility,
+			ColParams
 		);
 
 		if (TraceHitResult.GetActor() && TraceHitResult.GetActor()->Implements<UInteractWithCrosshairsInterface>())

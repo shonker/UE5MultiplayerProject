@@ -44,8 +44,14 @@ ABlasterCharacter::ABlasterCharacter()
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
 	FollowCamera->bUsePawnControlRotation = false;
 	
+
+	FPSBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("FPSBoom"));
+	FPSBoom->SetupAttachment(GetMesh());
+	FPSBoom->TargetArmLength = 1.f;
+	FPSBoom->bUsePawnControlRotation = true;
+
 	FirstPersonCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FirstPersonCamera"));
-	//FirstPersonCamera->SetupAttachment(GetMesh(), TEXT("headSocket"));
+	FirstPersonCamera->SetupAttachment(FPSBoom, USpringArmComponent::SocketName);
 	FirstPersonCamera->bUsePawnControlRotation = false;
 
 	//this also has to be set in BP as BP will override them
@@ -139,17 +145,20 @@ void ABlasterCharacter::BeginPlay()
 		VisualTargetSphere->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Overlap);
 	}
 
-	//if (FirstPersonCamera)
-	//{
-	//	FollowCamera->SetActive(false);
-	//	FirstPersonCamera->SetActive(true);
-	//	FirstPersonCamera->bUsePawnControlRotation = false;
+	if (FirstPersonCamera)
+	{
+		FollowCamera->SetActive(false);
+		FirstPersonCamera->SetActive(true);
+		FirstPersonCamera->bUsePawnControlRotation = false;
 
-	//	//this also has to be set in BP as BP will override them
-	//	bUseControllerRotationYaw = true;
-	//	bUseControllerRotationPitch = true;
-	//	GetCharacterMovement()->bOrientRotationToMovement = false;
-	//}
+		//this also has to be set in BP as BP will override them
+		bUseControllerRotationYaw = true;
+		if (IsLocallyControlled())
+		{
+			bUseControllerRotationPitch = false;
+		}
+		GetCharacterMovement()->bOrientRotationToMovement = false;
+	}
 }
 
 // Called every frame
