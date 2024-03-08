@@ -9,6 +9,7 @@
 #include "Blaster/Character/BlasterCharacter.h"
 #include "Blaster/Weapon/Weapon.h"
 #include "Net/UnrealNetwork.h"
+#include "HomeBase.h"
 
 // Constructor
 AMama::AMama()
@@ -42,13 +43,13 @@ void AMama::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimePro
 void AMama::BeginPlay()
 {
 	Super::BeginPlay();
-	MamaHead->SetVisibility(false);
+	MamaHead->SetVisibility(true);
 	InvisBarrier->SetVisibility(false);
 	Consumer->SetVisibility(false);
 	if (HasAuthority())
 	{
 		Consumer->OnComponentBeginOverlap.AddDynamic(this, &AMama::HandleCollision);
-		GetWorld()->GetTimerManager().SetTimer(StateTimerHandle, this, &AMama::BeginActivatingState, 1.0f, false);
+		//GetWorld()->GetTimerManager().SetTimer(StateTimerHandle, this, &AMama::BeginActivatingState, 1.0f, false);
 	}
 }
 
@@ -71,7 +72,7 @@ void AMama::BeginConsumingState()
 void AMama::EvaluateConsumedMaterials()
 {
 	if (State == EState::SATED) return;
-	State = EState::STARVED;
+	ChangeState(EState::STARVED);
 }
 
 void AMama::OnRep_State()
@@ -108,7 +109,7 @@ void AMama::ChangeState(EState NewState)
 		if (HasAuthority())
 		{
 			Consumer->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-			GetWorld()->GetTimerManager().SetTimer(StateTimerHandle, this, &AMama::EvaluateConsumedMaterials, 30.0f, false);
+			GetWorld()->GetTimerManager().SetTimer(StateTimerHandle, this, &AMama::EvaluateConsumedMaterials, 2.0f, false);
 		}
 	break;
 
@@ -118,8 +119,8 @@ void AMama::ChangeState(EState NewState)
 	break;
 
 	case EState::STARVED:
-		InvisBarrier->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
-
+		if (InvisBarrier) InvisBarrier->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
+		if (HomeBase) HomeBase->MamaStarved();
 		break;
 	default:
 
@@ -185,4 +186,9 @@ void AMama::Multi_PlayEffectsForCharacter_Implementation(const FVector& Location
 	{
 		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), CharConsumedVFX, Location);
 	}
+}
+
+void AMama::SetHomeBase(AHomeBase* HB)
+{
+	HomeBase = HB;
 }

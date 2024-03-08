@@ -11,10 +11,12 @@
 #include "EngineUtils.h"
 #include "GameFramework/GameSession.h"
 #include "Blaster/GameState/BlasterGameState.h"
+#include "Blaster/HomeBase/HomeBase.h"
 
 namespace MatchState 
 {
 	const FName Cooldown = FName("Cooldown");
+	const FName Judgement = FName("Judgement");
 }
 
 ABlasterGameMode::ABlasterGameMode()
@@ -103,6 +105,14 @@ void ABlasterGameMode::OnMatchStateSet()
 	}
 }
 
+void ABlasterGameMode::StartCountdown()
+{
+	if (GetMatchState() == MatchState::WaitingToStart)
+	{
+		StartMatch(); // This will change the state to InProgress and start the countdown.
+	}
+}
+
 void ABlasterGameMode::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
@@ -121,12 +131,30 @@ void ABlasterGameMode::Tick(float DeltaTime)
 		CountdownTime = WarmupTime + MatchTime - GetWorld()->GetTimeSeconds() + LevelStartingTime;
 			if (CountdownTime < 0.f)
 			{
-				SetMatchState(MatchState::Cooldown);
+				for (TActorIterator<AHomeBase> It(GetWorld()); It; ++It)
+				{
+					AHomeBase* HomeBase = *It;
+					if (HomeBase)
+					{
+						HomeBase->BeginJudgement();
+						break;
+					}
+				}
+				SetMatchState(MatchState::Judgement);
 			}
 	}
+	else if (MatchState == MatchState::Judgement)
+	{
+		CountdownTime = JudgementTime + WarmupTime + MatchTime - GetWorld()->GetTimeSeconds() + LevelStartingTime;
+		if (CountdownTime < 0.f)
+		{
+			SetMatchState(MatchState::Cooldown);
+		}
+	}
+
 	else if (MatchState == MatchState::Cooldown)
 	{
-		CountdownTime = CooldownTime + WarmupTime + MatchTime - GetWorld()->GetTimeSeconds() + LevelStartingTime;
+		CountdownTime = CooldownTime + JudgementTime+ WarmupTime + MatchTime - GetWorld()->GetTimeSeconds() + LevelStartingTime;
 		if (CountdownTime <= 0.f)
 		{
 			RestartGame();

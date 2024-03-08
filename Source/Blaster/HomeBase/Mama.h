@@ -29,6 +29,8 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void BeginConsumingState();
 
+
+
 protected:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
@@ -85,5 +87,9 @@ private:
 
 	void ChangeState(EState NewState);
 	void EvaluateConsumedMaterials();
-
+	
+	class AHomeBase* HomeBase;
+	 
+public:
+	void SetHomeBase(AHomeBase* HB);
 };

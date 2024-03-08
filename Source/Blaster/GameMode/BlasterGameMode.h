@@ -20,6 +20,7 @@ class BLASTER_API ABlasterGameMode : public AGameMode
 	GENERATED_BODY()
 
 public:
+	void StartCountdown();
 	ABlasterGameMode();
 	virtual void Tick(float DeltaTime) override;
 	virtual void PlayerEliminated(
@@ -33,13 +34,16 @@ public:
 	);
 
 	UPROPERTY(EditDefaultsOnly)
-	float WarmupTime = 10.f;	
+	float WarmupTime = 2.f;	
 	
-	UPROPERTY(BlueprintReadWrite)
-	float MatchTime= 120.f;
+	UPROPERTY(EditDefaultsOnly,BlueprintReadWrite)
+	float MatchTime= 10.f;
+		
+	UPROPERTY(EditDefaultsOnly,BlueprintReadWrite)
+	float JudgementTime= 40.f;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	float CooldownTime= 10.f;
+	float CooldownTime= 2.f;
 
 	float LevelStartingTime = 0.f;
 
