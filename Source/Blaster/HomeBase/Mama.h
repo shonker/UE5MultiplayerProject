@@ -11,7 +11,9 @@ enum class EState : uint8
 	ACTIVATING UMETA(DisplayName = "Activating"),
 	CONSUMING UMETA(DisplayName = "Consuming"),
 	SATED UMETA(DisplayName = "Sated"),
-	STARVED UMETA(DisplayName = "Starved")
+	STARVED UMETA(DisplayName = "Starved"),
+	WIN UMETA(DisplayName = "Win"),
+	LOSS UMETA(DisplayName = "Loss")
 };
 
 UCLASS()
@@ -86,10 +88,14 @@ private:
 	FTimerHandle StateTimerHandle;
 
 	void ChangeState(EState NewState);
+	void RollTheDice();
+	void LevelWin();
+	void LevelLoss();
 	void EvaluateConsumedMaterials();
 	
 	class AHomeBase* HomeBase;
 	 
 public:
 	void SetHomeBase(AHomeBase* HB);
+	FORCEINLINE EState GetState() const { return State; }
 };

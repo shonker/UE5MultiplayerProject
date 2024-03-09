@@ -109,6 +109,8 @@ void AMama::ChangeState(EState NewState)
 		if (HasAuthority())
 		{
 			Consumer->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+
+			//todo: tie this time to judgement time somehow
 			GetWorld()->GetTimerManager().SetTimer(StateTimerHandle, this, &AMama::EvaluateConsumedMaterials, 2.0f, false);
 		}
 	break;
@@ -121,6 +123,13 @@ void AMama::ChangeState(EState NewState)
 	case EState::STARVED:
 		if (InvisBarrier) InvisBarrier->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
 		if (HomeBase) HomeBase->MamaStarved();
+		if (HasAuthority())
+		{
+			GetWorld()->GetTimerManager().SetTimer(StateTimerHandle, this, &AMama::RollTheDice, 2.0f, false);
+			//todo:
+			//play sfx static
+			//show subtitles "i... hunger..."
+		}
 		break;
 	default:
 
@@ -128,6 +137,33 @@ void AMama::ChangeState(EState NewState)
 	}
 }
 
+void AMama::RollTheDice()
+{
+	if (FMath::RandRange(0, TargetCurseTally) < TotalCurseTally)
+	{
+		//todo:
+		//sfx static
+		//subs "it is enough... for now"
+		GetWorld()->GetTimerManager().SetTimer(StateTimerHandle, this, &AMama::LevelWin, 4.0f, false);
+	}
+	else
+	{
+		//todo:
+		//sfx static
+		//subs "it's all fading away..."
+		//death sequence (something coming out of floor to get you?)
+		GetWorld()->GetTimerManager().SetTimer(StateTimerHandle, this, &AMama::LevelLoss, 10.0f, false);
+	}
+}
+
+void AMama::LevelWin()
+{
+	ChangeState(EState::WIN);
+}
+void AMama::LevelLoss()
+{
+	ChangeState(EState::LOSS);
+}
 
 void AMama::HandleCollision(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {

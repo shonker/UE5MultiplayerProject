@@ -37,9 +37,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 		void BeginJudgement();
 	UPROPERTY(ReplicatedUsing = OnRep_ActivateLights, BlueprintReadOnly)
-		bool bLights;
+		bool bLights = false;
 	UPROPERTY(ReplicatedUsing = OnRep_RedLights, BlueprintReadOnly)
-		bool bRedLights;
+		bool bRedLights = false;
 	UFUNCTION()
 		void OnRep_RedLights();
 	UFUNCTION()

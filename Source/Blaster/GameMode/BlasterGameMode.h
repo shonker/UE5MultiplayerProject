@@ -32,7 +32,12 @@ public:
 		class ACharacter* ElimmedCharacter,
 		AController* ElimmedController
 	);
-
+	class AHomeBase* HomeBase;
+	class AMama* Mama;
+	/*
+		Best not to confuse yourself, and
+		only set these "time" vars in editor!
+	*/
 	UPROPERTY(EditDefaultsOnly)
 	float WarmupTime = 2.f;	
 	

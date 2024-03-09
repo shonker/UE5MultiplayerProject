@@ -8,6 +8,7 @@
 
 AHomeBase::AHomeBase()
 {
+	SetReplicates(true);
 	RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("RootComponent"));
 
 	// Initialize the box component
@@ -28,6 +29,7 @@ void AHomeBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetim
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(AHomeBase, bLights);
+	DOREPLIFETIME(AHomeBase, bRedLights);
 }
 
 

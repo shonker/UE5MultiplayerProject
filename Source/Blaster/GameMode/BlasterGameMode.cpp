@@ -12,11 +12,13 @@
 #include "GameFramework/GameSession.h"
 #include "Blaster/GameState/BlasterGameState.h"
 #include "Blaster/HomeBase/HomeBase.h"
+#include "Blaster/HomeBase/Mama.h"
 
 namespace MatchState 
 {
 	const FName Cooldown = FName("Cooldown");
 	const FName Judgement = FName("Judgement");
+	const FName GameOver = FName("GameOver");
 }
 
 ABlasterGameMode::ABlasterGameMode()
@@ -87,6 +89,17 @@ void ABlasterGameMode::BeginPlay()
 	Super::BeginPlay();
 
 	LevelStartingTime = GetWorld()->GetTimeSeconds();
+
+	for (TActorIterator<AHomeBase> It(GetWorld()); It; ++It)
+	{
+		HomeBase = *It;
+		break;
+	}
+	for (TActorIterator<AMama> It(GetWorld()); It; ++It)
+	{
+		Mama = *It;
+		break;
+	}
 }
 
 void ABlasterGameMode::OnMatchStateSet()
@@ -116,7 +129,8 @@ void ABlasterGameMode::StartCountdown()
 void ABlasterGameMode::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
+		
+	//cant be switch case ????
 	if (MatchState == MatchState::WaitingToStart)
 	{
 		CountdownTime = WarmupTime - GetWorld()->GetTimeSeconds() + LevelStartingTime;
@@ -131,34 +145,38 @@ void ABlasterGameMode::Tick(float DeltaTime)
 		CountdownTime = WarmupTime + MatchTime - GetWorld()->GetTimeSeconds() + LevelStartingTime;
 			if (CountdownTime < 0.f)
 			{
-				for (TActorIterator<AHomeBase> It(GetWorld()); It; ++It)
+				if (HomeBase)
 				{
-					AHomeBase* HomeBase = *It;
-					if (HomeBase)
-					{
-						HomeBase->BeginJudgement();
-						break;
-					}
+					HomeBase->BeginJudgement();
 				}
 				SetMatchState(MatchState::Judgement);
 			}
 	}
+	//todo: consider if this setmatchstate can be simply callable from mama's state change
+	//instead of being checked here every tick lol
 	else if (MatchState == MatchState::Judgement)
 	{
-		CountdownTime = JudgementTime + WarmupTime + MatchTime - GetWorld()->GetTimeSeconds() + LevelStartingTime;
-		if (CountdownTime < 0.f)
+		if (Mama) 
 		{
-			SetMatchState(MatchState::Cooldown);
+			if (Mama->GetState() == EState::WIN)
+			{
+				SetMatchState(MatchState::Cooldown);
+			}
+			else if (Mama->GetState() == EState::LOSS)
+			{
+				SetMatchState(MatchState::GameOver);
+			}
 		}
 	}
 
 	else if (MatchState == MatchState::Cooldown)
 	{
-		CountdownTime = CooldownTime + JudgementTime+ WarmupTime + MatchTime - GetWorld()->GetTimeSeconds() + LevelStartingTime;
-		if (CountdownTime <= 0.f)
-		{
-			RestartGame();
-		}
+		//must reactivate seamless travel when building I think
+		RestartGame();
+	}
+	else if (MatchState == MatchState::GameOver)
+	{
+		
 	}
 }
 
