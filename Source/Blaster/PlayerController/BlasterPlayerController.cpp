@@ -252,13 +252,16 @@ void ABlasterPlayerController::SetHUDInteractText(const FString& Interaction)
 	BlasterHUD = BlasterHUD == nullptr ? Cast<ABlasterHUD>(GetHUD()) : BlasterHUD;
 	if (!BlasterHUD || !BlasterHUD->CharacterOverlay || !BlasterHUD->CharacterOverlay->InteractionText)
 		return;
-
+	ABlasterCharacter* BlasterCharacter = Cast<ABlasterCharacter>(GetPawn());
+	
 	if (Interaction.IsEmpty())
 	{
+		if (BlasterCharacter) BlasterCharacter->SetInteractionPossible(false);
 		BlasterHUD->CharacterOverlay->InteractionText->SetText(FText::GetEmpty());
 		return;
 	}
 
+	if (BlasterCharacter) BlasterCharacter->SetInteractionPossible(true);
 	FString KeyName = GetUserAssignedInputFor("Equip");
 	FString InteractText = FString::Printf(TEXT("%s: %s"), *KeyName, *Interaction);
 	BlasterHUD->CharacterOverlay->InteractionText->SetText(FText::FromString(InteractText));

@@ -141,8 +141,8 @@ void ABlasterCharacter::BeginPlay()
 
 		InteractSphere->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 		InteractSphere->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Overlap);
-		VisualTargetSphere->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-		VisualTargetSphere->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Overlap);
+		//VisualTargetSphere->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+		//VisualTargetSphere->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Overlap);
 	}
 
 	if (FirstPersonCamera)
@@ -915,6 +915,11 @@ void ABlasterCharacter::OnRep_InteractTargetLocation()
 	SetInteractAndVisualTargetSphereLocation(InteractTargetLocation);
 }
 
+void ABlasterCharacter::SetInteractionPossible(bool Possible)
+{
+	bInteractionPossible = Possible;
+	ChangeInteractionDotColor(Possible);
+}
 
 void ABlasterCharacter::ClearHUDInteractText()
 {

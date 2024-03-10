@@ -45,6 +45,9 @@ public:
 	UFUNCTION(BlueprintImplementableEvent)
 	void ShowSniperScopeWidget(bool bShowScope);
 
+	UFUNCTION(BlueprintImplementableEvent)
+	void ChangeInteractionDotColor(bool bInteractionDetected);
+
 	/*
 		ITEMS
 	*/
@@ -174,6 +177,9 @@ private:
 	UFUNCTION()
 	void OnRep_InteractTargetLocation();
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	bool bInteractionPossible = false;
+
 	UFUNCTION(Server, Reliable)
 	void ServerEquipButtonPressed();
 
@@ -283,6 +289,7 @@ private:
 public:	
 
 	//here it is updated for all clients AND server (logic for that inside)
+	void SetInteractionPossible(bool Possible);
 	void SetOverlappingWeapon(AWeapon* Weapon);
 	void SetOverlappingButton(AMyButton* Button);
 	void SetOverlappingBody(ARagdollCube* Cube);

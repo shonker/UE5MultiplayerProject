@@ -111,7 +111,7 @@ void AMama::ChangeState(EState NewState)
 			Consumer->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 
 			//todo: tie this time to judgement time somehow
-			GetWorld()->GetTimerManager().SetTimer(StateTimerHandle, this, &AMama::EvaluateConsumedMaterials, 2.0f, false);
+			GetWorld()->GetTimerManager().SetTimer(StateTimerHandle, this, &AMama::EvaluateConsumedMaterials, 10.0f, false);
 		}
 	break;
 
