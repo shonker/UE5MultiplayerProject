@@ -38,13 +38,14 @@ void UInventoryComponent::AddItem(AWeapon* Weapon)
     if (Combat)
     {
     	Combat->EquipWeapon(Weapon);
+        Combat->ResetColParams();
     }
     ActiveWeapon = Weapon;
 }
 
 void UInventoryComponent::ShuffleItem(bool bIsShuffleLeft)
 {
-    if (InventoryItems.Num() <= 1) return;
+    //if (InventoryItems.Num() < 1) return;
 
     int32 CurrentIndex = InventoryItems.IndexOfByKey(ActiveWeapon);
     int32 NextIndex;
@@ -63,6 +64,7 @@ void UInventoryComponent::ShuffleItem(bool bIsShuffleLeft)
     if (Combat)
     {
         Combat->EquipWeapon(ActiveWeapon);
+        Combat->ResetColParams();
     }
 }
 
@@ -82,6 +84,10 @@ void UInventoryComponent::RemoveAllItems()
         InventoryItems[i]->GetWeaponMesh()->AddImpulse(DropImpulse, NAME_None, true);
     }
     InventoryItems.Empty();
+    if (Combat)
+    {
+        Combat->ResetColParams();
+    }
 }
 
 void UInventoryComponent::RemoveItem()
@@ -90,5 +96,13 @@ void UInventoryComponent::RemoveItem()
 
     InventoryItems.RemoveSingle(ActiveWeapon);
     ActiveWeapon = nullptr;
+    if (Combat)
+    {
+        Combat->ResetColParams();
+    }
 }
 
+TArray<AWeapon*> UInventoryComponent::GetEquippedWeapons() const
+{
+    return InventoryItems;
+}

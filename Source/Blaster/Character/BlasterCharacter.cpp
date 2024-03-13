@@ -300,6 +300,10 @@ void ABlasterCharacter::PlayReloadMontage()
 		case EWeaponType::EWT_GrenadeLauncher:
 			SectionName = FName("Rifle");
 			break;
+		
+		case EWeaponType::EWT_Item:
+			SectionName = FName("Rifle"); //todo: replace with "shake" (?)
+			break;
 		}
 		AnimInstance->Montage_JumpToSection(SectionName);
 	}

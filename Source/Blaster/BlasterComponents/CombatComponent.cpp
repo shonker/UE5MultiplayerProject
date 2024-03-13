@@ -53,6 +53,8 @@ void UCombatComponent::BeginPlay()
 			InitializeCarriedAmmo();
 		}
 	}
+
+	ResetColParams();
 }
 
 void UCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
@@ -104,6 +106,7 @@ void UCombatComponent::InitializeCarriedAmmo()
 	CarriedAmmoMap.Emplace(EWeaponType::EWT_Shotgun, StartingShotgunAmmo);
 	CarriedAmmoMap.Emplace(EWeaponType::EWT_SniperRifle, StartingSniperAmmo);
 	CarriedAmmoMap.Emplace(EWeaponType::EWT_GrenadeLauncher, StartingGrenadeLauncherAmmo);
+	CarriedAmmoMap.Emplace(EWeaponType::EWT_Item, StartingItemAmmo);
 }
 
 void UCombatComponent::OnRep_CarriedAmmo()
@@ -155,10 +158,7 @@ void UCombatComponent::StartFireTimer()
 
 void UCombatComponent::FireTimerFinished()
 {
-	if (EquippedWeapon == nullptr)
-	{
-		return;
-	}
+
 	bCanFire = true;
 	if (bFireButtonPressed && EquippedWeapon->bAutomatic)
 	{
@@ -297,8 +297,6 @@ void UCombatComponent::NetMulticastThrow_Implementation(FVector_NetQuantize10 Pr
 	if (Character)
 	{
 		Character->PlayThrowMontage();
-		Character->bUseControllerRotationYaw = false;
-		Character->GetCharacterMovement()->bOrientRotationToMovement = true;
 	}
 	if (InventoryComponent)
 	{
@@ -368,7 +366,6 @@ void UCombatComponent::UpdateAmmoValues()
 	}
 	EquippedWeapon->AddAmmo(-ReloadAmount);
 }
-
 
 void UCombatComponent::HandleReload()
 {
@@ -460,7 +457,7 @@ void UCombatComponent::EquipWeapon(AWeapon *WeaponToEquip)
 	//we implemented the equipped weapon blendspace into the anim BP
 	Character->GetCharacterMovement()->bOrientRotationToMovement = false;
 	Character->bUseControllerRotationYaw = true;
-
+	bCanFire = true;
 }
 
 void UCombatComponent::OnRep_EquippedWeapon()
@@ -556,6 +553,26 @@ void UCombatComponent::ReloadEmptyWeapon()
 	}
 }
 
+void UCombatComponent::ResetColParams()
+{
+	//todo: delete col params to redefine the parameters first
+	ColParams = FCollisionQueryParams(FName(TEXT("Trace")), true);
+	if (Character) {
+		ColParams.AddIgnoredActor(Character);
+	}
+	if (InventoryComponent)
+	{
+		TArray<AWeapon*> EquippedWeapons = InventoryComponent->GetEquippedWeapons();
+		for (AWeapon* Weapon : EquippedWeapons)
+		{
+			if (Weapon)
+			{
+				ColParams.AddIgnoredActor(Weapon);
+			}
+		}
+	}
+}
+
 void UCombatComponent::TraceUnderCrosshairs(FHitResult& TraceHitResult)
 {
 	FVector2D ViewportSize;
@@ -578,18 +595,8 @@ void UCombatComponent::TraceUnderCrosshairs(FHitResult& TraceHitResult)
 	{
 		FVector Start = CrosshairWorldPosition;
 
-		if (Character)
-		{
-			float DistanceToCharacter = (Character->GetActorLocation() - Start).Size();
-			Start += CrosshairWorldDirection * (DistanceToCharacter);
-		}
-
 		//CrossWD is one unit in the direction, 80k is arbitrary to extend that reach
 		FVector End = Start + CrosshairWorldDirection * TRACE_LENGTH; 
-		FCollisionQueryParams ColParams;
-		if (Character) {
-			ColParams.AddIgnoredActor(Character);
-		}
 		//get impact result and store it in traceHR
 		GetWorld()->LineTraceSingleByChannel(
 			TraceHitResult,

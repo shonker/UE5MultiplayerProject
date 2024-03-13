@@ -26,6 +26,7 @@ public:
     void ShuffleItem(bool bIsShuffleLeft);
     void RemoveItem();
     void RemoveAllItems();
+    TArray<AWeapon*> GetEquippedWeapons() const;
 
     
     // Replication

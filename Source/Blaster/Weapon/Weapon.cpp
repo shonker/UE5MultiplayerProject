@@ -188,55 +188,20 @@ void AWeapon::OnRep_Owner()
 void AWeapon::SetWeaponState(EWeaponState State)
 {
 	WeaponState = State;
-	switch (WeaponState)
-	{
-	case EWeaponState::EWS_Equipped:
-		ShowPickupWidget(false);
-		WeaponMesh->SetVisibility(true);
-		if (WeaponMesh->IsSimulatingPhysics()) WeaponMesh->SetSimulatePhysics(false);
-		WeaponMesh->SetEnableGravity(false);
-		WeaponMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-		AreaBox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-
-		if (WeaponType == EWeaponType::EWT_SubmachineGun) 
-		{
-			WeaponMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-			WeaponMesh->SetEnableGravity(false);
-			WeaponMesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
-			WeaponMesh->WakeAllRigidBodies();
-		}
-		break;
-
-	case EWeaponState::EWS_Dropped:
-		AreaBox->SetCollisionResponseToChannel(ECollisionChannel::ECC_WorldDynamic, ECollisionResponse::ECR_Overlap);
-		AreaBox->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-		AreaBox->SetCollisionResponseToChannel(ECollisionChannel::ECC_Visibility, ECollisionResponse::ECR_Block);
-		
-		WeaponMesh->SetVisibility(true);
-		WeaponMesh->SetSimulatePhysics(true);
-		WeaponMesh->SetEnableGravity(true);
-		WeaponMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-		WeaponMesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Block);
-		WeaponMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Ignore);
-		WeaponMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
-		WeaponMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Visibility, ECollisionResponse::ECR_Ignore);
-
-		break;
-
-	case EWeaponState::EWS_Stored:
-		WeaponMesh->SetVisibility(false);
-		break;
-	}
-	
+	OnSetWeaponState(State);
 }
 
 //only one replicated var-> weap state
 void AWeapon::OnRep_WeaponState()
 {
+	OnSetWeaponState(WeaponState);
+}
+
+void AWeapon::OnSetWeaponState(EWeaponState State)
+{
 	switch (WeaponState)
 	{
 	case EWeaponState::EWS_Equipped:
-
 		ShowPickupWidget(false);
 		WeaponMesh->SetVisibility(true);
 		if (WeaponMesh->IsSimulatingPhysics()) WeaponMesh->SetSimulatePhysics(false);
@@ -251,11 +216,11 @@ void AWeapon::OnRep_WeaponState()
 			WeaponMesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
 			WeaponMesh->WakeAllRigidBodies();
 		}
-	break;
+		break;
 
 	case EWeaponState::EWS_Dropped:
-		AreaBox->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 		AreaBox->SetCollisionResponseToChannel(ECollisionChannel::ECC_WorldDynamic, ECollisionResponse::ECR_Overlap);
+		AreaBox->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 		AreaBox->SetCollisionResponseToChannel(ECollisionChannel::ECC_Visibility, ECollisionResponse::ECR_Block);
 
 		WeaponMesh->SetVisibility(true);
@@ -267,7 +232,7 @@ void AWeapon::OnRep_WeaponState()
 		WeaponMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
 		WeaponMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Visibility, ECollisionResponse::ECR_Ignore);
 
-	break;
+		break;
 
 	case EWeaponState::EWS_Stored:
 		WeaponMesh->SetVisibility(false);

@@ -121,6 +121,8 @@ private:
 	UFUNCTION()
 	void OnRep_WeaponState();
 
+	void OnSetWeaponState(EWeaponState State);
+
 	UPROPERTY(VisibleAnywhere, Category = "Weapon Properties")
 	class UWidgetComponent* PickupWidget;
 
@@ -136,7 +138,7 @@ private:
 	UFUNCTION()
 	void OnRep_Ammo();
 
-	void SpendRound();
+	virtual void SpendRound();
 
 	UPROPERTY(EditAnywhere)
 	int32 MagCapacity;
@@ -153,7 +155,7 @@ private:
 	EWeaponType WeaponType;
 
 public:
-	void SetWeaponState(EWeaponState State);
+	virtual void SetWeaponState(EWeaponState State);
 	FORCEINLINE UBoxComponent* GetAreaSphere() const {return AreaBox;}
 	FORCEINLINE USkeletalMeshComponent* GetWeaponMesh() const {return WeaponMesh;}
 	FORCEINLINE float GetZoomedFOV() const { return ZoomedFOV; }

@@ -28,6 +28,7 @@ public:
 	//void UCombatComponent::UnEquipWeapon(AWeapon* WeaponToUnEquip, FVector_NetQuantize10 ProvidedThrowVector = 0);
 	void Reload();
 
+	void ResetColParams();
 	void FireButtonPressed(bool bPressed);
 
 	UFUNCTION(BlueprintCallable)
@@ -133,6 +134,7 @@ private:
 	float CrosshairShootingFactor;
 
 	FVector HitTarget;
+	FCollisionQueryParams ColParams;
 
 	FHUDPackage HUDPackage;
 
@@ -193,6 +195,9 @@ private:
 
 	UPROPERTY(EditAnywhere)
 	int32 StartingGrenadeLauncherAmmo = 4;
+
+	UPROPERTY(EditAnywhere)
+	int32 StartingItemAmmo = 999999;
 
 	void InitializeCarriedAmmo();
 
