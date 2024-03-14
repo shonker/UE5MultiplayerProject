@@ -286,8 +286,20 @@ private:
 
 	UPROPERTY()
 	class ABlasterPlayerState* BlasterPlayerState;
-public:	
 
+	/*
+		CURSES: make sure to put modifiers in the "remove all curses" function;
+	*/
+	bool bTakesFallDamage = false;
+	bool bReversedMovementControls = false;
+	bool bReversedLookControls = false;
+	bool bShiftMovementControls = false;
+public:	
+	void RemoveAllCurses();
+	void SetShiftMovementControls(bool Shift);
+	void SetReversedMovementControls(bool Reversed);
+	void SetReversedLookControls(bool Reversed);
+	void SetTakesFallDamage(bool TakesFallDamage);
 	//here it is updated for all clients AND server (logic for that inside)
 	void SetInteractionPossible(bool Possible);
 	void SetOverlappingWeapon(AWeapon* Weapon);

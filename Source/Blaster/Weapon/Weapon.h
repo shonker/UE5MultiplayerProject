@@ -87,7 +87,13 @@ public:
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+	virtual void OnSetWeaponState(EWeaponState State);
 
+	UPROPERTY()
+		class ABlasterCharacter* BlasterOwnerCharacter;
+	UPROPERTY()
+		class ABlasterPlayerController* BlasterOwnerController;
+	
 	UFUNCTION()
 	virtual void OnSphereOverlap(
 		UPrimitiveComponent* OverlappedComponent,
@@ -106,8 +112,6 @@ protected:
 		int32 OtherBodyIndex
 	);
 
-
-
 private:
 	UPROPERTY(VisibleAnywhere, Category = "Weapon Properties")
 	USkeletalMeshComponent* WeaponMesh;
@@ -121,7 +125,6 @@ private:
 	UFUNCTION()
 	void OnRep_WeaponState();
 
-	void OnSetWeaponState(EWeaponState State);
 
 	UPROPERTY(VisibleAnywhere, Category = "Weapon Properties")
 	class UWidgetComponent* PickupWidget;
@@ -146,16 +149,13 @@ private:
 	UPROPERTY(EditAnywhere)
 	int32 CurseValue = 5;
 
-	UPROPERTY()
-	class ABlasterCharacter* BlasterOwnerCharacter;
-	UPROPERTY()
-	class ABlasterPlayerController* BlasterOwnerController;
+	
 
 	UPROPERTY(EditAnywhere)
 	EWeaponType WeaponType;
 
 public:
-	virtual void SetWeaponState(EWeaponState State);
+	void SetWeaponState(EWeaponState State);
 	FORCEINLINE UBoxComponent* GetAreaSphere() const {return AreaBox;}
 	FORCEINLINE USkeletalMeshComponent* GetWeaponMesh() const {return WeaponMesh;}
 	FORCEINLINE float GetZoomedFOV() const { return ZoomedFOV; }

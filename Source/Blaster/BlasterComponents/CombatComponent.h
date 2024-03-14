@@ -197,7 +197,7 @@ private:
 	int32 StartingGrenadeLauncherAmmo = 4;
 
 	UPROPERTY(EditAnywhere)
-	int32 StartingItemAmmo = 999999;
+	int32 StartingItemAmmo = 0;
 
 	void InitializeCarriedAmmo();
 

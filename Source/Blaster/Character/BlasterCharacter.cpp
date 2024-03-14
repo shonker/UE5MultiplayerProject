@@ -477,7 +477,8 @@ void ABlasterCharacter::MoveForward(float Value)
 	if (bDisableGameplay) return;
 	if (Controller != nullptr && Value != 0.f)
 	{
-		const FRotator YawRotation(0.f, Controller->GetControlRotation().Yaw, 0.f);
+		if (bReversedMovementControls) Value = -Value;
+		const FRotator YawRotation(0.f, Controller->GetControlRotation().Yaw + 15.f, 0.f);
 		//Return an f vector only containing the rotation on the x axis, zero'd out on the pitch and roll
 		const FVector Direction( FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X));
 		//this only tells the system that movement input is applied
@@ -491,6 +492,7 @@ void ABlasterCharacter::MoveRight(float Value)
 	if (bDisableGameplay) return;
 	if (Controller != nullptr && Value != 0.f)
 	{
+		if (bReversedMovementControls) Value = -Value;
 		//same as move forward, BUT isolate Y axis
 		const FRotator YawRotation(0.f, Controller->GetControlRotation().Yaw, 0.f);
 		const FVector Direction(FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y));
@@ -500,12 +502,13 @@ void ABlasterCharacter::MoveRight(float Value)
 
 void ABlasterCharacter::Turn(float Value)
 {
+	if (bReversedLookControls) Value = -Value;
 	AddControllerYawInput(Value);
-	
 }
 
 void ABlasterCharacter::LookUp(float Value)
 {
+	if (bReversedLookControls) Value = -Value;
 	AddControllerPitchInput(Value);
 }
 
@@ -917,6 +920,34 @@ void ABlasterCharacter::ServerSetInteractTarget_Implementation(FVector_NetQuanti
 void ABlasterCharacter::OnRep_InteractTargetLocation()
 {
 	SetInteractAndVisualTargetSphereLocation(InteractTargetLocation);
+}
+
+void ABlasterCharacter::RemoveAllCurses()
+{
+	SetReversedMovementControls(false);
+	SetReversedLookControls(false);
+	SetTakesFallDamage(false);
+	SetShiftMovementControls(false);
+}
+
+void ABlasterCharacter::SetShiftMovementControls(bool Shift)
+{
+	bShiftMovementControls = Shift;
+}
+
+void ABlasterCharacter::SetReversedMovementControls(bool Reversed)
+{
+	bReversedMovementControls = Reversed;
+}
+
+void ABlasterCharacter::SetReversedLookControls(bool Reversed)
+{
+	bReversedLookControls = Reversed;
+}
+
+void ABlasterCharacter::SetTakesFallDamage(bool TakesFallDamage)
+{
+	bTakesFallDamage = TakesFallDamage;
 }
 
 void ABlasterCharacter::SetInteractionPossible(bool Possible)
