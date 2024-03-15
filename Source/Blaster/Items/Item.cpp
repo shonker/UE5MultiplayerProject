@@ -55,6 +55,11 @@ void AItem::UpdateCurse(EWeaponState State)
 		Cast<ABlasterCharacter>(GetOwner()) :
 		BlasterOwnerCharacter;
 
+	BlasterOwnerController =
+		BlasterOwnerController == nullptr ?
+		Cast<ABlasterPlayerController>(BlasterOwnerCharacter->Controller) :
+		BlasterOwnerController;
+
 	if (!BlasterOwnerCharacter) return;
 
 	//HARD
@@ -83,6 +88,7 @@ void AItem::UpdateCurse(EWeaponState State)
 
 void AItem::HeavyJumping(EWeaponState State)
 {
+	if (!BlasterOwnerCharacter) return;
 	switch (State)
 	{
 	case EWeaponState::EWS_Equipped:
@@ -124,13 +130,11 @@ void AItem::HealthSap(EWeaponState State)
 	switch (State)
 	{
 	case EWeaponState::EWS_Equipped:
-			// Start a repeating timer to decrease health
-			BlasterOwnerCharacter->GetWorld()->GetTimerManager().SetTimer(HealthSapTimerHandle, this, &AItem::DecreaseHealth, 1.0f, true, 0.0f);
+		GetWorld()->GetTimerManager().SetTimer(HealthSapTimerHandle, this, &AItem::DecreaseHealth, 2.0f, true, 0.0f);
 		break;
 
 	case EWeaponState::EWS_Dropped:
-		// Stop the health sap effect
-		BlasterOwnerCharacter->GetWorld()->GetTimerManager().ClearTimer(HealthSapTimerHandle);
+		GetWorld()->GetTimerManager().ClearTimer(HealthSapTimerHandle);
 		break;
 
 	case EWeaponState::EWS_Stored:
@@ -141,15 +145,25 @@ void AItem::HealthSap(EWeaponState State)
 
 void AItem::DecreaseHealth()
 {
-	if (BlasterOwnerCharacter)
+	if (!BlasterOwnerCharacter) return;
+
+	BlasterOwnerController =
+	BlasterOwnerController == nullptr ?
+	Cast<ABlasterPlayerController>(BlasterOwnerCharacter->Controller) :
+	BlasterOwnerController;
+
+	if (BlasterOwnerController)
 	{
-		//// Assuming Health is a property that can be directly accessed and modified
-		//BlasterOwnerCharacter->Health -= 5.f; // Decrease health by 5 units
-		//if (BlasterOwnerCharacter->Health <= 0)
-		//{
-		//	BlasterOwnerCharacter->Elim(); // Eliminate the character if health reaches 0
-		//}
+		UGameplayStatics::ApplyDamage(
+			BlasterOwnerCharacter,
+			1.f,
+			BlasterOwnerController,
+			this,
+			UDamageType::StaticClass()
+		);
 	}
+
+	GetWorld()->GetTimerManager().SetTimer(HealthSapTimerHandle, this, &AItem::DecreaseHealth, 2.0f, true, 0.0f);
 }
 
 void AItem::ReversedMovementControls(EWeaponState State)
@@ -226,11 +240,11 @@ void AItem::CountdownPain(EWeaponState State)
 	switch (State)
 	{
 	case EWeaponState::EWS_Equipped:
-		BlasterOwnerCharacter->GetWorld()->GetTimerManager().SetTimer(CountdownPainTimerHandle, this, &AItem::TriggerCountdownPain, 10.0f, true, 10.0f); // Trigger every 10 seconds
+		GetWorld()->GetTimerManager().SetTimer(CountdownPainTimerHandle, this, &AItem::TriggerCountdownPain, 10.0f, true, 10.0f); // Trigger every 10 seconds
 		break;
 
 	case EWeaponState::EWS_Dropped:
-		BlasterOwnerCharacter->GetWorld()->GetTimerManager().ClearTimer(CountdownPainTimerHandle);
+		GetWorld()->GetTimerManager().ClearTimer(CountdownPainTimerHandle);
 		break;
 
 	case EWeaponState::EWS_Stored:
@@ -242,8 +256,7 @@ void AItem::TriggerCountdownPain()
 {
 	if (BlasterOwnerCharacter)
 	{
-		// Apply pain/damage
-		const float DamageAmount = 10.0f; // Example damage amount
+		const float DamageAmount = 10.0f;
 		BlasterOwnerCharacter->TakeDamage(DamageAmount, FDamageEvent(), nullptr, nullptr);
 	}
 }
@@ -254,12 +267,10 @@ void AItem::FallDamage(EWeaponState State)
 	switch (State)
 	{
 	case EWeaponState::EWS_Equipped:
-		// Indicate that increased fall damage should apply
-		BlasterOwnerCharacter->SetTakesFallDamage(true); // Assuming you handle fall damage somewhere and check this flag
+		BlasterOwnerCharacter->SetTakesFallDamage(true); 
 		break;
 
 	case EWeaponState::EWS_Dropped:
-		// Reset fall damage to normal
 		BlasterOwnerCharacter->SetTakesFallDamage(false);
 		break;
 
@@ -294,13 +305,13 @@ void AItem::Knocking(EWeaponState State)
 		if (BlasterOwnerCharacter)
 		{
 			// Start a repeating timer to play knocking sound
-			BlasterOwnerCharacter->GetWorld()->GetTimerManager().SetTimer(KnockingSoundTimerHandle, this, &AItem::PlayKnockingSound, 5.0f, true, 5.0f); // Every 5 seconds
+			GetWorld()->GetTimerManager().SetTimer(KnockingSoundTimerHandle, this, &AItem::PlayKnockingSound, 5.0f, true, 5.0f); // Every 5 seconds
 		}
 		break;
 
 	case EWeaponState::EWS_Dropped:
 		// Stop the knocking sound effect
-		BlasterOwnerCharacter->GetWorld()->GetTimerManager().ClearTimer(KnockingSoundTimerHandle);
+		GetWorld()->GetTimerManager().ClearTimer(KnockingSoundTimerHandle);
 		break;
 
 	case EWeaponState::EWS_Stored:

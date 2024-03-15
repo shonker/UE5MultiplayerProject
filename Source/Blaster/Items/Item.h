@@ -89,6 +89,9 @@ protected:
 	UPROPERTY(EditAnywhere, Category = CurseSFX)
 		class USoundCue* BuzzingCue;
 
+
+	class ABlasterCharacter* BlasterOwnerCharacter;
+	class ABlasterPlayerController* BlasterOwnerController;
 private:
 	virtual void SpendRound() override;
 	virtual void Fire(const FVector& HitTarget) override;

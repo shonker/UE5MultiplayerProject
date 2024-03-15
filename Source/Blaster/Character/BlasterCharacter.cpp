@@ -469,7 +469,6 @@ void ABlasterCharacter::ReceiveDamage(
 			BlasterGameMode->PlayerEliminated(this, BlasterPlayerController, AttackerController);
 		}
 	}
-
 }
 
 void ABlasterCharacter::MoveForward(float Value)
@@ -477,8 +476,10 @@ void ABlasterCharacter::MoveForward(float Value)
 	if (bDisableGameplay) return;
 	if (Controller != nullptr && Value != 0.f)
 	{
+		float MovRotationShift = 0;
+		if (bShiftMovementControls) MovRotationShift = 15.f;
 		if (bReversedMovementControls) Value = -Value;
-		const FRotator YawRotation(0.f, Controller->GetControlRotation().Yaw + 15.f, 0.f);
+		const FRotator YawRotation(0.f, Controller->GetControlRotation().Yaw + MovRotationShift, 0.f);
 		//Return an f vector only containing the rotation on the x axis, zero'd out on the pitch and roll
 		const FVector Direction( FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X));
 		//this only tells the system that movement input is applied
