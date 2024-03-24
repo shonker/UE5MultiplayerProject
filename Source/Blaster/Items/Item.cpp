@@ -372,7 +372,7 @@ void AItem::Knocking(EWeaponState State)
 		if (BlasterOwnerCharacter)
 		{
 			// Start a repeating timer to play knocking sound
-			GetWorld()->GetTimerManager().SetTimer(KnockingSoundTimerHandle, this, &AItem::PlayKnockingSound, 5.0f, true, 5.0f); // Every 5 seconds
+			GetWorld()->GetTimerManager().SetTimer(KnockingSoundTimerHandle, this, &AItem::PlayKnockingSound, FMath::RandRange(10,20), true, 3.0f); // Every 5 seconds
 		}
 		break;
 
