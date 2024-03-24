@@ -314,6 +314,7 @@ public:
 	FORCEINLINE ETurningInPlace GetTurningInPlace() const {return TurningInPlace; }
 	FVector GetHitTarget() const;
 	FORCEINLINE UCameraComponent* GetFollowCamera() const {return FollowCamera; }
+	FORCEINLINE UCameraComponent* GetFPSCamera() const {return FirstPersonCamera; }
 	//gun rotation for hands
 	UPROPERTY(EditAnywhere, Category = "Weapon Rotation Correction")
 	float RightHandRotationRoll;

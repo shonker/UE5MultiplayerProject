@@ -79,7 +79,13 @@ protected:
 	UPROPERTY(EditAnywhere, Category = CurseSFX)
 		class USoundCue* KnockingCue;
 	UPROPERTY(EditAnywhere, Category = CurseSFX)
-		class USoundCue* LaughingCue;
+		class USoundCue* ManLaughingCue;
+	UPROPERTY(EditAnywhere, Category = CurseSFX)
+		class USoundCue* WomanLaughingCue;
+	UPROPERTY(EditAnywhere, Category = CurseSFX)
+		class USoundCue* ChildLaughingCue;
+	UPROPERTY(EditAnywhere, Category = CurseSFX)
+		class USoundCue* WallBangCue;
 
 	//line of sight:
 	UPROPERTY(EditAnywhere, Category = CurseSFX)
@@ -89,6 +95,11 @@ protected:
 	UPROPERTY(EditAnywhere, Category = CurseSFX)
 		class USoundCue* BuzzingCue;
 
+	//pain????
+	UPROPERTY(EditAnywhere, Category = CurseSFX)
+		class USoundCue* HealthSapCue;
+	UPROPERTY(EditAnywhere, Category = CurseSFX)
+		class USoundCue* BreathCue;
 
 	class ABlasterCharacter* BlasterOwnerCharacter;
 	class ABlasterPlayerController* BlasterOwnerController;

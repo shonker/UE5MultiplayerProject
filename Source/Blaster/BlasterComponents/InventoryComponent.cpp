@@ -45,7 +45,7 @@ void UInventoryComponent::AddItem(AWeapon* Weapon)
 
 void UInventoryComponent::ShuffleItem(bool bIsShuffleLeft)
 {
-    //if (InventoryItems.Num() < 1) return;
+    if (InventoryItems.Num() < 1) return;
 
     int32 CurrentIndex = InventoryItems.IndexOfByKey(ActiveWeapon);
     int32 NextIndex;

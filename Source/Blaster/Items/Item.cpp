@@ -114,18 +114,19 @@ void AItem::HeavyJumping(EWeaponState State)
 
 void AItem::Blindness(EWeaponState State)
 {
-	if (!BlasterOwnerCharacter) return;
+	if (!BlasterOwnerCharacter)
+	{
+		UE_LOG(LogTemp, Error, TEXT("Blaster Owner Character inaccessible??"));
+		return;
+	}
 	switch (State)
 	{
 	case EWeaponState::EWS_PickedUp:
-			BlasterOwnerCharacter->GetFollowCamera()->SetFieldOfView(10.f);
+			BlasterOwnerCharacter->GetFPSCamera()->SetFieldOfView(10.f);
 		break;
 
 	case EWeaponState::EWS_Dropped:
-			BlasterOwnerCharacter->GetFollowCamera()->SetFieldOfView(90.f);
-		break;
-
-	case EWeaponState::EWS_Stored:
+			BlasterOwnerCharacter->GetFPSCamera()->SetFieldOfView(90.f);
 		break;
 	}
 }
@@ -141,10 +142,6 @@ void AItem::HealthSap(EWeaponState State)
 
 	case EWeaponState::EWS_Dropped:
 		GetWorld()->GetTimerManager().ClearTimer(HealthSapTimerHandle);
-		break;
-
-	case EWeaponState::EWS_Stored:
-		// No action needed for stored state in this case
 		break;
 	}
 }
@@ -168,6 +165,11 @@ void AItem::DecreaseHealth()
 			UDamageType::StaticClass()
 		);
 	}
+
+	if (BlasterOwnerCharacter && HealthSapCue && FMath::RandBool())
+	{
+		UGameplayStatics::PlaySoundAtLocation(this, HealthSapCue, BlasterOwnerCharacter->GetActorLocation());
+	}
 }
 
 void AItem::ReversedMovementControls(EWeaponState State)
@@ -181,9 +183,6 @@ void AItem::ReversedMovementControls(EWeaponState State)
 
 	case EWeaponState::EWS_Dropped:
 			BlasterOwnerCharacter->SetReversedMovementControls(false);
-		break;
-
-	case EWeaponState::EWS_Stored:
 		break;
 	}
 }
@@ -383,9 +382,21 @@ void AItem::Laughing(EWeaponState State)
 
 void AItem::PlayLaughingSound()
 {
-	if (BlasterOwnerCharacter && LaughingCue)
+	if (BlasterOwnerCharacter)
 	{
-		UGameplayStatics::PlaySoundAtLocation(this, LaughingCue, BlasterOwnerCharacter->GetActorLocation());
+		int SoundChosen = FMath::RandRange(0, 2);
+		switch (SoundChosen)
+		{
+		case 0:
+			UGameplayStatics::PlaySoundAtLocation(this, ManLaughingCue, BlasterOwnerCharacter->GetActorLocation());
+			break;
+		case 1:
+			UGameplayStatics::PlaySoundAtLocation(this, WomanLaughingCue, BlasterOwnerCharacter->GetActorLocation());
+			break;
+		case 2:
+			UGameplayStatics::PlaySoundAtLocation(this, ChildLaughingCue, BlasterOwnerCharacter->GetActorLocation());
+			break;
+		}
 	}
 }
 
