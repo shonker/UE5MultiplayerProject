@@ -112,6 +112,9 @@ protected:
 		UPrimitiveComponent* OtherComp,
 		int32 OtherBodyIndex
 	);
+	
+	UPROPERTY(ReplicatedUsing = OnRep_WeaponState, VisibleAnywhere, Category = "Weapon Properties")
+	EWeaponState WeaponState;
 
 private:
 	UPROPERTY(VisibleAnywhere, Category = "Weapon Properties")
@@ -119,9 +122,6 @@ private:
 	
 	UPROPERTY(VisibleAnywhere, Category = "Weapon Properties")
 	class UBoxComponent* AreaBox;
-
-	UPROPERTY(ReplicatedUsing = OnRep_WeaponState, VisibleAnywhere, Category = "Weapon Properties")
-	EWeaponState WeaponState;
 
 	UFUNCTION()
 	void OnRep_WeaponState();

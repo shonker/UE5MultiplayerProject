@@ -114,21 +114,85 @@ void AItem::HeavyJumping(EWeaponState State)
 
 void AItem::Blindness(EWeaponState State)
 {
-	if (!BlasterOwnerCharacter)
-	{
-		UE_LOG(LogTemp, Error, TEXT("Blaster Owner Character inaccessible??"));
-		return;
-	}
+	if (!BlasterOwnerCharacter) return;
+	if (!BlasterOwnerCharacter->IsLocallyControlled()) return;
+
 	switch (State)
 	{
 	case EWeaponState::EWS_PickedUp:
-			BlasterOwnerCharacter->GetFPSCamera()->SetFieldOfView(10.f);
+		RandomizeFOV();
+		GetWorld()->GetTimerManager().SetTimer(FOVTimerHandle, [this]()
+			{
+				RandomizeFOV(); 
+			}, FMath::RandRange(5.0f, 15.0f), true); 
 		break;
 
 	case EWeaponState::EWS_Dropped:
-			BlasterOwnerCharacter->GetFPSCamera()->SetFieldOfView(90.f);
+		GetWorld()->GetTimerManager().ClearTimer(FOVTimerHandle);
+		
+		float TargetFOV = 90.f;
+		const float TransitionDuration = 2.0f; // Duration of the FOV transition in seconds
+		const float UpdateInterval = 0.01f; //
+
+		float StartTime = GetWorld()->GetTimeSeconds();
+		GetWorld()->GetTimerManager().SetTimer(FOVInterpHandle, [this, StartTime, TransitionDuration, TargetFOV, UpdateInterval]() {
+			float ElapsedTime = GetWorld()->GetTimeSeconds() - StartTime;
+			float Alpha = FMath::Clamp(ElapsedTime / TransitionDuration, 0.0f, 1.0f);
+			float NewFOV = FMath::Lerp(BlasterOwnerCharacter->GetFPSCamera()->FieldOfView, TargetFOV, Alpha);
+			BlasterOwnerCharacter->GetFPSCamera()->SetFieldOfView(NewFOV);
+
+			// Stop the timer if the transition is complete
+			if (Alpha >= 1.0f)
+			{
+				GetWorld()->GetTimerManager().ClearTimer(FOVInterpHandle);
+			}
+			}, UpdateInterval, true);
 		break;
 	}
+}
+void AItem::RandomizeFOV()
+{
+	if (!BlasterOwnerCharacter) return;
+
+	if (LongBreathCue)
+	{
+		UGameplayStatics::PlaySoundAtLocation(this, LongBreathCue, BlasterOwnerCharacter->GetActorLocation());
+	}
+
+	float InitialFOV = BlasterOwnerCharacter->GetFPSCamera()->FieldOfView;
+	float TargetFOV = FMath::RandRange(10.0f, 40.0f);
+	const float TransitionDuration = 2.0f; // Duration of the FOV transition in seconds
+	const float UpdateInterval = 0.01f; // Update interval in seconds
+	float MaxOvershootFOV = FMath::Max(InitialFOV, TargetFOV) + 20.0f; // This ensures the overshoot is above both initial and target
+
+	// Start a new FOV transition
+	float StartTime = GetWorld()->GetTimeSeconds();
+	GetWorld()->GetTimerManager().SetTimer(FOVInterpHandle, [this, StartTime, TransitionDuration, InitialFOV, TargetFOV, MaxOvershootFOV, UpdateInterval]() {
+		float ElapsedTime = GetWorld()->GetTimeSeconds() - StartTime;
+		float Alpha = FMath::Clamp(ElapsedTime / TransitionDuration, 0.0f, 1.0f);
+
+		// Use the first half of a sine wave to go from InitialFOV to MaxOvershootFOV
+		// Then use the second half to go from MaxOvershootFOV to TargetFOV
+		float NewFOV;
+		if (Alpha < 0.5f) {
+			// Scale alpha to [0, 1] for the first half of the transition
+			float ScaledAlpha = Alpha / 0.5f;
+			NewFOV = FMath::Lerp(InitialFOV, MaxOvershootFOV, FMath::Sin(ScaledAlpha * PI * 0.5f));
+		}
+		else {
+			// Scale alpha to [0, 1] for the second half of the transition
+			float ScaledAlpha = (Alpha - 0.5f) / 0.5f;
+			NewFOV = FMath::Lerp(MaxOvershootFOV, TargetFOV, 1 - FMath::Cos(ScaledAlpha * PI * 0.5f));
+		}
+
+		BlasterOwnerCharacter->GetFPSCamera()->SetFieldOfView(NewFOV);
+
+		// Stop the timer if the transition is complete
+		if (Alpha >= 1.0f)
+		{
+			GetWorld()->GetTimerManager().ClearTimer(FOVInterpHandle);
+		}
+		}, UpdateInterval, true);
 }
 
 void AItem::HealthSap(EWeaponState State)
@@ -326,7 +390,7 @@ void AItem::PlayKnockingSound()
 {
 	if (BlasterOwnerCharacter && KnockingCue)
 	{
-		UGameplayStatics::PlaySoundAtLocation(this, KnockingCue, BlasterOwnerCharacter->GetActorLocation());
+		PlaySoundCueAtRandomLocation(KnockingCue);
 	}
 }
 
@@ -338,7 +402,7 @@ void AItem::Murmuring(EWeaponState State)
 		if (BlasterOwnerCharacter)
 		{
 			// Start a repeating timer to play murmuring sound
-			BlasterOwnerCharacter->GetWorld()->GetTimerManager().SetTimer(MurmuringSoundTimerHandle, this, &AItem::PlayMurmuringSound, 7.0f, true, 7.0f); // Every 7 seconds
+			BlasterOwnerCharacter->GetWorld()->GetTimerManager().SetTimer(MurmuringSoundTimerHandle, this, &AItem::PlayMurmuringSound, FMath::RandRange(12,30), true, 7.0f); // Every 7 seconds
 		}
 		break;
 
@@ -356,7 +420,7 @@ void AItem::PlayMurmuringSound()
 {
 	if (BlasterOwnerCharacter && MurmurCue)
 	{
-		UGameplayStatics::PlaySoundAtLocation(this, MurmurCue, BlasterOwnerCharacter->GetActorLocation());
+		PlaySoundCueAtRandomLocation(MurmurCue);
 	}
 }
 
@@ -367,7 +431,17 @@ void AItem::Laughing(EWeaponState State)
 	case EWeaponState::EWS_PickedUp:
 		if (BlasterOwnerCharacter)
 		{
-			BlasterOwnerCharacter->GetWorld()->GetTimerManager().SetTimer(LaughingSoundTimerHandle, this, &AItem::PlayLaughingSound, FMath::RandRange(1,20), true, 1.0f);
+			int32 RandomTime = FMath::RandRange(1, 20);
+			int32 LaughType = FMath::RandRange(0, 2);
+
+			// SetTimer using a lambda function
+			BlasterOwnerCharacter->GetWorld()->GetTimerManager().SetTimer(
+				LaughingSoundTimerHandle,
+				[this, LaughType]() { this->PlayLaughingSound(LaughType); },
+				RandomTime,
+				true,
+				1.0f
+			);
 		}
 		break;
 
@@ -380,22 +454,29 @@ void AItem::Laughing(EWeaponState State)
 	}
 }
 
-void AItem::PlayLaughingSound()
+void AItem::PlayLaughingSound(int32 OptionalLaughType)
 {
 	if (BlasterOwnerCharacter)
 	{
-		int SoundChosen = FMath::RandRange(0, 2);
+		USoundCue* ChosenCue = nullptr;
+		int SoundChosen = (OptionalLaughType >= 0 && OptionalLaughType <= 2) ? OptionalLaughType : FMath::RandRange(0, 2);
+
 		switch (SoundChosen)
 		{
 		case 0:
-			UGameplayStatics::PlaySoundAtLocation(this, ManLaughingCue, BlasterOwnerCharacter->GetActorLocation());
+			ChosenCue = ManLaughingCue;
 			break;
 		case 1:
-			UGameplayStatics::PlaySoundAtLocation(this, WomanLaughingCue, BlasterOwnerCharacter->GetActorLocation());
+			ChosenCue = WomanLaughingCue;
 			break;
 		case 2:
-			UGameplayStatics::PlaySoundAtLocation(this, ChildLaughingCue, BlasterOwnerCharacter->GetActorLocation());
+			ChosenCue = ChildLaughingCue;
 			break;
+		}
+
+		if (ChosenCue != nullptr)
+		{
+			PlaySoundCueAtRandomLocation(ChosenCue);
 		}
 	}
 }
@@ -456,5 +537,16 @@ void AItem::TriggerScreenShake()
 		//// Assuming a generic screen shake class exists; replace with your actual screen shake class
 		//UCameraShakeBase* MyScreenShake = NewObject<UCameraShakeBase>(BlasterOwnerCharacter, UMyScreenShake::StaticClass());
 		//BlasterOwnerCharacter->GetPlayerController()->ClientStartCameraShake(MyScreenShake);
+	}
+}
+
+void AItem::PlaySoundCueAtRandomLocation(USoundCue* SoundCue)
+{
+	if (BlasterOwnerCharacter && SoundCue)
+	{
+		FVector RandomDirection = FMath::VRand();
+		float Radius = 700.0f;
+		FVector SoundLocation = BlasterOwnerCharacter->GetActorLocation() + (RandomDirection * FMath::RandRange(0.0f, Radius));
+		UGameplayStatics::PlaySoundAtLocation(this, SoundCue, SoundLocation);
 	}
 }

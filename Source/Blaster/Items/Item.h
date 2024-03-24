@@ -18,6 +18,8 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
+	void PlaySoundCueAtRandomLocation(USoundCue* SoundCue);
+
 	/*
 		CURSES
 	*/
@@ -99,7 +101,7 @@ protected:
 	UPROPERTY(EditAnywhere, Category = CurseSFX)
 		class USoundCue* HealthSapCue;
 	UPROPERTY(EditAnywhere, Category = CurseSFX)
-		class USoundCue* BreathCue;
+		class USoundCue* LongBreathCue;
 
 	class ABlasterCharacter* BlasterOwnerCharacter;
 	class ABlasterPlayerController* BlasterOwnerController;
@@ -143,9 +145,26 @@ private:
 
 	void Laughing(EWeaponState State);
 	FTimerHandle LaughingSoundTimerHandle;
-	void PlayLaughingSound();
+	/**
+	 * Plays a laughing sound at a random location near the BlasterOwnerCharacter.
+	 *
+	 * @param OptionalLaughType Specifies the type of laughing sound to play.
+	 *                          -1: Randomly selects a laughing sound (default).
+	 *                           0: Man laughing sound.
+	 *                           1: Woman laughing sound.
+	 *                           2: Child laughing sound.
+	 */
+	void PlayLaughingSound(int32 OptionalLaughType = -1);
 
 	void ChangingFOV(EWeaponState State);
+
+	FTimerHandle FOVTimerHandle;
+	FTimerHandle FOVInterpHandle;
+	void RandomizeFOV();
+	/*float TargetFOV;
+	float OriginalFOV = 90.f;
+	float FOVTransitionDuration;
+	bool bIsFOVTransitioning = false;*/
 
 	void ScreenShake(EWeaponState State);
 	FTimerHandle ScreenShakeTimerHandle;
