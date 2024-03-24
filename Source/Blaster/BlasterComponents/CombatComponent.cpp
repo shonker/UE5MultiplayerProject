@@ -444,19 +444,27 @@ void UCombatComponent::EquipWeapon(AWeapon *WeaponToEquip)
 	StoreEquippedWeapon();
 	//equipped weapon is null for all but server, not replicated
 	EquippedWeapon = WeaponToEquip;
-	EquippedWeapon->SetWeaponState(EWeaponState::EWS_Equipped);
-	AttachActorToRightHand(EquippedWeapon);
 	//we "own" the pawn we control
 	//we "own" a weapon when we equip it
-    EquippedWeapon->SetOwner(Character); 
+	EquippedWeapon->SetOwner(Character);
+	EWeaponState PreviousState = EquippedWeapon->GetWeaponState();
+	if (PreviousState == EWeaponState::EWS_Stored)
+	{
+		EquippedWeapon->SetWeaponState(EWeaponState::EWS_Equipped);
+	}
+	else
+	{
+		EquippedWeapon->SetWeaponState(EWeaponState::EWS_PickedUp);
+	}
+	AttachActorToRightHand(EquippedWeapon);
 	EquippedWeapon->SetHUDAmmo();
 	UpdateCarriedAmmo();
 	PlayEquipWeaponSound();
 	ReloadEmptyWeapon();
 	//change character to always be oriented w/ cam view, looks appropriate because
 	//we implemented the equipped weapon blendspace into the anim BP
-	Character->GetCharacterMovement()->bOrientRotationToMovement = false;
-	Character->bUseControllerRotationYaw = true;
+	//Character->GetCharacterMovement()->bOrientRotationToMovement = false;
+	//Character->bUseControllerRotationYaw = true;
 	bCanFire = true;
 }
 
@@ -464,7 +472,7 @@ void UCombatComponent::OnRep_EquippedWeapon()
 {
 	if (EquippedWeapon && Character)
 	{
-		EquippedWeapon->SetWeaponState(EWeaponState::EWS_Equipped);
+		EquippedWeapon->SetWeaponState(EWeaponState::EWS_PickedUp);
 		const USkeletalMeshSocket* HandSocket = Character->GetMesh()->GetSocketByName(FName("RightHandSocket"));
 
 		AttachActorToRightHand(EquippedWeapon);

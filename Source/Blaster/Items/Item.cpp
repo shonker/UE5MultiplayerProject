@@ -34,7 +34,7 @@ void AItem::OnSetWeaponState(EWeaponState State)
 	/*
 		switch (State)
 		{
-		case EWeaponState::EWS_Equipped:
+		case EWeaponState::EWS_PickedUp:
 		//curse activates
 			break;
 
@@ -55,12 +55,18 @@ void AItem::UpdateCurse(EWeaponState State)
 		Cast<ABlasterCharacter>(GetOwner()) :
 		BlasterOwnerCharacter;
 
-	BlasterOwnerController =
-		BlasterOwnerController == nullptr ?
-		Cast<ABlasterPlayerController>(BlasterOwnerCharacter->Controller) :
-		BlasterOwnerController;
-
-	if (!BlasterOwnerCharacter) return;
+	if (!BlasterOwnerCharacter)
+	{
+		UE_LOG(LogTemp, Error, TEXT("Blaster Owner Character inaccessible??"));
+		return;
+	}
+	else
+	{
+		BlasterOwnerController =
+			BlasterOwnerController == nullptr ?
+			Cast<ABlasterPlayerController>(BlasterOwnerCharacter->Controller) :
+			BlasterOwnerController;
+	}
 
 	//HARD
 	if (bBlindness) Blindness(State);
@@ -91,7 +97,7 @@ void AItem::HeavyJumping(EWeaponState State)
 	if (!BlasterOwnerCharacter) return;
 	switch (State)
 	{
-	case EWeaponState::EWS_Equipped:
+	case EWeaponState::EWS_PickedUp:
 			// Reduce jump Z velocity to make jumps less effective
 			BlasterOwnerCharacter->GetCharacterMovement()->JumpZVelocity *= 0.5;
 		break;
@@ -111,7 +117,7 @@ void AItem::Blindness(EWeaponState State)
 	if (!BlasterOwnerCharacter) return;
 	switch (State)
 	{
-	case EWeaponState::EWS_Equipped:
+	case EWeaponState::EWS_PickedUp:
 			BlasterOwnerCharacter->GetFollowCamera()->SetFieldOfView(10.f);
 		break;
 
@@ -129,8 +135,8 @@ void AItem::HealthSap(EWeaponState State)
 	if (!BlasterOwnerCharacter) return;
 	switch (State)
 	{
-	case EWeaponState::EWS_Equipped:
-		GetWorld()->GetTimerManager().SetTimer(HealthSapTimerHandle, this, &AItem::DecreaseHealth, 2.0f, true, 0.0f);
+	case EWeaponState::EWS_PickedUp:
+		GetWorld()->GetTimerManager().SetTimer(HealthSapTimerHandle, this, &AItem::DecreaseHealth, 2.0f, true, 2.0f);
 		break;
 
 	case EWeaponState::EWS_Dropped:
@@ -162,8 +168,6 @@ void AItem::DecreaseHealth()
 			UDamageType::StaticClass()
 		);
 	}
-
-	GetWorld()->GetTimerManager().SetTimer(HealthSapTimerHandle, this, &AItem::DecreaseHealth, 2.0f, true, 0.0f);
 }
 
 void AItem::ReversedMovementControls(EWeaponState State)
@@ -171,7 +175,7 @@ void AItem::ReversedMovementControls(EWeaponState State)
 	if (!BlasterOwnerCharacter) return;
 	switch (State)
 	{
-	case EWeaponState::EWS_Equipped:
+	case EWeaponState::EWS_PickedUp:
 			BlasterOwnerCharacter->SetReversedMovementControls(true);
 		break;
 
@@ -189,7 +193,7 @@ void AItem::ReversedLookControls(EWeaponState State)
 	if (!BlasterOwnerCharacter) return;
 	switch (State)
 	{
-	case EWeaponState::EWS_Equipped:
+	case EWeaponState::EWS_PickedUp:
 			BlasterOwnerCharacter->SetReversedLookControls(true);
 		break;
 
@@ -207,7 +211,7 @@ void AItem::ActivateKisser(EWeaponState State)
 	if (!BlasterOwnerCharacter) return;
 	switch (State)
 	{
-	case EWeaponState::EWS_Equipped:
+	case EWeaponState::EWS_PickedUp:
 		break;
 
 	case EWeaponState::EWS_Dropped:
@@ -223,7 +227,7 @@ void AItem::Fetus(EWeaponState State)
 	if (!BlasterOwnerCharacter) return;
 	switch (State)
 	{
-	case EWeaponState::EWS_Equipped:
+	case EWeaponState::EWS_PickedUp:
 		break;
 
 	case EWeaponState::EWS_Dropped:
@@ -239,7 +243,7 @@ void AItem::CountdownPain(EWeaponState State)
 	if (!BlasterOwnerCharacter) return;
 	switch (State)
 	{
-	case EWeaponState::EWS_Equipped:
+	case EWeaponState::EWS_PickedUp:
 		GetWorld()->GetTimerManager().SetTimer(CountdownPainTimerHandle, this, &AItem::TriggerCountdownPain, 10.0f, true, 10.0f); // Trigger every 10 seconds
 		break;
 
@@ -266,7 +270,7 @@ void AItem::FallDamage(EWeaponState State)
 	if (!BlasterOwnerCharacter) return;
 	switch (State)
 	{
-	case EWeaponState::EWS_Equipped:
+	case EWeaponState::EWS_PickedUp:
 		BlasterOwnerCharacter->SetTakesFallDamage(true); 
 		break;
 
@@ -284,7 +288,7 @@ void AItem::ShiftMovementControls(EWeaponState State)
 	if (!BlasterOwnerCharacter) return;
 	switch (State)
 	{
-	case EWeaponState::EWS_Equipped:
+	case EWeaponState::EWS_PickedUp:
 			BlasterOwnerCharacter->SetShiftMovementControls(true);
 		break;
 
@@ -301,7 +305,7 @@ void AItem::Knocking(EWeaponState State)
 {
 	switch (State)
 	{
-	case EWeaponState::EWS_Equipped:
+	case EWeaponState::EWS_PickedUp:
 		if (BlasterOwnerCharacter)
 		{
 			// Start a repeating timer to play knocking sound
@@ -331,7 +335,7 @@ void AItem::Murmuring(EWeaponState State)
 {
 	switch (State)
 	{
-	case EWeaponState::EWS_Equipped:
+	case EWeaponState::EWS_PickedUp:
 		if (BlasterOwnerCharacter)
 		{
 			// Start a repeating timer to play murmuring sound
@@ -361,7 +365,7 @@ void AItem::Laughing(EWeaponState State)
 {
 	switch (State)
 	{
-	case EWeaponState::EWS_Equipped:
+	case EWeaponState::EWS_PickedUp:
 		if (BlasterOwnerCharacter)
 		{
 			BlasterOwnerCharacter->GetWorld()->GetTimerManager().SetTimer(LaughingSoundTimerHandle, this, &AItem::PlayLaughingSound, FMath::RandRange(1,20), true, 1.0f);
@@ -389,7 +393,7 @@ void AItem::ChangingFOV(EWeaponState State)
 {
 	switch (State)
 	{
-	case EWeaponState::EWS_Equipped:
+	case EWeaponState::EWS_PickedUp:
 		if (BlasterOwnerCharacter && BlasterOwnerCharacter->GetFollowCamera())
 		{
 			// Change FOV to a different value
@@ -415,7 +419,7 @@ void AItem::ScreenShake(EWeaponState State)
 {
 	switch (State)
 	{
-	case EWeaponState::EWS_Equipped:
+	case EWeaponState::EWS_PickedUp:
 		if (BlasterOwnerCharacter)
 		{
 			// Start a repeating timer to trigger screen shake

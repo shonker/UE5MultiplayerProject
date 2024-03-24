@@ -12,6 +12,7 @@ enum class EWeaponState : uint8
 {	
 	//Enum Weapon State
 	EWS_Initial UMETA(DisplayName = "Initial State"),
+	EWS_PickedUp UMETA(DisplayName = "Picked Up"),
 	EWS_Equipped UMETA(DisplayName = "Equipped"),
 	EWS_Dropped UMETA(DisplayName = "Dropped"),
 	EWS_Stored UMETA(DisplayName = "Stored"),
@@ -149,13 +150,12 @@ private:
 	UPROPERTY(EditAnywhere)
 	int32 CurseValue = 5;
 
-	
-
 	UPROPERTY(EditAnywhere)
 	EWeaponType WeaponType;
 
 public:
 	void SetWeaponState(EWeaponState State);
+	FORCEINLINE EWeaponState GetWeaponState()const { return WeaponState; }
 	FORCEINLINE UBoxComponent* GetAreaSphere() const {return AreaBox;}
 	FORCEINLINE USkeletalMeshComponent* GetWeaponMesh() const {return WeaponMesh;}
 	FORCEINLINE float GetZoomedFOV() const { return ZoomedFOV; }
