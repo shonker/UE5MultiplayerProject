@@ -28,6 +28,8 @@
 #include "Components/SphereComponent.h"
 #include "Blaster/BlasterTypes/CombatState.h"
 #include "DrawDebugHelpers.h"
+#include "Materials/MaterialInstanceDynamic.h"
+
 
 
 ABlasterCharacter::ABlasterCharacter()
@@ -458,7 +460,7 @@ void ABlasterCharacter::ReceiveDamage(
 	Health = FMath::Clamp(Health - Damage, 0.f, MaxHealth);
 	UpdateHUDHealth();
 	PlayHitReactMontage();
-
+	Death->RadialBlur(0.4,2);
 	//KILL
 	if (Health <= 0.f)
 	{
