@@ -160,10 +160,10 @@ void AItem::RandomizeFOV()
 	}
 
 	float InitialFOV = BlasterOwnerCharacter->GetFPSCamera()->FieldOfView;
-	float TargetFOV = FMath::RandRange(10.0f, 40.0f);
+	float TargetFOV = 90.f; // FMath::RandRange(10.0f, 40.0f);
 	const float TransitionDuration = 2.0f; // Duration of the FOV transition in seconds
 	const float UpdateInterval = 0.01f; // Update interval in seconds
-	float MaxOvershootFOV = FMath::Max(InitialFOV, TargetFOV) + 20.0f; // This ensures the overshoot is above both initial and target
+	float MaxOvershootFOV = FMath::Max(InitialFOV, TargetFOV) - FMath::RandRange(30.f, 70.0f);// 20.0f; // This ensures the overshoot is above both initial and target
 
 	// Start a new FOV transition
 	float StartTime = GetWorld()->GetTimeSeconds();

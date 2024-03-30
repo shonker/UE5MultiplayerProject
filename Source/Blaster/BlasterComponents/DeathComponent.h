@@ -26,10 +26,6 @@ public:
 	UPROPERTY(EditAnywhere, Category = Elim)
 	TSubclassOf<class ARagdollCube> PhysicsBoxBlueprint;
 
-	void RadialBlur(float Intensity, float Duration);
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PostProcess")
-	UMaterialInterface* RadialBlurMaterial;
-
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
@@ -51,10 +47,4 @@ private:
 	void TransitionToSpectateCamera();
 	float CameraTransitionDelay = 4.f;
 	void TransitionToLimb();
-
-	FTimerHandle PostProcessEffectTimerHandle;
-	class UMaterialInstanceDynamic* RadialBlurMaterialInstance = nullptr;
-	class APostProcessVolume* TargetPostProcessVolume = nullptr;
-	bool bIsRadialBlurActive = false;
-
 };

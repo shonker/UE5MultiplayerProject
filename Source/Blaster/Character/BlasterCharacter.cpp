@@ -460,7 +460,9 @@ void ABlasterCharacter::ReceiveDamage(
 	Health = FMath::Clamp(Health - Damage, 0.f, MaxHealth);
 	UpdateHUDHealth();
 	PlayHitReactMontage();
-	Death->RadialBlur(0.4,2);
+
+	RadialBlurSetup(Damage);
+
 	//KILL
 	if (Health <= 0.f)
 	{
@@ -470,6 +472,27 @@ void ABlasterCharacter::ReceiveDamage(
 			BlasterPlayerController = BlasterPlayerController == nullptr ? Cast<ABlasterPlayerController>(Controller) : BlasterPlayerController;
 			BlasterGameMode->PlayerEliminated(this, BlasterPlayerController, AttackerController);
 		}
+	}
+}
+
+void ABlasterCharacter::RadialBlurSetup(float Damage)
+{ //duration: 1 = 1 sec, 2 = 3 sec, 3 = 5 sec. 
+	if (IsLocallyControlled())
+	{
+		float Intensity = 1;
+		float Duration = 0;
+
+		if (Damage > 20)
+		{
+			Duration = 1;
+			Intensity = 2;
+		}
+		if (Damage > 40)
+		{
+			Duration = 2;
+			Intensity = 3;
+		}
+		RadialBlur(Duration, Intensity);
 	}
 }
 
@@ -858,8 +881,11 @@ void ABlasterCharacter::HideCameraIfCharacterClose()
 
 void ABlasterCharacter::OnRep_Health()
 {
+	float Damage = LastHealth - Health;
 	UpdateHUDHealth();
 	PlayHitReactMontage();
+	RadialBlurSetup(Damage);
+	LastHealth = Health;
 }
 
 void ABlasterCharacter::UpdateHUDHealth()

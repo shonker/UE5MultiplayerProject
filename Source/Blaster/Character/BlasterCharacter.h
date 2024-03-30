@@ -47,6 +47,10 @@ public:
 
 	UFUNCTION(BlueprintImplementableEvent)
 	void ChangeInteractionDotColor(bool bInteractionDetected);
+	
+	UFUNCTION(BlueprintImplementableEvent)
+	void RadialBlur(float Intensity, float Duration);
+	void RadialBlurSetup(float Damage);
 
 	/*
 		ITEMS
@@ -243,6 +247,8 @@ private:
 
 	UPROPERTY(ReplicatedUsing = OnRep_Health, VisibleAnywhere, Category = "Player Stats")
 	float Health = 100.f;
+	
+	float LastHealth = 100.f;
 
 	UFUNCTION()
 	void OnRep_Health();
