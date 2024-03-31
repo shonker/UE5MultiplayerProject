@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "AProcActor.h"
+#include "Blaster/ProceduralEnvironments/AProcActor.h"
 #include "GameFramework/Actor.h"
 #include "ProcFloor.generated.h"
 
@@ -15,6 +15,7 @@ struct FHouseNPCTypeInfo
 		UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		TSubclassOf<ACharacter> NPCBlueprint;
 };
+
 
 UCLASS()
 class BLASTER_API AProcFloor : public AAProcActor

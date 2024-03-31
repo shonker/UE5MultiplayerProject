@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "AProcActor.h"
+#include "Blaster/ProceduralEnvironments/AProcActor.h"
 #include "ProcHouse.generated.h"
 
 struct FWallInfo {
@@ -29,7 +29,8 @@ enum class ERoomType : uint8
 {
 	Nothing,
 	Hallway,
-	Staircase
+	Staircase,
+	WhiteWood
 }; 
 UENUM(BlueprintType)
 enum class EWallType : uint8
@@ -60,6 +61,17 @@ enum class EWallRotation : uint32
 	Rotation_180DegDown = 180,
 	Rotation_270DegLeft = 270
 };
+
+UENUM(BlueprintType)
+enum class EHouseType : uint8
+{
+	WhiteWood UMETA(DisplayName="White Wood House Type"),
+	BrownWood UMETA(DisplayName="Brown Wood House Type"),
+	Spikes UMETA(DisplayName="Spikes House Type"),
+	Hito UMETA(DisplayName="Hito House Type"),
+	Water UMETA(DisplayName="Water House Type")
+};
+
 UCLASS()
 
 class BLASTER_API AProcHouse : public AAProcActor
@@ -80,7 +92,10 @@ public:
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
-public:	
+public:
+
+	EHouseType HouseType;
+	
 	/*exterior*/
 
 	UPROPERTY(EditAnywhere, Category = "Modular Components")
@@ -124,16 +139,38 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Prefab Walls")
 		TSubclassOf<AActor> LockedFrontDoorBlueprint;
 
+	/*rooms*/
 
+	UPROPERTY(EditAnywhere, Category = "Room Content: White Wood")
+	TSubclassOf<AActor> WhiteWoodRoomBlueprint;
+
+	UPROPERTY(EditAnywhere, Category = "Room Content: Brown Wood")
+	TSubclassOf<AActor> BrownWoodRoomBlueprint;
+
+	UPROPERTY(EditAnywhere, Category = "Room Content: Spikes")
+	TSubclassOf<AActor> SpikeRoomBlueprint;
+	
+	UPROPERTY(EditAnywhere, Category = "Room Content: Spikes")
+	TSubclassOf<AActor> HitoRoomBlueprint;
+
+	UPROPERTY(EditAnywhere, Category = "Room Content: Spikes")
+	TSubclassOf<AActor> WaterRoomBlueprint;
+	
 protected:
 
+	void ChooseHouseType();
 	/*
 		FLOORS
 	*/
 	void InitializeFirstFloor();
 	void GenerateFloors();
 	void SpawnFloors();
-
+	void DivideHouseIntoHallways();
+	/*
+		ROOMS
+	*/
+	void AssignRoomTypes();
+	
 	/*
 		PROCEDURAL WALLS
 	*/

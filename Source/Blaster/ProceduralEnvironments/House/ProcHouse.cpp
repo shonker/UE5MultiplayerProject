@@ -24,15 +24,6 @@ void AProcHouse::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	/*
-	InitializeFirstFloor();
-	GenerateFloors();
-	SpawnFloors();
-
-	//shitty self proc
-	GenerateRooms();
-
-	*/
 	//prefab python proc
 	//SpawnPrefabWalls();A
 
@@ -42,12 +33,55 @@ void AProcHouse::BeginPlay()
 
 void AProcHouse::ProcGen()
 {
+	ChooseHouseType();
 	InitializeFirstFloor();
 	GenerateFloors();
 	SpawnFloors();
 
 	//shitty self proc
 	GenerateRooms();
+}
+
+void AProcHouse::ChooseHouseType()
+{
+	// Initialize arbitrary weights for each house type
+	TMap<EHouseType, float> Weights = {
+		{EHouseType::WhiteWood, 0.5f},
+		{EHouseType::BrownWood, 0.3f},
+		{EHouseType::Spikes, 0.05f},
+		{EHouseType::Water, 0.1f},
+		{EHouseType::Hito, 0.05f},
+	};
+
+	// Calculate the total weight for normalization
+	float TotalWeight = 0.0f;
+	for (const auto& Elem : Weights)
+	{
+		TotalWeight += Elem.Value;
+	}
+
+	// Normalize weights and accumulate
+	float AccumulatedWeight = 0.0f;
+	TMap<EHouseType, float> NormalizedWeights;
+	for (const auto& Elem : Weights)
+	{
+		AccumulatedWeight += Elem.Value / TotalWeight;
+		NormalizedWeights.Add(Elem.Key, AccumulatedWeight);
+	}
+
+	// Generate a random number in the range [0, 1]
+	float RandomNumber = RS.FRand(); // Returns a float between 0.0 and 1.0
+
+	// Determine the house type based on the random number
+	for (const auto& Elem : NormalizedWeights)
+	{
+		if (RandomNumber <= Elem.Value)
+		{
+			HouseType = Elem.Key;
+			return;
+		}
+	}
+	HouseType = Weights.begin()->Key;
 }
 
 void AProcHouse::InitializeFirstFloor()
@@ -61,32 +95,38 @@ void AProcHouse::InitializeFirstFloor()
 	}
 }
 
-// 10% whole house is water, otherwise all normal with 10% chance the ground is spikes.
 void AProcHouse::GenerateFloors()
 {
 	Randomness = RS.RandRange(0, 20);
 	Fear = RS.RandRange(0, 20);
 	Openness = RS.RandRange(0, 20);
 	int32 RandomValue = RS.RandRange(0, 99);
+
+	
 	for (uint8 Col = 0; Col < GridWidth; ++Col)
 	{
 		for (uint8 Row = 0; Row < GridHeight; ++Row)
 		{
-			if (RandomValue < 10)
+			if (HouseType == EHouseType::Water)
 			{
 				GridFloorTypes[Col][Row] = EFloorType::Water;
 				continue;
 			}
+			if (HouseType == EHouseType::Spikes)
+			{
+				GridFloorTypes[Col][Row] = EFloorType::Spikes;
+				continue;
+			}
 			else
 			{
-				if ((Col == 0 || Col == GridWidth - 1) && Row == 0)
+				//if we are in back corner
+				if ((Col == 0 || Col == GridWidth - 1) && Row == 0) 
 				{
-					/*if (RS.RandRange(1, 4) == 1)
+					if (RS.RandRange(1, 4) == 1)
 					{
 						GridFloorTypes[Col][Row] = EFloorType::Stairs;
 						continue;
-					}*/
-					GridFloorTypes[Col][Row] = EFloorType::Stairs;
+					}
 					continue;
 				}
 				GridFloorTypes[Col][Row] = EFloorType::Floor;
@@ -121,13 +161,15 @@ void AProcHouse::SpawnFloors()
 				FloorToSpawnBlueprint = WaterBlueprint;
 				break;
 			case EFloorType::Stairs:
-					FloorToSpawnBlueprint = StaircaseBlueprint;
+				FloorToSpawnBlueprint = StaircaseBlueprint;
+				break;
+			default:
+				FloorToSpawnBlueprint = FloorBlueprint;
 				break;
 			}
 			if (FloorToSpawnBlueprint != nullptr)
 			{
 				AAProcActor* SpawnedFloor = SpawnAt(FloorToSpawnBlueprint, SpawnLocation, SpawnRotation);
-				//SpawnedFloor = GetWorld()->SpawnActor<AActor>(FloorToSpawnBlueprint, SpawnLocation, SpawnRotation);
 			}
 		}
 	}
@@ -146,6 +188,14 @@ void AProcHouse::GenerateRooms()
 			//DrawDebugSphere(GetWorld(), GetActorLocation() + FVector(Col * UnitDistance - 600, Row * UnitDistance - 600.f, 0), 75.f, 12, FColor::Blue, true);
 		}
 	}
+	DivideHouseIntoHallways();
+	InferWallLocations();
+	RandomizeWallsAndWindows();
+	SpawnWalls();
+}
+
+void AProcHouse::DivideHouseIntoHallways()
+{
 	//generate
 	int32 Lifetime = RS.RandRange(1, MaxLifetime);
 	int32 StartCol = RS.RandRange(0, GridSize);
@@ -161,11 +211,7 @@ void AProcHouse::GenerateRooms()
 		ChangeDirection(CurrentDirection, StartCol, StartRow);
 		MoveInDirection(CurrentDirection, StartCol, StartRow);
 	}
-	InferWallLocations();
-	RandomizeWallsAndWindows();
-	SpawnWalls();
 }
-
 void AProcHouse::MoveInDirection(EPathDirection& Direction, int32& Col, int32& Row)
 {
 	// Check and adjust direction if at the edge of the grid
@@ -196,6 +242,38 @@ void AProcHouse::MoveInDirection(EPathDirection& Direction, int32& Col, int32& R
 	Row = FMath::Clamp(Row, 0, GridSize - 1);
 
 	RoomGrid[Col][Row] = ERoomType::Hallway;
+}
+
+void AProcHouse::AssignRoomTypes()
+{
+	for (int32 Col = 0; Col <= GridSize; Col++)
+	{
+		for (int32 Row = 0; Row <= GridSize; Row++)
+		{
+			if (GridFloorTypes[Col][Row] == EFloorType::Stairs)
+			{
+				continue;
+			}
+			switch (HouseType)
+			{
+			case EHouseType::WhiteWood:
+				RoomGrid[Col][Row] = ERoomType::WhiteWood;
+				break;
+				// case EHouseType::BrownWood:
+				//
+				// break;
+				// case EHouseType::Spikes:
+				//
+				// break;
+				// case EHouseType::Hito:
+				//
+				// break;
+			default:
+				RoomGrid[Col][Row] = ERoomType::WhiteWood;
+				break;
+			}
+		}
+	}
 }
 
 void AProcHouse::ChangeDirection(EPathDirection& CurrentDirection, int32 Col, int32 Row)
@@ -235,7 +313,7 @@ void AProcHouse::InferWallLocations()
 			{
 				if (RoomGrid[Col - 1][Row] == ERoomType::Nothing)
 				{
-					if (RoomGrid[Col][Row] == ERoomType::Hallway)
+					if (RoomGrid[Col][Row] != ERoomType::Nothing)
 					{
 						WallLeft = true;
 					}
@@ -256,7 +334,7 @@ void AProcHouse::InferWallLocations()
 			{
 				if (RoomGrid[Col + 1][Row] == ERoomType::Nothing)
 				{
-					if (RoomGrid[Col][Row] == ERoomType::Hallway)
+					if (RoomGrid[Col][Row] != ERoomType::Nothing)
 					{
 						WallRight = true;
 					}
@@ -277,7 +355,7 @@ void AProcHouse::InferWallLocations()
 			{
 				if (RoomGrid[Col][Row - 1] == ERoomType::Nothing)
 				{
-					if (RoomGrid[Col][Row] == ERoomType::Hallway)
+					if (RoomGrid[Col][Row] != ERoomType::Nothing)
 					{
 						WallDown = true;
 					}
@@ -298,7 +376,7 @@ void AProcHouse::InferWallLocations()
 			{
 				if (RoomGrid[Col][Row + 1] == ERoomType::Nothing)
 				{
-					if (RoomGrid[Col][Row] == ERoomType::Hallway)
+					if (RoomGrid[Col][Row] != ERoomType::Nothing)
 					{
 						WallUp = true;
 					}

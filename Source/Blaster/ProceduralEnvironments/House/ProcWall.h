@@ -5,7 +5,7 @@
 #include "Sound/SoundCue.h"
 #include "GameFramework/Actor.h"
 #include "TimerManager.h"
-#include "AProcActor.h"
+#include "Blaster/ProceduralEnvironments/AProcActor.h"
 #include "ProcWall.generated.h"
 
 UCLASS()

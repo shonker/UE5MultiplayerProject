@@ -4,9 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "Blaster/Buttons/MyButton.h"
-#include "AProcActor.h"
+#include "Blaster/ProceduralEnvironments/AProcActor.h"
 #include "Components/ChildActorComponent.h"
-
 #include "Door.generated.h"
 
 UCLASS()
