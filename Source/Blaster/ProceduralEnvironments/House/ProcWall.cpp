@@ -52,8 +52,7 @@ void AProcWall::SpawnWideObject()
         FTransform SpawnTransform = WideObjectTransforms[TransformIndex];
         FVector Location = SpawnTransform.GetLocation() + GetActorLocation(); // Named variable for location
         FRotator Rotation = SpawnTransform.GetRotation().Rotator(); // Named variable for rotation
-
-        DrawDebugSphere(GetWorld(), Location, 400.0f, 50, FColor::Blue, true);
+        Rotation.Yaw -= 90.0f; // Adding 90 degree counter clockwise rotation
 
         // Using the custom SpawnAt function with lvalues
         SpawnAt(SpawnableWideObjects[ObjectIndex].ObjectClass, Location, Rotation);
@@ -75,13 +74,14 @@ void AProcWall::SpawnNarrowObjects()
     {
         if (SpawnableNarrowObjects.Num() > 0)
         {
-            int32 ObjectIndex = RS.RandRange(0, SpawnableNarrowObjects.Num() - 1);
-            int32 TransformIndex = RS.RandRange(0, AvailableIndices.Num() - 1);
+            const int32 ObjectIndex = RS.RandRange(0, SpawnableNarrowObjects.Num() - 1);
+            const int32 TransformIndex = RS.RandRange(0, AvailableIndices.Num() - 1);
 
             FTransform SpawnTransform = NarrowObjectTransforms[AvailableIndices[TransformIndex]];
             // Combine the spawn wall's location and rotation with the object's relative location and rotation
             FVector Location = GetActorLocation() + GetActorRotation().RotateVector(SpawnTransform.GetLocation());
             FRotator Rotation = GetActorRotation() + SpawnTransform.GetRotation().Rotator();
+            Rotation.Yaw -= 90.0f;
             UE_LOG(LogTemp, Warning, TEXT("spawned a narrow thing"));
             //DrawDebugSphere(GetWorld(), Location, 400.0f, 50, FColor::Blue, true);
 
@@ -93,22 +93,20 @@ void AProcWall::SpawnNarrowObjects()
         }
     }
 }
-int32 AProcWall::CalculateObjectsToSpawn(int32 NumTransforms)
+int32 AProcWall::CalculateObjectsToSpawn(int32 NumTransforms) const
 {
-    // for (int32 Count = 0; Count < NumTransforms; ++Count)
-    // {
-    //     float Chance = RS.FRand();
-    //     
-    //     float Threshold = FMath::Exp(-0.5f * Count); 
-    //     
-    //     if (Chance <= Threshold)
-    //     {
-    //         return Count;
-    //     }
-    // }
+    if (NumTransforms <= 0)
+    {
+        return 0;
+    }
+    float RandomFloat = RS.RandRange(0.0f, 1.0f);
+    float Exponent = 0.65f; // Adjusted exponent value to control the initial distribution
+    float BiasedFloat = FMath::Pow(RandomFloat, Exponent);
+    int32 Result = NumTransforms - FMath::RoundToInt(BiasedFloat * static_cast<float>(NumTransforms));
 
-    return 3;
+    return FMath::Clamp(Result, 0, NumTransforms);
 }
+
 void AProcWall::BeginPlay()
 {
     Super::BeginPlay();

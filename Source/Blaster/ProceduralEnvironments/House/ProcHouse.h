@@ -54,6 +54,7 @@ enum class EFloorType : uint8
 	Floor,
 	Spikes,
 	Water,
+	Ceiling,
 	Stairs
 };
 
@@ -109,6 +110,9 @@ public:
 	/*floors*/
 	UPROPERTY(EditAnywhere, Category = "Floors")
 	TSubclassOf<AActor> FloorBlueprint;
+
+	UPROPERTY(EditAnywhere, Category = "Ceiling")
+	TSubclassOf<AActor> CeilingBlueprint;
 
 	UPROPERTY(EditAnywhere, Category = "Floors")
 	TSubclassOf<AActor> SpikesBlueprint;
@@ -170,7 +174,7 @@ protected:
 	*/
 	void InitializeFirstFloor();
 	void GenerateFloors();
-	void SpawnFloors();
+	void SpawnFloorsAndCeilings();
 	void DivideHouseIntoRooms();
 	/*
 		ROOMS

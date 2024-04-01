@@ -12,8 +12,8 @@ AMyButton::AMyButton()
     SetRootComponent(AreaBox);
     AreaBox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
-    InteractWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("InteractWidget"));
-    InteractWidget->SetupAttachment(RootComponent);
+   // InteractWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("InteractWidget"));
+    //InteractWidget->SetupAttachment(RootComponent);
     bReplicates = true;
 }
 
@@ -31,10 +31,10 @@ void AMyButton::BeginPlay()
     AreaBox->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
     AreaBox->SetCollisionResponseToChannel(ECollisionChannel::ECC_Visibility, ECollisionResponse::ECR_Block);
 
-    if (InteractWidget)
-    {
-        InteractWidget->SetVisibility(false);
-    }
+    // if (InteractWidget)
+    // {
+    //     InteractWidget->SetVisibility(false);
+    // }
 
     OwningActor = GetOwner();
 }

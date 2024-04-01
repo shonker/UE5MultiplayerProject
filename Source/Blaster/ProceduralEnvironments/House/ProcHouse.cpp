@@ -37,7 +37,7 @@ void AProcHouse::ProcGen()
 	ChooseHouseType();
 	InitializeFirstFloor();
 	GenerateFloors();
-	SpawnFloors();
+	SpawnFloorsAndCeilings();
 
 	//shitty self proc
 	GenerateRooms();
@@ -140,7 +140,7 @@ void AProcHouse::GenerateFloors()
 	}
 }
 
-void AProcHouse::SpawnFloors()
+void AProcHouse::SpawnFloorsAndCeilings()
 {
 	for (uint8 Col = 0; Col < GridWidth; ++Col)
 	{
@@ -171,6 +171,11 @@ void AProcHouse::SpawnFloors()
 			if (FloorToSpawnBlueprint != nullptr)
 			{
 				AAProcActor* SpawnedFloor = SpawnAt(FloorToSpawnBlueprint, SpawnLocation, SpawnRotation);
+				if (GridFloorTypes[Col][Row] != EFloorType::Stairs)
+				{
+					if (CeilingBlueprint != nullptr)
+					AAProcActor* SpawnedCeiling = SpawnAt(CeilingBlueprint, SpawnLocation, SpawnRotation);
+				}
 			}
 		}
 	}

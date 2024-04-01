@@ -60,7 +60,7 @@ protected:
     TArray<FTransform> NarrowObjectTransforms;
 
     void SpawnNarrowObjects();
-    int32 CalculateObjectsToSpawn(int32 NumTransforms);
+    int32 CalculateObjectsToSpawn(int32 NumTransforms) const;
     virtual void BeginPlay() override;
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wall Settings")
