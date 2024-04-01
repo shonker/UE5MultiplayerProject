@@ -5,6 +5,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/Actor.h"
 #include "GeometryCollection/GeometryCollectionComponent.h"
+#include "DrawDebugHelpers.h"
 
 #include "Components/StaticMeshComponent.h"
 
@@ -15,9 +16,99 @@ AProcWall::AProcWall()
     RootComponent = DefaultRoot;
     WallMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("WallMesh"));
     WallMesh->SetupAttachment(RootComponent);
-    WallMesh->SetCollisionProfileName(TEXT("BlockAll"));    
+    WallMesh->SetCollisionProfileName(TEXT("BlockAll"));
 }
 
+void AProcWall::ProcGen()
+{
+    Super::ProcGen();
+    InitializeRandomSpawning();
+}
+
+void AProcWall::InitializeRandomSpawning()
+{
+    // Decision to spawn something or nothing (75/25 split)
+    if (RS.FRand() <= 0.75f)
+    {
+        // Further decision on what type of object to spawn (50/50 split)
+        if (RS.FRand() <= 0.5f)
+        {
+            SpawnWideObject();
+        }
+        else
+        {
+            SpawnNarrowObjects();
+        }
+    }
+    // Else, nothing is spawned
+}
+void AProcWall::SpawnWideObject()
+{
+    if (SpawnableWideObjects.Num() > 0 && WideObjectTransforms.Num() > 0)
+    {
+        int32 ObjectIndex = RS.RandRange(0, SpawnableWideObjects.Num() - 1);
+        int32 TransformIndex = RS.RandRange(0, WideObjectTransforms.Num() - 1);
+
+        FTransform SpawnTransform = WideObjectTransforms[TransformIndex];
+        FVector Location = SpawnTransform.GetLocation() + GetActorLocation(); // Named variable for location
+        FRotator Rotation = SpawnTransform.GetRotation().Rotator(); // Named variable for rotation
+
+        DrawDebugSphere(GetWorld(), Location, 400.0f, 50, FColor::Blue, true);
+
+        // Using the custom SpawnAt function with lvalues
+        SpawnAt(SpawnableWideObjects[ObjectIndex].ObjectClass, Location, Rotation);
+
+        // Optionally remove the used transform to ensure it's not used again
+        WideObjectTransforms.RemoveAt(TransformIndex);
+    }
+}
+
+void AProcWall::SpawnNarrowObjects()
+{
+    int32 NumTransforms = NarrowObjectTransforms.Num();
+    TArray<int32> AvailableIndices;
+    for (int32 i = 0; i < NumTransforms; ++i) AvailableIndices.Add(i);
+
+    // Determine the number of objects to spawn based on exponential decay
+    int32 ObjectsToSpawn = CalculateObjectsToSpawn(NumTransforms);
+    for (int32 i = 0; i < ObjectsToSpawn && AvailableIndices.Num() > 0; ++i)
+    {
+        if (SpawnableNarrowObjects.Num() > 0)
+        {
+            int32 ObjectIndex = RS.RandRange(0, SpawnableNarrowObjects.Num() - 1);
+            int32 TransformIndex = RS.RandRange(0, AvailableIndices.Num() - 1);
+
+            FTransform SpawnTransform = NarrowObjectTransforms[AvailableIndices[TransformIndex]];
+            // Combine the spawn wall's location and rotation with the object's relative location and rotation
+            FVector Location = GetActorLocation() + GetActorRotation().RotateVector(SpawnTransform.GetLocation());
+            FRotator Rotation = GetActorRotation() + SpawnTransform.GetRotation().Rotator();
+            UE_LOG(LogTemp, Warning, TEXT("spawned a narrow thing"));
+            //DrawDebugSphere(GetWorld(), Location, 400.0f, 50, FColor::Blue, true);
+
+            // Using the custom SpawnAt function with lvalues
+            SpawnAt(SpawnableNarrowObjects[ObjectIndex].ObjectClass, Location, Rotation);
+
+            // Remove the used transform index to ensure it's not used again
+            AvailableIndices.RemoveAt(TransformIndex);
+        }
+    }
+}
+int32 AProcWall::CalculateObjectsToSpawn(int32 NumTransforms)
+{
+    // for (int32 Count = 0; Count < NumTransforms; ++Count)
+    // {
+    //     float Chance = RS.FRand();
+    //     
+    //     float Threshold = FMath::Exp(-0.5f * Count); 
+    //     
+    //     if (Chance <= Threshold)
+    //     {
+    //         return Count;
+    //     }
+    // }
+
+    return 3;
+}
 void AProcWall::BeginPlay()
 {
     Super::BeginPlay();

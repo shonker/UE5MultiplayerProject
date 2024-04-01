@@ -4,6 +4,7 @@
 #include "ProcHouse.h"
 #include "ProcWall.h"
 #include "DrawDebugHelpers.h"
+#include "ProcRoom.h"
 
 // Sets default values
 AProcHouse::AProcHouse()
@@ -47,10 +48,10 @@ void AProcHouse::ChooseHouseType()
 	// Initialize arbitrary weights for each house type
 	TMap<EHouseType, float> Weights = {
 		{EHouseType::WhiteWood, 0.5f},
-		{EHouseType::BrownWood, 0.3f},
+		//{EHouseType::BrownWood, 0.3f},
 		{EHouseType::Spikes, 0.05f},
 		{EHouseType::Water, 0.1f},
-		{EHouseType::Hito, 0.05f},
+		//{EHouseType::Hito, 0.05f},
 	};
 
 	// Calculate the total weight for normalization
@@ -188,13 +189,14 @@ void AProcHouse::GenerateRooms()
 			//DrawDebugSphere(GetWorld(), GetActorLocation() + FVector(Col * UnitDistance - 600, Row * UnitDistance - 600.f, 0), 75.f, 12, FColor::Blue, true);
 		}
 	}
-	DivideHouseIntoHallways();
+	DivideHouseIntoRooms();
+	//AssignRoomTypes();
 	InferWallLocations();
 	RandomizeWallsAndWindows();
 	SpawnWalls();
 }
 
-void AProcHouse::DivideHouseIntoHallways()
+void AProcHouse::DivideHouseIntoRooms()
 {
 	//generate
 	int32 Lifetime = RS.RandRange(1, MaxLifetime);
@@ -250,7 +252,8 @@ void AProcHouse::AssignRoomTypes()
 	{
 		for (int32 Row = 0; Row <= GridSize; Row++)
 		{
-			if (GridFloorTypes[Col][Row] == EFloorType::Stairs)
+			if (GridFloorTypes[Col][Row] == EFloorType::Stairs ||
+				RoomGrid[Col][Row] != ERoomType::Hallway)
 			{
 				continue;
 			}
@@ -269,8 +272,28 @@ void AProcHouse::AssignRoomTypes()
 				//
 				// break;
 			default:
-				RoomGrid[Col][Row] = ERoomType::WhiteWood;
+
 				break;
+			}
+		}
+	}
+}
+//unimplemented because terribly convoluted and broken lol
+void AProcHouse::SpawnRooms()
+{
+	for (uint8 Col = 0; Col < GridWidth; ++Col)
+	{
+		for (uint8 Row = 0; Row < GridHeight; ++Row)
+		{
+			if (RoomGrid[Col][Row] == ERoomType::Nothing) return;
+
+			FVector SpawnLocation = GetActorLocation() + FVector(Col * 600.f - 600.f, Row * 600.f - 600.f, 0.0f);
+			FRotator SpawnRotation = FRotator::ZeroRotator;
+			
+			if (RoomBlueprint != nullptr)
+			{
+				AProcRoom* SpawnedRoom = Cast<AProcRoom>(SpawnAt(RoomBlueprint, SpawnLocation, SpawnRotation));
+				SpawnedRoom->RoomType = RoomGrid[Col][Row];
 			}
 		}
 	}
@@ -592,6 +615,7 @@ void AProcHouse::SpawnWalls()
 		if (WallToSpawnBlueprint != nullptr)
 		{
 			AAProcActor* SpawnedWall = SpawnAt(WallToSpawnBlueprint, SpawnLocation, WallRotation);
+			SpawnedWall->ProcGen();
 		}
 	}
 }

@@ -30,7 +30,10 @@ enum class ERoomType : uint8
 	Nothing,
 	Hallway,
 	Staircase,
-	WhiteWood
+	WhiteWood,
+	BrownWood,
+	Hito,
+	Water
 }; 
 UENUM(BlueprintType)
 enum class EWallType : uint8
@@ -142,6 +145,9 @@ public:
 	/*rooms*/
 
 	UPROPERTY(EditAnywhere, Category = "Room Content: White Wood")
+	TSubclassOf<AActor> RoomBlueprint;
+	/*
+	 PROPERTY(EditAnywhere, Category = "Room Content: White Wood")
 	TSubclassOf<AActor> WhiteWoodRoomBlueprint;
 
 	UPROPERTY(EditAnywhere, Category = "Room Content: Brown Wood")
@@ -155,7 +161,7 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = "Room Content: Spikes")
 	TSubclassOf<AActor> WaterRoomBlueprint;
-	
+	*/
 protected:
 
 	void ChooseHouseType();
@@ -165,11 +171,12 @@ protected:
 	void InitializeFirstFloor();
 	void GenerateFloors();
 	void SpawnFloors();
-	void DivideHouseIntoHallways();
+	void DivideHouseIntoRooms();
 	/*
 		ROOMS
 	*/
 	void AssignRoomTypes();
+	void SpawnRooms();
 	
 	/*
 		PROCEDURAL WALLS

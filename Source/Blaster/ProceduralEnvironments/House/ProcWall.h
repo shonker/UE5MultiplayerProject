@@ -8,6 +8,32 @@
 #include "Blaster/ProceduralEnvironments/AProcActor.h"
 #include "ProcWall.generated.h"
 
+USTRUCT(BlueprintType)
+struct FNarrowWallSpawnables
+{
+    GENERATED_BODY()
+
+public:
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    TSubclassOf<AActor> ObjectClass;
+    
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    TArray<FName> Tag; //"clock", "poop", etc
+};
+
+USTRUCT(BlueprintType)
+struct FWideWallSpawnables
+{
+    GENERATED_BODY()
+
+public:
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    TSubclassOf<AActor> ObjectClass;
+    
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    TArray<FName> Tag;  // "clock", "scary", etc
+};
+
 UCLASS()
 class BLASTER_API AProcWall : public AAProcActor
 {
@@ -15,9 +41,26 @@ class BLASTER_API AProcWall : public AAProcActor
 
 public:
     AProcWall();
-
+    virtual void ProcGen() override;
+    void InitializeRandomSpawning();
+    void SpawnWideObject();
 
 protected:
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Wall Objects") 
+    TArray<FNarrowWallSpawnables> SpawnableNarrowObjects;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Wall Objects")
+    TArray<FWideWallSpawnables> SpawnableWideObjects;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Output Locations")
+    TArray<FTransform> WideObjectTransforms;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Output Locations")
+    TArray<FTransform> NarrowObjectTransforms;
+
+    void SpawnNarrowObjects();
+    int32 CalculateObjectsToSpawn(int32 NumTransforms);
     virtual void BeginPlay() override;
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wall Settings")
@@ -63,7 +106,7 @@ protected:
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wall Settings")
         class USceneComponent* DefaultRoot;
-protected:
+    
     UFUNCTION()
         void TakeWallDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType, AController* InstigatedBy, AActor* DamageCauser);
 

@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "WeaponTypes.h"
+#include "Blaster/ProceduralEnvironments/AProcActor.h"
 #include "Weapon.generated.h"
 
 UENUM(BlueprintType)
@@ -21,7 +22,7 @@ enum class EWeaponState : uint8
 };
 
 UCLASS()
-class BLASTER_API AWeapon : public AActor
+class BLASTER_API AWeapon : public AAProcActor
 {
 	GENERATED_BODY()
 	
