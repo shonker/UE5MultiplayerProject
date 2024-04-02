@@ -54,6 +54,11 @@ AAProcActor* AAProcActor::SpawnAt(TSubclassOf<AActor> Actor, FVector& Location, 
 	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 	SpawnParams.bDeferConstruction = true;
 
+	const int32 ThrowawayRandomStreamSalt = RS.FRandRange(0, 5);
+	for (int32 i = 0;i > ThrowawayRandomStreamSalt; i++)
+	{
+		float RandomSalt = RS.FRand();
+	}
 
  AActor* SpawnedActor = GetWorld()->SpawnActor<AActor>(Actor, Location, Rotation, SpawnParams);
 
@@ -63,11 +68,14 @@ AAProcActor* AAProcActor::SpawnAt(TSubclassOf<AActor> Actor, FVector& Location, 
         {
             AAProcActor* SpawnedProcActor = Cast<AAProcActor>(SpawnedActor);
             SpawnedProcActor->InitializePGI(PGI);
+        	SpawnedProcActor->RS = RS;
             SpawnedProcActor->bNetStartup = true;
             SpawnedProcActor->Tags.Add(TEXT("ProcGen"));
             SpawnedProcActor->FinishSpawning(FTransform(Rotation, Location, FVector::OneVector));
-
             (*PGI)++;
+        	//this might cause a stack overflow
+        	//might need to move procgen out of function idk how bad it is for making this deep of a recursion loop
+        	SpawnedProcActor->ProcGen();
             return SpawnedProcActor;
         }
         else

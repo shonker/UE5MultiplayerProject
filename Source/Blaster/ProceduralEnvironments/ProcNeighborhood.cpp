@@ -540,7 +540,6 @@ void AProcNeighborhood::SpawnFinishedNeighborhood()
 						if (SpawnedRoad)
 						{
 							SpawnedRoad->RS = FRandomStream(RS.RandRange(0, RAND_MAX));
-							SpawnedRoad->ProcGen();
 							SpawnedRoads.Add(SpawnedRoad);
 						}
 					}
@@ -553,7 +552,6 @@ void AProcNeighborhood::SpawnFinishedNeighborhood()
 						if (SpawnedHouse)
 						{
 							SpawnedHouse->RS = FRandomStream(RS.RandRange(0,RAND_MAX));
-							SpawnedHouse->ProcGen();
 							SpawnedHouses.Add(SpawnedHouse);
 						}
 
@@ -567,7 +565,6 @@ void AProcNeighborhood::SpawnFinishedNeighborhood()
 						if (SpawnedPark)
 						{
 							SpawnedPark->RS = FRandomStream(RS.RandRange(0, RAND_MAX));
-							SpawnedPark->ProcGen();
 						}
 					}
 				break;
@@ -580,7 +577,6 @@ void AProcNeighborhood::SpawnFinishedNeighborhood()
 						if (SpawnedCurve)
 						{
 							SpawnedCurve->RS = FRandomStream(RS.RandRange(0, RAND_MAX));
-							SpawnedCurve->ProcGen();
 						}
 					}
 				break;
@@ -594,7 +590,6 @@ void AProcNeighborhood::SpawnFinishedNeighborhood()
 						if (SpawnedHB)
 						{
 							SpawnedHB->RS = FRandomStream(RS.RandRange(0, RAND_MAX));
-							SpawnedHB->ProcGen();
 						}
 					}*/
 

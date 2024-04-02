@@ -50,26 +50,24 @@ void AProcWall::SpawnWideObject()
         int32 TransformIndex = RS.RandRange(0, WideObjectTransforms.Num() - 1);
 
         FTransform SpawnTransform = WideObjectTransforms[TransformIndex];
-        FVector Location = SpawnTransform.GetLocation() + GetActorLocation(); // Named variable for location
-        FRotator Rotation = SpawnTransform.GetRotation().Rotator(); // Named variable for rotation
-        Rotation.Yaw -= 90.0f; // Adding 90 degree counter clockwise rotation
+        FVector Location = GetActorLocation() + GetActorRotation().RotateVector(SpawnTransform.GetLocation());
+        FRotator Rotation = GetActorRotation() + SpawnTransform.GetRotation().Rotator();
+        Rotation.Yaw -= 90.0f; 
 
-        // Using the custom SpawnAt function with lvalues
         SpawnAt(SpawnableWideObjects[ObjectIndex].ObjectClass, Location, Rotation);
 
-        // Optionally remove the used transform to ensure it's not used again
         WideObjectTransforms.RemoveAt(TransformIndex);
     }
 }
 
 void AProcWall::SpawnNarrowObjects()
 {
-    int32 NumTransforms = NarrowObjectTransforms.Num();
+    const int32 NumTransforms = NarrowObjectTransforms.Num();
     TArray<int32> AvailableIndices;
     for (int32 i = 0; i < NumTransforms; ++i) AvailableIndices.Add(i);
+    const int32 ObjectsToSpawn = CalculateObjectsToSpawn(NumTransforms);
+    UE_LOG(LogTemp, Warning, TEXT("obj to spawn:%i"), ObjectsToSpawn);
 
-    // Determine the number of objects to spawn based on exponential decay
-    int32 ObjectsToSpawn = CalculateObjectsToSpawn(NumTransforms);
     for (int32 i = 0; i < ObjectsToSpawn && AvailableIndices.Num() > 0; ++i)
     {
         if (SpawnableNarrowObjects.Num() > 0)
@@ -78,17 +76,12 @@ void AProcWall::SpawnNarrowObjects()
             const int32 TransformIndex = RS.RandRange(0, AvailableIndices.Num() - 1);
 
             FTransform SpawnTransform = NarrowObjectTransforms[AvailableIndices[TransformIndex]];
-            // Combine the spawn wall's location and rotation with the object's relative location and rotation
             FVector Location = GetActorLocation() + GetActorRotation().RotateVector(SpawnTransform.GetLocation());
             FRotator Rotation = GetActorRotation() + SpawnTransform.GetRotation().Rotator();
             Rotation.Yaw -= 90.0f;
-            UE_LOG(LogTemp, Warning, TEXT("spawned a narrow thing"));
-            //DrawDebugSphere(GetWorld(), Location, 400.0f, 50, FColor::Blue, true);
 
-            // Using the custom SpawnAt function with lvalues
             SpawnAt(SpawnableNarrowObjects[ObjectIndex].ObjectClass, Location, Rotation);
 
-            // Remove the used transform index to ensure it's not used again
             AvailableIndices.RemoveAt(TransformIndex);
         }
     }
@@ -99,12 +92,11 @@ int32 AProcWall::CalculateObjectsToSpawn(int32 NumTransforms) const
     {
         return 0;
     }
-    float RandomFloat = RS.RandRange(0.0f, 1.0f);
-    float Exponent = 0.65f; // Adjusted exponent value to control the initial distribution
-    float BiasedFloat = FMath::Pow(RandomFloat, Exponent);
-    int32 Result = NumTransforms - FMath::RoundToInt(BiasedFloat * static_cast<float>(NumTransforms));
+    int32 RandomInt = RS.RandRange(0.0f, NumTransforms);
+    int32 NewRandomInt = RS.RandRange(0,RandomInt);
 
-    return FMath::Clamp(Result, 0, NumTransforms);
+    UE_LOG(LogTemp, Warning, TEXT("%i"), NewRandomInt);
+    return NewRandomInt;
 }
 
 void AProcWall::BeginPlay()

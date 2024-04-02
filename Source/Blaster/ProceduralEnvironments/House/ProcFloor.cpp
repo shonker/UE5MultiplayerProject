@@ -12,6 +12,19 @@ AProcFloor::AProcFloor()
 
 }
 
+void AProcFloor::ProcGen()
+{
+    Super::ProcGen();
+    if (bIsCeiling)
+    {
+        GenerateCeilingObjects();
+    }
+    else
+    {
+        GenerateFloorObjects();
+    }
+}
+
 // Called when the game starts or when spawned
 void AProcFloor::BeginPlay()
 {
@@ -19,13 +32,49 @@ void AProcFloor::BeginPlay()
    // if (FMath::RandRange(0,10) == 1) SpawnNPCs();
 }
 
-// Called every frame
-void AProcFloor::Tick(float DeltaTime)
+void AProcFloor::GenerateCeilingObjects()
 {
-	Super::Tick(DeltaTime);
+   const float LikelyHood = 0.07f;
+    if (RS.FRand() <= LikelyHood)
+    {
+        if (SpawnableCeilingObjects.Num() > 0 && CeilingObjectTransforms.Num() > 0)
+        {
+            int32 ObjectIndex = RS.RandRange(0, SpawnableCeilingObjects.Num() - 1);
+            int32 TransformIndex = RS.RandRange(0, CeilingObjectTransforms.Num() - 1);
+
+            FTransform SpawnTransform = CeilingObjectTransforms[TransformIndex];
+            FVector Location = SpawnTransform.GetLocation() + GetActorLocation(); 
+            FRotator Rotation = SpawnTransform.GetRotation().Rotator(); 
+            Rotation.Yaw -= 90.0f; 
+
+            SpawnAt(SpawnableCeilingObjects[ObjectIndex].ObjectClass, Location, Rotation);
+
+            CeilingObjectTransforms.RemoveAt(TransformIndex);
+        }
+    }
 }
 
+void AProcFloor::GenerateFloorObjects()
+{
+    const float LikelyHood = 0.1f;
+    if (RS.FRand() <= LikelyHood)
+    {
+        if (SpawnableFloorObjects.Num() > 0 && FloorObjectTransforms.Num() > 0)
+        {
+            int32 ObjectIndex = RS.RandRange(0, SpawnableFloorObjects.Num() - 1);
+            int32 TransformIndex = RS.RandRange(0, FloorObjectTransforms.Num() - 1);
 
+            FTransform SpawnTransform = FloorObjectTransforms[TransformIndex];
+            FVector Location = SpawnTransform.GetLocation() + GetActorLocation(); 
+            FRotator Rotation = SpawnTransform.GetRotation().Rotator(); 
+            Rotation.Yaw -= 90.0f; 
+            AAProcActor* Spawn = SpawnAt(SpawnableFloorObjects[ObjectIndex].ObjectClass, Location, Rotation);
+            AProcFurniture* Furniture = Cast<AProcFurniture>(Spawn);
+            
+            CeilingObjectTransforms.RemoveAt(TransformIndex);
+        }
+    }
+}
 void AProcFloor::SpawnNPCs()
 {
     FHouseNPCTypeInfo ChosenNPC = GetRandomObjectType();
@@ -38,6 +87,8 @@ void AProcFloor::SpawnNPCs()
         // Additional logic after spawning (if needed)
     }
 }
+
+
 
 FHouseNPCTypeInfo AProcFloor::GetRandomObjectType()
 {

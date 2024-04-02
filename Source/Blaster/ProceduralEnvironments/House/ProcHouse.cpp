@@ -4,6 +4,7 @@
 #include "ProcHouse.h"
 #include "ProcWall.h"
 #include "DrawDebugHelpers.h"
+#include "ProcFloor.h"
 #include "ProcRoom.h"
 
 // Sets default values
@@ -171,10 +172,17 @@ void AProcHouse::SpawnFloorsAndCeilings()
 			if (FloorToSpawnBlueprint != nullptr)
 			{
 				AAProcActor* SpawnedFloor = SpawnAt(FloorToSpawnBlueprint, SpawnLocation, SpawnRotation);
+
 				if (GridFloorTypes[Col][Row] != EFloorType::Stairs)
 				{
 					if (CeilingBlueprint != nullptr)
-					AAProcActor* SpawnedCeiling = SpawnAt(CeilingBlueprint, SpawnLocation, SpawnRotation);
+					{
+						AProcFloor* SpawnedCeiling = Cast<AProcFloor>(SpawnAt(CeilingBlueprint, SpawnLocation, SpawnRotation));
+						if (SpawnedCeiling)
+						{
+							SpawnedCeiling->bIsCeiling = true;
+						}
+					}
 				}
 			}
 		}
@@ -620,7 +628,6 @@ void AProcHouse::SpawnWalls()
 		if (WallToSpawnBlueprint != nullptr)
 		{
 			AAProcActor* SpawnedWall = SpawnAt(WallToSpawnBlueprint, SpawnLocation, WallRotation);
-			SpawnedWall->ProcGen();
 		}
 	}
 }
