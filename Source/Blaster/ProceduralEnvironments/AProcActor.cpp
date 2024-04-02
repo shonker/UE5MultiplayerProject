@@ -73,9 +73,6 @@ AAProcActor* AAProcActor::SpawnAt(TSubclassOf<AActor> Actor, FVector& Location, 
             SpawnedProcActor->Tags.Add(TEXT("ProcGen"));
             SpawnedProcActor->FinishSpawning(FTransform(Rotation, Location, FVector::OneVector));
             (*PGI)++;
-        	//this might cause a stack overflow
-        	//might need to move procgen out of function idk how bad it is for making this deep of a recursion loop
-        	SpawnedProcActor->ProcGen();
             return SpawnedProcActor;
         }
         else

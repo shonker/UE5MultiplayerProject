@@ -172,16 +172,14 @@ void AProcHouse::SpawnFloorsAndCeilings()
 			if (FloorToSpawnBlueprint != nullptr)
 			{
 				AAProcActor* SpawnedFloor = SpawnAt(FloorToSpawnBlueprint, SpawnLocation, SpawnRotation);
-
+				SpawnedFloor->ProcGen();
 				if (GridFloorTypes[Col][Row] != EFloorType::Stairs)
 				{
 					if (CeilingBlueprint != nullptr)
 					{
 						AProcFloor* SpawnedCeiling = Cast<AProcFloor>(SpawnAt(CeilingBlueprint, SpawnLocation, SpawnRotation));
-						if (SpawnedCeiling)
-						{
-							SpawnedCeiling->bIsCeiling = true;
-						}
+						SpawnedCeiling->bIsCeiling = true;
+						SpawnedCeiling->ProcGen();
 					}
 				}
 			}
@@ -305,8 +303,10 @@ void AProcHouse::SpawnRooms()
 			
 			if (RoomBlueprint != nullptr)
 			{
+				//this will not work in this order if implemented in the future
 				AProcRoom* SpawnedRoom = Cast<AProcRoom>(SpawnAt(RoomBlueprint, SpawnLocation, SpawnRotation));
 				SpawnedRoom->RoomType = RoomGrid[Col][Row];
+				SpawnedRoom->ProcGen();
 			}
 		}
 	}
@@ -628,6 +628,7 @@ void AProcHouse::SpawnWalls()
 		if (WallToSpawnBlueprint != nullptr)
 		{
 			AAProcActor* SpawnedWall = SpawnAt(WallToSpawnBlueprint, SpawnLocation, WallRotation);
+			SpawnedWall->ProcGen();
 		}
 	}
 }
@@ -728,8 +729,8 @@ void AProcHouse::SpawnPrefabWalls()
 		break;
 		}
 
-		SpawnAt(WallToSpawn, SpawnLocation, SpawnRotation);
-
+		AAProcActor* Wall = SpawnAt(WallToSpawn, SpawnLocation, SpawnRotation);
+		Wall->ProcGen();
 		/*if (WallToSpawn == FrontDoorBlueprint)
 		{
 			if (HasAuthority()) GetWorld()->SpawnActor<AActor>(WallToSpawn, SpawnLocation, SpawnRotation);

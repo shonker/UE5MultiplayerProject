@@ -46,9 +46,9 @@ void AProcFloor::GenerateCeilingObjects()
             FVector Location = SpawnTransform.GetLocation() + GetActorLocation(); 
             FRotator Rotation = SpawnTransform.GetRotation().Rotator(); 
             Rotation.Yaw -= 90.0f; 
-
-            SpawnAt(SpawnableCeilingObjects[ObjectIndex].ObjectClass, Location, Rotation);
-
+            
+            AAProcActor* ProcActor = SpawnAt(SpawnableCeilingObjects[ObjectIndex].ObjectClass, Location, Rotation);
+            ProcActor->ProcGen();
             CeilingObjectTransforms.RemoveAt(TransformIndex);
         }
     }
@@ -68,8 +68,8 @@ void AProcFloor::GenerateFloorObjects()
             FVector Location = SpawnTransform.GetLocation() + GetActorLocation(); 
             FRotator Rotation = SpawnTransform.GetRotation().Rotator(); 
             Rotation.Yaw -= 90.0f; 
-            AAProcActor* Spawn = SpawnAt(SpawnableFloorObjects[ObjectIndex].ObjectClass, Location, Rotation);
-            AProcFurniture* Furniture = Cast<AProcFurniture>(Spawn);
+            AAProcActor* ProcActor = SpawnAt(SpawnableFloorObjects[ObjectIndex].ObjectClass, Location, Rotation);
+            ProcActor->ProcGen();
             
             CeilingObjectTransforms.RemoveAt(TransformIndex);
         }

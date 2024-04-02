@@ -35,8 +35,8 @@ void AProcFurniture::GenerateFurniture()
 			}
 			Rotation.Yaw -= 90.0f;
 
-			SpawnAt(SpawnableObjects[ObjectIndex].ObjectClass, Location, Rotation);
-
+			AAProcActor* ProcActor = SpawnAt(SpawnableObjects[ObjectIndex].ObjectClass, Location, Rotation);
+			ProcActor->ProcGen();
 			AvailableIndices.RemoveAt(TransformIndex);
 		}
 	}

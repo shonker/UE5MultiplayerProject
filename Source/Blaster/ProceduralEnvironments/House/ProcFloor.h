@@ -60,7 +60,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Output Locations")
 	TArray<FTransform> CeilingObjectTransforms;
 		
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ceiling Objects") 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Floor Objects") 
 	TArray<FCeilingSpawnables> SpawnableFloorObjects;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Output Locations")
 	TArray<FTransform> FloorObjectTransforms;
@@ -73,6 +73,7 @@ public:
 
 	FHouseNPCTypeInfo GetRandomObjectType();
 
+	UPROPERTY(EditAnywhere, Category = "Ceiling Objects")
 	bool bIsCeiling = false;
 
 private:

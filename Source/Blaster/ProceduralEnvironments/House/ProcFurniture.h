@@ -33,7 +33,7 @@ public:
 	virtual void ProcGen() override;
 	void GenerateFurniture();
 	
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	bool bGeneratesMoreFurniture = false;
 
 	UPROPERTY(EditAnywhere)

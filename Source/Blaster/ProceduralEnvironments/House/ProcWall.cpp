@@ -54,8 +54,9 @@ void AProcWall::SpawnWideObject()
         FRotator Rotation = GetActorRotation() + SpawnTransform.GetRotation().Rotator();
         Rotation.Yaw -= 90.0f; 
 
-        SpawnAt(SpawnableWideObjects[ObjectIndex].ObjectClass, Location, Rotation);
-
+        AAProcActor* Spawn = SpawnAt(SpawnableWideObjects[ObjectIndex].ObjectClass, Location, Rotation);
+        Spawn->ProcGen();
+        
         WideObjectTransforms.RemoveAt(TransformIndex);
     }
 }
@@ -80,8 +81,8 @@ void AProcWall::SpawnNarrowObjects()
             FRotator Rotation = GetActorRotation() + SpawnTransform.GetRotation().Rotator();
             Rotation.Yaw -= 90.0f;
 
-            SpawnAt(SpawnableNarrowObjects[ObjectIndex].ObjectClass, Location, Rotation);
-
+            AAProcActor* Spawn = SpawnAt(SpawnableNarrowObjects[ObjectIndex].ObjectClass, Location, Rotation);
+            Spawn->ProcGen();
             AvailableIndices.RemoveAt(TransformIndex);
         }
     }
