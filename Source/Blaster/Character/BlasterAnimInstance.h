@@ -17,7 +17,9 @@ public:
 	virtual void NativeInitializeAnimation() override;
 	//called like the tick animation
 	virtual void NativeUpdateAnimation(float DeltaSeconds) override;
-
+	UPROPERTY(BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
+	bool bKissing;
+	
 private:
 
 	UPROPERTY(BlueprintReadOnly, Category = Character, meta = (AllowPrivateAccess = "true"))
@@ -93,9 +95,6 @@ private:
 		void AnimNotify_StartKiss();
 	UFUNCTION()
 		void AnimNotify_EndKiss();
-
-	UPROPERTY(BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
-	bool bKissing;	
 	
 	UPROPERTY(BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
 	bool bSawing;

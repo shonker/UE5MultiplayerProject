@@ -28,6 +28,7 @@
 #include "Components/SphereComponent.h"
 #include "Blaster/BlasterTypes/CombatState.h"
 #include "DrawDebugHelpers.h"
+#include "EngineUtils.h"
 #include "Materials/MaterialInstanceDynamic.h"
 
 
@@ -110,6 +111,7 @@ void ABlasterCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 	DOREPLIFETIME_CONDITION(ABlasterCharacter, OverlappingBody, COND_OwnerOnly);
 	DOREPLIFETIME_CONDITION(ABlasterCharacter, OverlappingFriend, COND_OwnerOnly);
 	DOREPLIFETIME_CONDITION(ABlasterCharacter, InteractTargetLocation, COND_SkipOwner);
+	DOREPLIFETIME(ABlasterCharacter, CharacterModel);
 	DOREPLIFETIME(ABlasterCharacter, Health);
 	DOREPLIFETIME(ABlasterCharacter, bDisableGameplay);
 }
@@ -161,6 +163,20 @@ void ABlasterCharacter::BeginPlay()
 		}
 		GetCharacterMovement()->bOrientRotationToMovement = false;
 	}
+
+	if (HasAuthority())
+	{
+		int32 RandomValue = 0;
+		for (TActorIterator<ABlasterCharacter> It(GetWorld()); It; ++It)
+		{
+			if (It)
+			{
+				ECharacterModel RandomModel = static_cast<ECharacterModel>(RandomValue);
+				It->SetCharacterModel(RandomModel);
+				RandomValue ++;
+			}
+		}
+	}
 }
 
 // Called every frame
@@ -198,6 +214,33 @@ void ABlasterCharacter::RotateInPlace(float DeltaTime)
 		}
 		CalculateAO_Pitch();
 	}
+}
+
+void ABlasterCharacter::UpdateCharacterModel()
+{
+	switch (CharacterModel)
+	{
+	case ECharacterModel::Rabbit:
+		GetMesh()->SetSkeletalMesh(RabbitMesh);
+		break;
+	case ECharacterModel::Ribbit:
+		GetMesh()->SetSkeletalMesh(RibbitMesh);
+		break;
+	case ECharacterModel::RJ:
+		GetMesh()->SetSkeletalMesh(RJMesh);
+		break;
+	case ECharacterModel::Scene:
+		GetMesh()->SetSkeletalMesh(SceneMesh);
+		break;
+	default:
+		GetMesh()->SetSkeletalMesh(SceneMesh);
+		break;
+	}
+}
+
+void ABlasterCharacter::OnRep_CharacterModel()
+{
+	UpdateCharacterModel();
 }
 
 // Called to bind functionality to input
@@ -605,6 +648,8 @@ void ABlasterCharacter::HandleEquipButtonReleased()
 
 void ABlasterCharacter::Kiss(bool StartOrEnd)
 {
+	UBlasterAnimInstance* AnimInstance =  Cast<UBlasterAnimInstance>(GetMesh()->GetAnimInstance());
+	if (AnimInstance && AnimInstance->bKissing) return;
 	if (Combat == nullptr) return;
 	if (StartOrEnd)//starting
 	{
@@ -804,7 +849,6 @@ void ABlasterCharacter::SimProxiesTurn()
 void ABlasterCharacter::Jump()
 {
 	if (bDisableGameplay) return;
-
 	if (bIsCrouched)
 	{
 		UnCrouch();
@@ -949,6 +993,12 @@ void ABlasterCharacter::ServerSetInteractTarget_Implementation(FVector_NetQuanti
 void ABlasterCharacter::OnRep_InteractTargetLocation()
 {
 	SetInteractAndVisualTargetSphereLocation(InteractTargetLocation);
+}
+
+void ABlasterCharacter::SetCharacterModel(ECharacterModel Model)
+{
+	CharacterModel = Model;
+	UpdateCharacterModel();
 }
 
 void ABlasterCharacter::RemoveAllCurses()

@@ -90,6 +90,7 @@ protected:
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wall Settings")
         float WallHealthMin = 50.f;
 
+    UPROPERTY(BlueprintReadWrite)
     float WallHealth;
 
     UPROPERTY(ReplicatedUsing = OnRep_bIsBroken)

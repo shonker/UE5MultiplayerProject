@@ -11,6 +11,15 @@
 #include "Blaster/BlasterTypes/CombatState.h"
 #include "BlasterCharacter.generated.h"
 
+UENUM(BlueprintType)
+enum class ECharacterModel : uint8
+{
+	RJ,
+	Rabbit,
+	Ribbit,
+	Scene
+};
+
 UCLASS()
 class BLASTER_API ABlasterCharacter : public ACharacter, public IInteractWithCrosshairsInterface
 {
@@ -52,6 +61,8 @@ public:
 	void RadialBlur(float Intensity, float Duration);
 	void RadialBlurSetup(float Damage);
 
+	UPROPERTY(BlueprintReadWrite)
+	bool bKissing = false;
 	/*
 		ITEMS
 	*/
@@ -107,9 +118,30 @@ protected:
 	void RotateInPlace(float DeltaTime);
 
 private:
+	/*
+	 *	PLAYABLE CHARACTER MODELS
+	 */
+	void UpdateCharacterModel();
+	UFUNCTION()
+	void OnRep_CharacterModel();
+	UPROPERTY(ReplicatedUsing=OnRep_CharacterModel)
+	ECharacterModel CharacterModel;
+	UPROPERTY(EditAnywhere, Category = "Playable Characters")
+	USkeletalMesh* RabbitMesh;
+	UPROPERTY(EditAnywhere, Category = "Playable Characters")
+	USkeletalMesh* RJMesh;
+	UPROPERTY(EditAnywhere, Category = "Playable Characters")
+	USkeletalMesh* RibbitMesh;
+	UPROPERTY(EditAnywhere, Category = "Playable Characters")
+	USkeletalMesh* SceneMesh;
+	
+	
 	UPROPERTY(EditAnywhere, Category = Elim)
 	TSubclassOf<class ALimb> LimbClass;
 
+	/*
+	 * CAMERAS
+	 */
 	UPROPERTY(VisibleAnywhere,BlueprintReadOnly, meta = (AllowPrivateAccess = "true"), Category = Camera)
 	class USpringArmComponent* CameraBoom;
 
@@ -121,7 +153,9 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"), Category = Camera)
 	class USpringArmComponent* FPSBoom;
 
-	//meta specifier allows private variables to be blueprintreadonly
+	/*
+	 * INTERACTION FUNCTIONALITIES
+	 */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	class UWidgetComponent* OverheadWidget;
 
@@ -134,7 +168,7 @@ private:
 	//for kissing
 	UPROPERTY(ReplicatedUsing = OnRep_OverlappingFriend)
 	class ABlasterCharacter* OverlappingFriend;
-
+	
 	//for ragdoll dragging
 	UPROPERTY(ReplicatedUsing = OnRep_OverlappingBody)
 	class ARagdollCube* OverlappingBody;
@@ -221,7 +255,7 @@ private:
 
 	UPROPERTY(EditAnywhere, Category = Combat)
 	UAnimMontage* KissMontage;
-
+	
 	UPROPERTY(EditAnywhere, Category = Elim)
 	UParticleSystem* DeathParticles;
 
@@ -300,7 +334,8 @@ private:
 	bool bReversedMovementControls = false;
 	bool bReversedLookControls = false;
 	bool bShiftMovementControls = false;
-public:	
+public:
+	void SetCharacterModel(ECharacterModel Model);
 	void RemoveAllCurses();
 	void SetShiftMovementControls(bool Shift);
 	void SetReversedMovementControls(bool Reversed);

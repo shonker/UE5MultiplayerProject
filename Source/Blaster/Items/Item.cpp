@@ -558,6 +558,7 @@ void AItem::PlaySoundCueAtRandomLocation(USoundCue* SoundCue)
 
 void AItem::OrbOfLight()
 {
+	if (!HasAuthority()) return;
 	UWorld* World = GetWorld();
 	if (World && OrbOfLightBlueprint)
 	{

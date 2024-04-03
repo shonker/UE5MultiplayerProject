@@ -34,6 +34,7 @@ public:
 	);
 	class AHomeBase* HomeBase;
 	class AMama* Mama;
+	
 	/*
 		Best not to confuse yourself, and
 		only set these "time" vars in editor!
