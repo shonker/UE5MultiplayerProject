@@ -36,5 +36,8 @@ private:
 	int32 GridSpacing = 1000;  // Space between grid locations
 	void GenerateEnvironment(); // Function to generate the environment
 	void CreateSplineMeshes();
+	TMap<FIntVector, bool> VisitedLocations;
 
+	FIntPoint LastHorizontalDirection;
+	FIntPoint ForbiddenDirection = FIntPoint(1);
 };

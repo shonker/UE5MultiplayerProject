@@ -17,6 +17,7 @@ AVertNeighb::AVertNeighb()
 	SplineComponent->SetupAttachment(RootComponent);
 	SplineComponent->SetMobility(EComponentMobility::Movable);
 
+	LastHorizontalDirection = FIntPoint(0, 0); // No initial direction
 }
 
 void AVertNeighb::BeginPlay()
@@ -31,41 +32,100 @@ void AVertNeighb::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 }
 
+
 void AVertNeighb::GenerateEnvironment()
 {
-	if (!SplineComponent) return;
-	FVector Directions[] = {
-		FVector(1, 0, 0),  // Forward
-		FVector(0, 1, 0),  // Right
-		FVector(-1, 0, 0), // Back
-		FVector(0, -1, 0), // Left
-		//FVector(0, 0, 1),  // Up
-		//FVector(0, 0, -1), // Down
-		FVector(1, 0, 1),  // Forward-Up
-		FVector(1, 0, -1), // Forward-Down
-		FVector(-1, 0, 1), // Back-Up
-		FVector(-1, 0, -1),// Back-Down
-		FVector(0, 1, 1),  // Right-Up
-		FVector(0, 1, -1), // Right-Down
-		FVector(0, -1, 1), // Left-Up
-		FVector(0, -1, -1) // Left-Down
-	};
+    if (!SplineComponent) return;
+    
+    FVector HorizontalDirections[] = {
+        FVector(1, 0, 0),  // Forward
+        FVector(0, 1, 0),  // Right
+        FVector(-1, 0, 0), // Back
+        FVector(0, -1, 0), // Left
+    };
+    
+    FVector VerticalDirections[] = {
+        FVector(1, 0, 1),  // Forward-Up
+        FVector(1, 0, -1), // Forward-Down
+        FVector(-1, 0, 1), // Back-Up
+        FVector(-1, 0, -1),// Back-Down
+        FVector(0, 1, 1),  // Right-Up
+        FVector(0, 1, -1), // Right-Down
+        FVector(0, -1, 1), // Left-Up
+        FVector(0, -1, -1) // Left-Down
+    };
 
-	for(int i = 0; i < 10; ++i)
-	{
-		DrawDebugSphere(GetWorld(), GetActorLocation() + CurrentPosition, 10.0f, 12, FColor::Blue, true);
-		SplineComponent->AddSplinePoint(GetActorLocation() + CurrentPosition, ESplineCoordinateSpace::World, true);
+    bool bMoveHorizontally = true;//(FMath::RandRange(0,10) < 1);
+    for(int i = 0; i < 10; ++i)
+    {
+        DrawDebugSphere(GetWorld(), GetActorLocation() + CurrentPosition, 10.0f, 12, FColor::Blue, true);
+        SplineComponent->AddSplinePoint(GetActorLocation() + CurrentPosition, ESplineCoordinateSpace::World, true);
 
-		int32 num_directions = sizeof(Directions) / sizeof(FVector);
-		FVector ChosenDirection = Directions[FMath::RandRange(0, num_directions - 1)] * GridSpacing;
-		
-		DrawDebugLine(GetWorld(), GetActorLocation() + CurrentPosition, GetActorLocation() + CurrentPosition + ChosenDirection, FColor::Green, true, -1, 0, 2);
-		CurrentPosition += ChosenDirection;
+        FVector ChosenDirection = FVector::ZeroVector;
+    	FVector NextMovement = FVector::ZeroVector;
+        bool bValidMoveFound = false;
 
-	}
+        while (!bValidMoveFound)
+        {
+            if (bMoveHorizontally)
+            {
+                int32 NumDirections = sizeof(HorizontalDirections) / sizeof(FVector);
+                ChosenDirection = HorizontalDirections[FMath::RandRange(0, NumDirections - 1)];
+            }
+            else
+            {
+                int32 NumDirections = sizeof(VerticalDirections) / sizeof(FVector);
+                ChosenDirection = VerticalDirections[FMath::RandRange(0, NumDirections - 1)];
+            }
+        	NextMovement = ChosenDirection * GridSpacing;
+        	if (!bMoveHorizontally)
+        	{
+        		NextMovement.X*=1.5;
+        		NextMovement.Y*=1.5;
+        	}
+        	
+            FIntPoint CurrentHorizontalMove(int32(FMath::Sign(ChosenDirection.X)), int32(FMath::Sign(ChosenDirection.Y)));
 
-	// Update the spline to visualize the changes
-	SplineComponent->UpdateSpline();
+            if (CurrentHorizontalMove != ForbiddenDirection || CurrentHorizontalMove == LastHorizontalDirection)
+            {
+            	UE_LOG(LogTemp, Warning, TEXT("Last Direction: (%d, %d), Current Direction: (%d, %d), Forbidden Direction: (%d, %d)"), 
+			   LastHorizontalDirection.X, LastHorizontalDirection.Y, 
+			   CurrentHorizontalMove.X, CurrentHorizontalMove.Y,
+			   ForbiddenDirection.X,ForbiddenDirection.Y);
+            	
+                // Convert the next position to a grid location to check if it's been visited
+                FVector NextPosition = CurrentPosition + NextMovement;
+                FIntVector NextGridLocation = FIntVector(FMath::RoundToInt(NextPosition.X / GridSpacing), FMath::RoundToInt(NextPosition.Y / GridSpacing), FMath::RoundToInt(NextPosition.Z / GridSpacing));
+
+                if (!VisitedLocations.Contains(NextGridLocation) || !VisitedLocations[NextGridLocation])
+                {
+                    VisitedLocations.Add(NextGridLocation, true);
+                	
+                    LastHorizontalDirection = CurrentHorizontalMove;
+                    ForbiddenDirection = CurrentHorizontalMove * -1;
+                    bValidMoveFound = true;
+                }
+            }
+            else
+            {
+	            UE_LOG(LogTemp, Warning, TEXT("Rejected due to doubling back. Last Direction: (%d, %d), Current Direction: (%d, %d), Forbidden Direction: (%d, %d)"), 
+			   LastHorizontalDirection.X, LastHorizontalDirection.Y, 
+			   CurrentHorizontalMove.X, CurrentHorizontalMove.Y,
+			   ForbiddenDirection.X,ForbiddenDirection.Y);
+            }
+        }
+
+        if (bValidMoveFound)
+        {
+            DrawDebugLine(GetWorld(), GetActorLocation() + CurrentPosition, GetActorLocation() + CurrentPosition + NextMovement, FColor::Green, true, -1, 0, 2);
+            CurrentPosition += NextMovement;
+        }
+        
+        // Toggle movement type for next iteration
+        bMoveHorizontally = !bMoveHorizontally;
+    }
+
+    SplineComponent->UpdateSpline();
 }
 
 void AVertNeighb::CreateSplineMeshes()

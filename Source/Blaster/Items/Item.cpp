@@ -86,7 +86,7 @@ void AItem::UpdateCurse(EWeaponState State)
 
 	// EASY
 	if (bKnocking) Knocking(State);
-	if (bMurmuring) Murmuring(State);
+	//if (bMurmuring) Murmuring(State);
 	if (bLaughing) Laughing(State);
 	if (bChangingFOV) ChangingFOV(State);
 	if (bScreenShake) ScreenShake(State);
@@ -216,14 +216,13 @@ void AItem::HealthSap(EWeaponState State)
 
 void AItem::DecreaseHealth()
 {
-	if (!BlasterOwnerCharacter) return;
+	
+	if (BlasterOwnerController == nullptr && BlasterOwnerCharacter->Controller != nullptr)
+	{
+		BlasterOwnerController = Cast<ABlasterPlayerController>(BlasterOwnerCharacter->Controller);
+	}
 
-	BlasterOwnerController =
-	BlasterOwnerController == nullptr ?
-	Cast<ABlasterPlayerController>(BlasterOwnerCharacter->Controller) :
-	BlasterOwnerController;
-
-	if (BlasterOwnerController)
+	if (BlasterOwnerController && BlasterOwnerCharacter)
 	{
 		UGameplayStatics::ApplyDamage(
 			BlasterOwnerCharacter,
@@ -403,16 +402,17 @@ void AItem::Murmuring(EWeaponState State)
 	switch (State)
 	{
 	case EWeaponState::EWS_PickedUp:
-		if (BlasterOwnerCharacter)
-		{
-			// Start a repeating timer to play murmuring sound
-			BlasterOwnerCharacter->GetWorld()->GetTimerManager().SetTimer(MurmuringSoundTimerHandle, this, &AItem::PlayMurmuringSound, FMath::RandRange(12,30), true, 7.0f); // Every 7 seconds
-		}
+		//UWorld* World = GetWorld();
+		// if (BlasterOwnerCharacter && World)
+		// {
+		// 	// Start a repeating timer to play murmuring sound
+		// 	//BlasterOwnerCharacter->GetWorld()->GetTimerManager().SetTimer(MurmuringSoundTimerHandle, this, &AItem::PlayMurmuringSound, FMath::RandRange(12,30), true, 7.0f); // Every 7 seconds
+		// }
 		break;
 
 	case EWeaponState::EWS_Dropped:
 		// Stop the murmuring sound effect
-		BlasterOwnerCharacter->GetWorld()->GetTimerManager().ClearTimer(MurmuringSoundTimerHandle);
+		//BlasterOwnerCharacter->GetWorld()->GetTimerManager().ClearTimer(MurmuringSoundTimerHandle);
 		break;
 
 	case EWeaponState::EWS_Stored:

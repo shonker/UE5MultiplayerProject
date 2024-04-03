@@ -67,7 +67,6 @@ void AProcWall::SpawnNarrowObjects()
     TArray<int32> AvailableIndices;
     for (int32 i = 0; i < NumTransforms; ++i) AvailableIndices.Add(i);
     const int32 ObjectsToSpawn = CalculateObjectsToSpawn(NumTransforms);
-    UE_LOG(LogTemp, Warning, TEXT("obj to spawn:%i"), ObjectsToSpawn);
 
     for (int32 i = 0; i < ObjectsToSpawn && AvailableIndices.Num() > 0; ++i)
     {
@@ -96,7 +95,6 @@ int32 AProcWall::CalculateObjectsToSpawn(int32 NumTransforms) const
     int32 RandomInt = RS.RandRange(0.0f, NumTransforms);
     int32 NewRandomInt = RS.RandRange(0,RandomInt);
 
-    UE_LOG(LogTemp, Warning, TEXT("%i"), NewRandomInt);
     return NewRandomInt;
 }
 
