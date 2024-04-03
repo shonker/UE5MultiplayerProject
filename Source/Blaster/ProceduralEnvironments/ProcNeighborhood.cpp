@@ -321,25 +321,31 @@ void AProcNeighborhood::GenerateHouses()
 				bool ConnectedDown = false;
 				bool ConnectedLeft = false;
 				bool ConnectedUp = false;
-
+				bool bDeadEnd = false;
+				
 				if (Col - 1 >= 0) //Check left
 				{
 					if (GridCellTypes[Col - 1][Row] == CellType::Road) ConnectedLeft = true;
+					if (GridRoadTypes[Col - 1][Row] == ERoadType::DeadEnd) bDeadEnd = true;
 				}
 				if (Col + 1 < GridSize) //Check right
 				{
 					if (GridCellTypes[Col + 1][Row] == CellType::Road) ConnectedRight = true;
+					if (GridRoadTypes[Col + 1][Row] == ERoadType::DeadEnd) bDeadEnd = true;
+
 				}
 				if (Row + 1 < GridSize) //Check up
 				{
 					if (GridCellTypes[Col][Row + 1] == CellType::Road) ConnectedUp = true;
+					if (GridRoadTypes[Col][Row + 1] == ERoadType::DeadEnd) bDeadEnd = true;
 				}
 				if (Row - 1 > 0) //Check down
 				{
-					if (GridCellTypes[Col][Row - 1] == CellType::Road) ConnectedDown = true;
+				if (GridCellTypes[Col][Row - 1] == CellType::Road) ConnectedDown = true;
+				if (GridRoadTypes[Col][Row - 1] == ERoadType::DeadEnd) bDeadEnd = true;
 				}
 
-				uint8 ConnectionCount = ConnectedRight + ConnectedLeft + ConnectedDown + ConnectedUp;
+				uint8 ConnectionCount = ConnectedRight + ConnectedLeft + ConnectedDown + ConnectedUp + bDeadEnd*2;
 
 				ConnectionCounts.Add(FVector2D(Col, Row), ConnectionCount);
 

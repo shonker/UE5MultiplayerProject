@@ -67,7 +67,7 @@ void AProcFloor::GenerateFloorObjects()
             FTransform SpawnTransform = FloorObjectTransforms[TransformIndex];
             FVector Location = SpawnTransform.GetLocation() + GetActorLocation(); 
             FRotator Rotation = SpawnTransform.GetRotation().Rotator(); 
-            Rotation.Yaw -= 90.0f; 
+            Rotation.Yaw = RS.RandRange(-180.f,180.f); 
             AAProcActor* ProcActor = SpawnAt(SpawnableFloorObjects[ObjectIndex].ObjectClass, Location, Rotation);
             ProcActor->ProcGen();
             

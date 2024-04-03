@@ -51,7 +51,7 @@ AAProcActor* AAProcActor::SpawnAt(TSubclassOf<AActor> Actor, FVector& Location, 
 	FActorSpawnParameters SpawnParams;
 	SpawnParams.Name = FName(*FString(Actor->GetName() + "_" + FString::FromInt(*PGI)));
 	SpawnParams.NameMode = FActorSpawnParameters::ESpawnActorNameMode::Required_ErrorAndReturnNull;
-	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
 	SpawnParams.bDeferConstruction = true;
 
 	const int32 ThrowawayRandomStreamSalt = RS.FRandRange(0, 5);

@@ -64,14 +64,15 @@ protected:
 		bool bAutomaticDecapitation = false;
 
 	//ACTIVATION TRAITS/INDICATORS
-	UPROPERTY(EditAnywhere, Category = CurseActivations)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = CurseActivations)
 		bool bSingleScreenShake = false;
-	UPROPERTY(EditAnywhere, Category = CurseActivations)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = CurseActivations)
 		bool bHeavyBreath = false;
-	UPROPERTY(EditAnywhere, Category = CurseActivations)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = CurseActivations)
 		bool bOrbOfLight = false;
-	UPROPERTY(EditAnywhere, Category = CurseActivations)
-		bool bLineofSightSFX = false;
+	//handled in BP
+	UPROPERTY(EditAnywhere,BlueprintReadWrite, Category = CurseActivations)
+		bool bLineofSightSound = false;
 
 	/*
 		CURSE SFX
@@ -114,7 +115,6 @@ private:
 	*/
 	//hard
 	void HeavyJumping(EWeaponState State);
-	void Blindness(EWeaponState State);
 	void HealthSap(EWeaponState State);
 
 	FTimerHandle HealthSapTimerHandle;
@@ -126,6 +126,7 @@ private:
 
 	//medium
 	void Fetus(EWeaponState State);
+	void Blindness(EWeaponState State);
 
 	void CountdownPain(EWeaponState State);
 	FTimerHandle CountdownPainTimerHandle;
@@ -161,15 +162,19 @@ private:
 	FTimerHandle FOVTimerHandle;
 	FTimerHandle FOVInterpHandle;
 	void RandomizeFOV();
-	/*float TargetFOV;
-	float OriginalFOV = 90.f;
-	float FOVTransitionDuration;
-	bool bIsFOVTransitioning = false;*/
-
+	
 	void ScreenShake(EWeaponState State);
 	FTimerHandle ScreenShakeTimerHandle;
 	void TriggerScreenShake();
 
+	/*
+	 * vibe related effects
+	 */
+	UPROPERTY(EditAnywhere, Category = "Curse Blueprints")
+	TSubclassOf<AActor> OrbOfLightBlueprint;
+	UFUNCTION()
+	void OrbOfLight();
+	//nothing here yet
 
 public:
 	virtual void OnSetWeaponState(EWeaponState State) override;

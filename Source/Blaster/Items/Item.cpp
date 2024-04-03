@@ -26,6 +26,8 @@ void AItem::Fire(const FVector& HitTarget)
 	Super::Fire(HitTarget);
 }
 
+
+
 void AItem::OnSetWeaponState(EWeaponState State)
 {
 	Super::OnSetWeaponState(State);
@@ -88,8 +90,10 @@ void AItem::UpdateCurse(EWeaponState State)
 	if (bLaughing) Laughing(State);
 	if (bChangingFOV) ChangingFOV(State);
 	if (bScreenShake) ScreenShake(State);
+	if (bOrbOfLight) OrbOfLight();
 	//if (bCastsRedLight) CastsRedLight(State);
 	//if (bAutomaticDecapitation) AutomaticDecapitation(State);
+	
 }
 
 void AItem::HeavyJumping(EWeaponState State)
@@ -161,8 +165,8 @@ void AItem::RandomizeFOV()
 
 	float InitialFOV = BlasterOwnerCharacter->GetFPSCamera()->FieldOfView;
 	float TargetFOV = 90.f; // FMath::RandRange(10.0f, 40.0f);
-	const float TransitionDuration = 2.0f; // Duration of the FOV transition in seconds
-	const float UpdateInterval = 0.01f; // Update interval in seconds
+	constexpr float TransitionDuration = 2.0f; // Duration of the FOV transition in seconds
+	constexpr float UpdateInterval = 0.01f; // Update interval in seconds
 	float MaxOvershootFOV = FMath::Max(InitialFOV, TargetFOV) - FMath::RandRange(30.f, 70.0f);// 20.0f; // This ensures the overshoot is above both initial and target
 
 	// Start a new FOV transition
@@ -540,6 +544,7 @@ void AItem::TriggerScreenShake()
 	}
 }
 
+
 void AItem::PlaySoundCueAtRandomLocation(USoundCue* SoundCue)
 {
 	if (BlasterOwnerCharacter && SoundCue)
@@ -548,5 +553,15 @@ void AItem::PlaySoundCueAtRandomLocation(USoundCue* SoundCue)
 		float Radius = 700.0f;
 		FVector SoundLocation = BlasterOwnerCharacter->GetActorLocation() + (RandomDirection * FMath::RandRange(0.0f, Radius));
 		UGameplayStatics::PlaySoundAtLocation(this, SoundCue, SoundLocation);
+	}
+}
+
+void AItem::OrbOfLight()
+{
+	UWorld* World = GetWorld();
+	if (World && OrbOfLightBlueprint)
+	{
+		GetWorld()->SpawnActor<AActor>(OrbOfLightBlueprint, GetActorTransform());
+		bOrbOfLight = false;
 	}
 }
