@@ -206,6 +206,18 @@ void AProcWall::TakeWallDamage(AActor* DamagedActor, float Damage, const UDamage
         UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), DamagedParticle, ParticleLoc, GetActorRotation(), FVector(1.0f));
     }
 }
+//
+// void AProcWall::TakeRadialDamage(AActor* DamagedActor, float Damage, const class UDamageType* DamageType, FVector Origin, FHitResult HitInfo, class AController* InstigatedBy, AActor* DamageCauser )
+// {
+//     UE_LOG(LogTemp, Log, TEXT("my leg: %f"), Damage);
+//     if (bIsBroken) return;
+//         BreakWindow();
+//     if (DamagedParticle)
+//     {
+//         FVector ParticleLoc = GetActorLocation() + FVector(0, 0, 300.f);
+//         UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), DamagedParticle, ParticleLoc, GetActorRotation(), FVector(1.0f));
+//     }
+// }
 
 void AProcWall::DestroyActor()
 {

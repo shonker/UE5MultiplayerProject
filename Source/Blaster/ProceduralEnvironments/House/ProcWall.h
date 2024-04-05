@@ -110,6 +110,8 @@ protected:
     
     UFUNCTION()
         void TakeWallDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType, AController* InstigatedBy, AActor* DamageCauser);
+    // UFUNCTION()
+    //     void TakeRadialDamage(AActor* DamagedActor, float Damage, const class UDamageType* DamageType, FVector Origin, FHitResult HitInfo, class AController* InstigatedBy, AActor* DamageCauser );
 
     void DestroyActor();
 
