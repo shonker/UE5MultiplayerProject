@@ -435,7 +435,7 @@ void AItem::Laughing(EWeaponState State)
 	case EWeaponState::EWS_PickedUp:
 		if (BlasterOwnerCharacter)
 		{
-			int32 RandomTime = FMath::RandRange(1, 20);
+			int32 RandomTime = FMath::RandRange(15, 30);
 			int32 LaughType = FMath::RandRange(0, 2);
 
 			// SetTimer using a lambda function
@@ -469,9 +469,12 @@ void AItem::PlayLaughingSound(int32 OptionalLaughType)
 		{
 		case 0:
 			ChosenCue = ManLaughingCue;
+			UE_LOG(LogTemp, Warning, TEXT("manlaugh"));
 			break;
 		case 1:
 			ChosenCue = WomanLaughingCue;
+			UE_LOG(LogTemp, Warning, TEXT("WOmanlaugh"));
+
 			break;
 		case 2:
 			ChosenCue = ChildLaughingCue;

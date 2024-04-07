@@ -24,6 +24,8 @@ public:
 
 	UPROPERTY(Replicated)
 	bool bCharacterWasHit;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	class UProjectileMovementComponent* ProjectileMovementComponent;
 
 protected:
 	virtual void BeginPlay() override;
@@ -71,9 +73,7 @@ protected:
 	UPROPERTY()
 		class UNiagaraComponent* TrailSystemComponent;
 
-	UPROPERTY(VisibleAnywhere)
-		class UProjectileMovementComponent* ProjectileMovementComponent;
-
+	
 	UPROPERTY(EditAnywhere)
 	float DamageInnerRadius = 200.f;
 	UPROPERTY(EditAnywhere)

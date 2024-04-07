@@ -155,7 +155,7 @@ private:
 	 *                           1: Woman laughing sound.
 	 *                           2: Child laughing sound.
 	 */
-	void PlayLaughingSound(int32 OptionalLaughType = -1);
+	void PlayLaughingSound(int32 OptionalLaughType = 31);
 
 	void ChangingFOV(EWeaponState State);
 
