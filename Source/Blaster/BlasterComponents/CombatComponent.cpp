@@ -89,6 +89,7 @@ void UCombatComponent::FireButtonPressed(bool bPressed)
 
 bool UCombatComponent::CanFire()
 {
+	if (bAiming) return false;
 	if (EquippedWeapon == nullptr) return false;
 	if (!EquippedWeapon->IsEmpty()
 		&& bCanFire

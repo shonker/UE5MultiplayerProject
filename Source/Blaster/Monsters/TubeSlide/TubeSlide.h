@@ -14,7 +14,7 @@ class BLASTER_API ATubeSlide : public AActor
 public:
 	// Sets default values for this actor's properties
 	ATubeSlide();
-	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	UPROPERTY(BlueprintReadWrite, Replicated)
 		bool bAttentive;

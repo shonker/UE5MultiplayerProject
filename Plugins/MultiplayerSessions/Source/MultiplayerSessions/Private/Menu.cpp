@@ -112,16 +112,19 @@ void UMenu::OnFindSessions(const TArray<FOnlineSessionSearchResult>& SessionResu
 
 	if (bWasSuccessful && SessionResults.Num() > 0)
 	{
-		SearchResults.Empty();
-		SearchResults = SessionResults;
-
 		TArray<FBlueprintSessionInfo> BlueprintSessions;
 		for (const FOnlineSessionSearchResult& SearchResult : SessionResults)
 		{
 			FBlueprintSessionInfo Info;
 			Info.SessionName = SearchResult.GetSessionIdStr();
+			Info.OwningUserName = SearchResult.Session.OwningUserName;
+			Info.CurrentPlayers = SearchResult.Session.SessionSettings.NumPublicConnections - SearchResult.Session.NumOpenPublicConnections;
+			Info.MaxPlayers = SearchResult.Session.SessionSettings.NumPublicConnections;
+
 			BlueprintSessions.Add(Info);
 		}
+        
+		// Assuming CreateSessionList() properly handles the populated array.
 		CreateSessionList(BlueprintSessions);
 	}
 	else
@@ -216,9 +219,10 @@ FBlueprintSessionInfo UMenu::GetSessionInfoAt(int32 Index)
 	if (SearchResults.IsValidIndex(Index))
 	{
 		const auto& SearchResult = SearchResults[Index];
-		Info.SessionName = SearchResult.GetSessionIdStr(); // Example, adjust according to actual data you want to expose
-		// Populate other fields of Info as needed
+		Info.SessionName = SearchResult.GetSessionIdStr();
+		Info.OwningUserName = SearchResult.Session.OwningUserName;
+		Info.CurrentPlayers = SearchResult.Session.SessionSettings.NumPublicConnections - SearchResult.Session.NumOpenPublicConnections;
+		Info.MaxPlayers = SearchResult.Session.SessionSettings.NumPublicConnections;
 	}
-
 	return Info;
 }

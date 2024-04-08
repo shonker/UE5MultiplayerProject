@@ -38,6 +38,6 @@ private:
 	UFUNCTION()
 	void LeaveButtonClicked();
 
-	FString PathToMenu{ TEXT("") };
+	FString PathToMenu{ TEXT("/Game/ThirdPersonCPP/Maps/StartupMap") };
 
 };

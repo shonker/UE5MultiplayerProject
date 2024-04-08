@@ -45,6 +45,7 @@ void ALobbyPlayerController::FindACamera()
 {
     TArray<AActor*> FoundCameras;
     UGameplayStatics::GetAllActorsOfClass(GetWorld(), ACameraActor::StaticClass(), FoundCameras);
+    if (FoundCameras.Num() == 0) return;
     int32 Index = FMath::RandRange(0, FoundCameras.Num() - 1);
     AActor* SelectedCamera = FoundCameras[Index];
     if (SelectedCamera)

@@ -7,7 +7,6 @@
 #include "Interfaces/OnlineSessionInterface.h"
 #include "OnlineSessionSettings.h"
 #include "OnlineSubsystem.h"
-#include "Interfaces/OnlineSessionInterface.h"
 #include "Menu.generated.h"
 
 /**
@@ -20,9 +19,19 @@ struct FBlueprintSessionInfo
 
 public:
 	UPROPERTY(BlueprintReadOnly)
-		FString SessionName;
+	FString SessionName;
 
-	// todo: other session details 
+	UPROPERTY(BlueprintReadOnly)
+	FString OwningUserName;
+
+	UPROPERTY(BlueprintReadOnly)
+	int32 CurrentPlayers;
+
+	UPROPERTY(BlueprintReadOnly)
+	int32 MaxPlayers;
+
+	// Constructor
+	FBlueprintSessionInfo() : CurrentPlayers(0), MaxPlayers(0) {}
 };
 
 UCLASS()
@@ -53,7 +62,9 @@ protected:
 	//
 	UFUNCTION()
 	void OnCreateSession(bool bWasSuccessful);
+	
 	void OnFindSessions(const TArray<FOnlineSessionSearchResult>& SessionResults, bool bWasSuccessful);
+	
 	void OnJoinSession(EOnJoinSessionCompleteResult::Type Result);
 	UFUNCTION()
 	void OnDestroySession(bool bWasSuccessful);

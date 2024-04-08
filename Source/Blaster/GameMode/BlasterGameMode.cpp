@@ -152,7 +152,7 @@ void ABlasterGameMode::Tick(float DeltaTime)
 				SetMatchState(MatchState::Judgement);
 			}
 	}
-	//todo: consider if this setmatchstate can be simply callable from mama's state change
+	//consider if this setmatchstate can be simply callable from mama's state change
 	//instead of being checked here every tick lol
 	else if (MatchState == MatchState::Judgement)
 	{

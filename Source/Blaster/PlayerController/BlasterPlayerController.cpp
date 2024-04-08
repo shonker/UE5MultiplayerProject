@@ -141,6 +141,10 @@ void ABlasterPlayerController::ClientJoinMidgame_Implementation(FName StateOfMat
 	CooldownTime = Cooldown;
 	MatchState = StateOfMatch;
 	OnMatchStateSet(MatchState);
+	if (HasAuthority())
+	{
+		BlasterHUD = (BlasterHUD == nullptr) ? Cast<ABlasterHUD>(GetHUD()) : BlasterHUD;
+	}
 	if (BlasterHUD && MatchState == MatchState::WaitingToStart)
 	{
 		BlasterHUD->AddAnnouncement();

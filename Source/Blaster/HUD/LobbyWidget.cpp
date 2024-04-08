@@ -7,6 +7,7 @@
 #include "Blaster/GameMode/LobbyGameMode.h"
 #include "Engine/Engine.h"
 #include "Blaster/PlayerController/LobbyPlayerController.h"
+#include "Kismet/GameplayStatics.h"
 
 void ULobbyWidget::LobbySetup(FString MenuPath)
 {
@@ -32,23 +33,30 @@ bool ULobbyWidget::Initialize()
 	{
 		return false;
 	}
-
-	if (StartButton)
-	{
-		StartButton->OnClicked.AddDynamic(this, &ThisClass::StartButtonClicked);
-	}
-
-	if (LeaveButton)
-	{
-		LeaveButton->OnClicked.AddDynamic(this, &ThisClass::LeaveButtonClicked);
-	}
-
+	
 	LobbyGameMode = Cast<ALobbyGameMode>(GetWorld()->GetAuthGameMode());
 
 	APlayerController* OwningPlayer = GetOwningPlayer();
 	if (OwningPlayer)
 	{
 		Cast<ALobbyPlayerController>(OwningPlayer)->SetLobbyWidget(this);
+	}
+	
+	if (StartButton)
+	{
+		if (OwningPlayer && OwningPlayer->HasAuthority())
+		{
+			StartButton->OnClicked.AddDynamic(this, &ThisClass::StartButtonClicked);
+		}
+		else
+		{
+			StartButton->SetVisibility(ESlateVisibility::Hidden);
+		}
+	}
+
+	if (LeaveButton)
+	{
+		LeaveButton->OnClicked.AddDynamic(this, &ThisClass::LeaveButtonClicked);
 	}
 
 	return true;
@@ -61,8 +69,8 @@ void ULobbyWidget::StartButtonClicked()
 	if (LobbyGameMode) //this will only ever pass on the server
 	{
 		LobbyGameMode->StartGame();
+		MenuTearDown();
 	}
-	MenuTearDown();
 }
 
 void ULobbyWidget::LeaveButtonClicked()
@@ -73,22 +81,19 @@ void ULobbyWidget::LeaveButtonClicked()
 	APlayerController* OwningPlayer = GetOwningPlayer();
 	if (!OwningPlayer) return;
 
-	if (OwningPlayer->HasAuthority()) // This check is for the server/host
-	{
-		// For the host, notify all clients to disconnect, then travel to the main menu
-		// Depending on your game's architecture, you might use a custom event or RPC to notify clients
+	// if (OwningPlayer->HasAuthority())
+	// {
+	// 	FString Command = FString::Printf(TEXT("ServerTravel %s"), *PathToMenu);
+	// 	World->Exec(World, *Command);
+	// }
+	// else 
+	// {
+	// 	FString Command = FString::Printf(TEXT("Open %s"), *PathToMenu);
+	// 	OwningPlayer->ClientTravel(*Command, ETravelType::TRAVEL_Absolute);
+	// }
 
-		// This command tells the server to switch levels, effectively "kicking" all clients as they'll lose connection
-		FString Command = FString::Printf(TEXT("ServerTravel %s"), *PathToMenu);
-		World->Exec(World, *Command);
-	}
-	else // For clients
-	{
-		// This command makes the client travel to the specified level (main menu)
-		FString Command = FString::Printf(TEXT("Open %s"), *PathToMenu);
-		OwningPlayer->ClientTravel(*Command, ETravelType::TRAVEL_Absolute);
-	}
-
+	UGameplayStatics::OpenLevel(OwningPlayer, TEXT("/Game/ThirdPersonCPP/Maps/StartupMap"), TRAVEL_Absolute);
+	
 	MenuTearDown();
 }
 

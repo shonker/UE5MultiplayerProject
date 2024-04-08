@@ -36,6 +36,7 @@ void UBlasterAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
     EquippedWeapon = BlasterCharacter->GetEquippedWeapon();
     bIsCrouched = BlasterCharacter->bIsCrouched;
     bAiming = BlasterCharacter->IsAiming();
+    
     TurningInPlace = BlasterCharacter->GetTurningInPlace();
     bRotateRootBone = BlasterCharacter->ShouldRotateRootBone();
     bElimmed = BlasterCharacter->IsElimmed();
@@ -103,7 +104,8 @@ void UBlasterAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
     }
     bUseFABRIK = BlasterCharacter->GetCombatState() == ECombatState::ECS_Unoccupied;
     bUseAimOffsets = BlasterCharacter->GetCombatState() == ECombatState::ECS_Unoccupied && !BlasterCharacter->GetDisableGameplay();
-    bTransformRightHand = BlasterCharacter->GetCombatState() == ECombatState::ECS_Unoccupied && !BlasterCharacter->GetDisableGameplay();
+    bTransformRightHand = bAiming;
+    //bTransformRightHand = BlasterCharacter->GetCombatState() == ECombatState::ECS_Unoccupied && !BlasterCharacter->GetDisableGameplay();
 }
 
 void UBlasterAnimInstance::AnimNotify_StartKiss()

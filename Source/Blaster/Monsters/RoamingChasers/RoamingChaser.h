@@ -28,15 +28,21 @@ class BLASTER_API ARoamingChaser : public ACharacter
 public:
     ARoamingChaser();
 
+    virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
     UFUNCTION(BlueprintCallable)
         void CheckAttackResult();
     
-    UPROPERTY(BlueprintReadOnly)
+    UPROPERTY(BlueprintReadOnly, Replicated)
     bool bInitiateAttack = false;
-    UPROPERTY(BlueprintReadWrite)
+    UPROPERTY(BlueprintReadWrite, Replicated)
     bool bLaughing = false;
+    UPROPERTY(Replicated)
     bool bHitBlasterCharacter = false;
 
+    UFUNCTION(Server, Reliable)
+    void ServerSetAIState(EAIState State);
+    
     class AAIController* AIController;
 
 protected:
@@ -54,7 +60,7 @@ protected:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "CAYDENS Custom Setup")
         class USphereComponent* StabSphere;
 
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "CAYDENS Custom Setup")
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Replicated, Category = "CAYDENS Custom Setup")
     EAIState CurrentAIState;
 
     FTimerHandle MovementTimer;

@@ -80,7 +80,6 @@ void AWeapon::BeginPlay()
 
 	if (AreaBox)
 	{
-		AreaBox->SetupAttachment(RootComponent);
 		AreaBox->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
 		AreaBox->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 		AreaBox->SetCollisionResponseToChannel(ECollisionChannel::ECC_WorldDynamic, ECollisionResponse::ECR_Overlap);

@@ -8,6 +8,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "NavigationInvokerComponent.h"
 #include "NavigationSystem.h"
+#include "Net/UnrealNetwork.h"
 
 
 ARoamingChaser::ARoamingChaser()
@@ -31,6 +32,17 @@ ARoamingChaser::ARoamingChaser()
     CurrentAIState = EAIState::Idle;
 }
 
+void ARoamingChaser::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+    Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+    
+    DOREPLIFETIME(ARoamingChaser, bInitiateAttack);
+    DOREPLIFETIME(ARoamingChaser, bLaughing);
+    DOREPLIFETIME(ARoamingChaser, bHitBlasterCharacter);
+    DOREPLIFETIME(ARoamingChaser, CurrentAIState);
+    
+}
+
 void ARoamingChaser::BeginPlay()
 {
     Super::BeginPlay();
@@ -38,16 +50,22 @@ void ARoamingChaser::BeginPlay()
     GetCharacterMovement()->MaxWalkSpeed = 100.0f;
 
     GetWorldTimerManager().SetTimer(MovementTimer, this, &ARoamingChaser::ChooseNewLocation, FMath::RandRange(5.0f, 10.0f), true);
-  
+    
     if (AIPerception) AIPerception->OnPerceptionUpdated.AddDynamic(this, &ARoamingChaser::OnPerceptionUpdated);
     
-    if (StabSphere)
+    if (StabSphere && HasAuthority())
     {
         StabSphere->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
         StabSphere->SetCollisionResponseToChannel(ECollisionChannel::ECC_WorldDynamic, ECollisionResponse::ECR_Overlap);
         StabSphere->OnComponentBeginOverlap.AddDynamic(this, &ARoamingChaser::OnAttackSphereOverlap);
     }
 }
+
+void ARoamingChaser::ServerSetAIState_Implementation(EAIState State)
+{
+    CurrentAIState = State;
+}
+
 
 void ARoamingChaser::ChooseNewLocation()
 {
@@ -83,7 +101,7 @@ void ARoamingChaser::OnPerceptionUpdated(const TArray<AActor*>& UpdatedActors)
                 GetWorldTimerManager().SetTimer(IdleReturnTimer, this, &ARoamingChaser::ReturnToIdle, 5.0f, false);
                 GetWorldTimerManager().SetTimer(LineOfSightCheckTimer, this, &ARoamingChaser::CheckPlayerLineOfSight, 0.1f, true);
 
-                CurrentAIState = EAIState::Staring;
+                ServerSetAIState(EAIState::Staring);
                 break;
             }
         }
@@ -109,7 +127,7 @@ void ARoamingChaser::CheckPlayerLineOfSight()
     {
         bInitiateAttack = false;
         GetWorldTimerManager().ClearTimer(IdleReturnTimer);
-        CurrentAIState = EAIState::Chasing;
+        ServerSetAIState(EAIState::Chasing);
         GetCharacterMovement()->MaxWalkSpeed = 500.0f;
         AIController = AIController ? AIController : Cast<AAIController>(GetController());
         if (AIController)
@@ -135,7 +153,7 @@ void ARoamingChaser::OnAttackSphereOverlap(UPrimitiveComponent* OverlappedCompon
     FString ComponentName = OtherComp->GetName();
     if (ComponentName == FString("CollisionCylinder"))
     {
-        CurrentAIState = EAIState::Attacking;
+       ServerSetAIState(EAIState::Attacking);
         CommenceAttack();
     }
 }
@@ -178,7 +196,7 @@ void ARoamingChaser::OnDamageSphereOverlap(UPrimitiveComponent* OverlappedCompon
 {
     if (CurrentAIState != EAIState::Attacking) return;
     if (bHitBlasterCharacter == true) return;
-
+    //if (!HasAuthority()) return; //this may cause problems if the client is too far from the host? idk
     if (OtherActor && OtherActor->IsA(ABlasterCharacter::StaticClass()))
     {
         bHitBlasterCharacter = true;
@@ -218,6 +236,10 @@ void ARoamingChaser::OnDamageSphereOverlap(UPrimitiveComponent* OverlappedCompon
         {
             UGameplayStatics::PlaySoundAtLocation(this, StabSoundCue, GetActorLocation());
         }
+        if (LaughSoundCue)
+        {
+            UGameplayStatics::PlaySoundAtLocation(this, LaughSoundCue, GetActorLocation());
+        }
     }
 }
 
@@ -230,13 +252,8 @@ void ARoamingChaser::CheckAttackResult()
         bLaughing = true;
 
         UE_LOG(LogTemp, Log, TEXT("i hit the blaster character"));
-        CurrentAIState = EAIState::Laughing;
+        ServerSetAIState(EAIState::Laughing);
         GetWorldTimerManager().ClearTimer(ChaseDurationTimer);  
-
-        if (LaughSoundCue)
-        {
-            UGameplayStatics::PlaySoundAtLocation(this, LaughSoundCue, GetActorLocation());
-        }
         GetWorldTimerManager().SetTimer(IdleReturnTimer, this, &ARoamingChaser::ReturnToIdle, 5.0f, false);
         return;
     }
@@ -265,7 +282,7 @@ FVector ARoamingChaser::ChooseFleeLocation()
 void ARoamingChaser::ReturnToIdle()
 {
     UE_LOG(LogTemp, Log, TEXT(" i return to idle"));
-    CurrentAIState = EAIState::Idle;
+    ServerSetAIState(EAIState::Idle);
 
     bLaughing = false;
     bInitiateAttack = false;

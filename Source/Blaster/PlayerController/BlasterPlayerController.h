@@ -40,8 +40,7 @@ public:
 	void PostNetInit();
 	void PostInitializeComponents();
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
-
-
+	
 	void CheckTimeSync(float DeltaTime);
 
 	virtual float GetServerTime(); //synced w/ server world clock

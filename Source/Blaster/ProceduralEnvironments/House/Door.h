@@ -39,9 +39,7 @@ public:
 protected:
 
 	virtual void BeginPlay() override;
-
-	void AttemptLockButtonCast();
-
+	
 public:	
 
 	virtual void Tick(float DeltaTime) override;
