@@ -16,9 +16,8 @@ class BLASTER_API ULobbyWidget : public UUserWidget
 	
 public:
 	UFUNCTION(BlueprintCallable)
-	void LobbySetup(FString MenuPath = FString(TEXT("/Game/ThirdPersonCPP/Maps/StartupMap")));
+	void LobbySetup(FString MenuPath = FString(TEXT("/Game/Maps/StartupMap")));
 	void MenuTearDown();
-
 protected:
 	virtual bool Initialize() override;
 
@@ -37,7 +36,9 @@ private:
 
 	UFUNCTION()
 	void LeaveButtonClicked();
+	void OnSessionDestroyed(FName SessionName, bool bWasSuccessful);
+	void ClientReturnToMenu();
 
-	FString PathToMenu{ TEXT("/Game/ThirdPersonCPP/Maps/StartupMap") };
+	FString PathToMenu{ TEXT("/Game/Maps/StartupMap") };
 
 };

@@ -8,7 +8,7 @@
 
 AHomeBase::AHomeBase()
 {
-	SetReplicates(true);
+	bReplicates = true;
 	RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("RootComponent"));
 
 	// Initialize the box component

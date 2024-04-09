@@ -2,11 +2,14 @@
 
 
 #include "LobbyWidget.h"
+
+#include "OnlineSubsystem.h"
 #include "Components/Button.h"
 #include "Net/UnrealNetwork.h" 
 #include "Blaster/GameMode/LobbyGameMode.h"
 #include "Engine/Engine.h"
 #include "Blaster/PlayerController/LobbyPlayerController.h"
+#include "Interfaces/OnlineSessionInterface.h"
 #include "Kismet/GameplayStatics.h"
 
 void ULobbyWidget::LobbySetup(FString MenuPath)
@@ -81,19 +84,40 @@ void ULobbyWidget::LeaveButtonClicked()
 	APlayerController* OwningPlayer = GetOwningPlayer();
 	if (!OwningPlayer) return;
 
-	// if (OwningPlayer->HasAuthority())
-	// {
-	// 	FString Command = FString::Printf(TEXT("ServerTravel %s"), *PathToMenu);
-	// 	World->Exec(World, *Command);
-	// }
-	// else 
-	// {
-	// 	FString Command = FString::Printf(TEXT("Open %s"), *PathToMenu);
-	// 	OwningPlayer->ClientTravel(*Command, ETravelType::TRAVEL_Absolute);
-	// }
+	if (OwningPlayer->HasAuthority())
+	{
+		// Assuming you want to end the session for the host and return to the menu
+		IOnlineSessionPtr Sessions = IOnlineSubsystem::Get()->GetSessionInterface();
+		if (Sessions.IsValid())
+		{
+			Sessions->DestroySession(NAME_GameSession, FOnDestroySessionCompleteDelegate::CreateUObject(this, &ULobbyWidget::OnSessionDestroyed));
+		}
+	}
+	else 
+	{
+		// Clients simply travel back to the menu map
+		ClientReturnToMenu();
+	}
+}
 
-	UGameplayStatics::OpenLevel(OwningPlayer, TEXT("/Game/ThirdPersonCPP/Maps/StartupMap"), TRAVEL_Absolute);
-	
+void ULobbyWidget::OnSessionDestroyed(FName SessionName, bool bWasSuccessful)
+{
+	if (bWasSuccessful)
+	{
+		// After successfully destroying the session, the host can travel back to the menu
+		ClientReturnToMenu();
+	}
+	// Optionally handle the case where the session destruction was not successful
+}
+
+void ULobbyWidget::ClientReturnToMenu()
+{
+	APlayerController* OwningPlayer = GetOwningPlayer();
+	if (!OwningPlayer) return;
+
+	FString Command = FString::Printf(TEXT("Open %s"), *PathToMenu);
+	OwningPlayer->ClientTravel(Command, ETravelType::TRAVEL_Absolute);
+
 	MenuTearDown();
 }
 

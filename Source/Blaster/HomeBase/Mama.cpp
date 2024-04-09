@@ -30,7 +30,7 @@ AMama::AMama()
 	Consumer->SetCollisionEnabled(ECollisionEnabled::NoCollision); 
 
 
-	SetReplicates(true);
+	bReplicates = true;
 }
 
 void AMama::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const

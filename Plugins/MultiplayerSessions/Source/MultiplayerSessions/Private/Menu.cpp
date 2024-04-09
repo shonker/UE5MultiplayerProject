@@ -109,12 +109,14 @@ void UMenu::FindSessionsButtonClicked()
 
 void UMenu::OnFindSessions(const TArray<FOnlineSessionSearchResult>& SessionResults, bool bWasSuccessful)
 {
+	UE_LOG(LogTemp, Log, TEXT("Found %d sessions."), SessionResults.Num());
 
 	if (bWasSuccessful && SessionResults.Num() > 0)
 	{
 		TArray<FBlueprintSessionInfo> BlueprintSessions;
 		for (const FOnlineSessionSearchResult& SearchResult : SessionResults)
 		{
+			UE_LOG(LogTemp, Log, TEXT("Session ID: %s, Owner: %s"), *SearchResult.GetSessionIdStr(), *SearchResult.Session.OwningUserName);
 			FBlueprintSessionInfo Info;
 			Info.SessionName = SearchResult.GetSessionIdStr();
 			Info.OwningUserName = SearchResult.Session.OwningUserName;

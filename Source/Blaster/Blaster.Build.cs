@@ -20,7 +20,7 @@ public class Blaster : ModuleRules
 			"CinematicCamera"
 		});
 
-		PrivateDependencyModuleNames.AddRange(new string[] {"Slate", "SlateCore" });
+		PrivateDependencyModuleNames.AddRange(new string[] {"Slate", "SlateCore", "OnlineSubsystem" });
 
 		// Uncomment if you are using Slate UI
 		// PrivateDependencyModuleNames.AddRange(new string[] { "Slate", "SlateCore" });
