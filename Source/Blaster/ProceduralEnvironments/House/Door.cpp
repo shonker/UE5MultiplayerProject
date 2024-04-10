@@ -3,6 +3,7 @@
 
 #include "Door.h"
 #include "Net/UnrealNetwork.h"
+#include "Engine/Engine.h"
 
 // Sets default values
 ADoor::ADoor()
@@ -86,6 +87,11 @@ void ADoor::KnobButtonPress()
 
 void ADoor::KnobButtonRelease()
 {
+	if (GEngine)
+	{
+		if (HasAuthority()) GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("server: knob button release,  broadcast recieved"));
+		if (!HasAuthority()) GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("client: knob button release, broadcast receieved"));
+	}
 	bKnobTurning = false;
 
 	if (!bIsLocked)
@@ -93,6 +99,15 @@ void ADoor::KnobButtonRelease()
 		bIsOpen = !bIsOpen;
 	}
 	bAttemptOpen = false;
+}
+
+void ADoor::OnRep_bIsOpen()
+{
+	if (GEngine)
+	{
+		if (HasAuthority()) GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("server: onrep_bisopen"));
+		if (!HasAuthority()) GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("client: onrep_bisopen"));
+	}
 }
 
 void ADoor::KnobButtonDraggedOff()

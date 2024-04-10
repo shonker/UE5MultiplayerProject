@@ -47,11 +47,13 @@ public:
 	void CreateSessionList(const TArray<FBlueprintSessionInfo>& SessionResults);
 
 	UFUNCTION(BlueprintCallable)
-	void JoinSelectedSession(int32 SelectedIndex);
+	void JoinSelectedSession(const FString& SessionId);
 
 	UPROPERTY(BlueprintReadWrite)
-	int32 SelectedSessionID;
+	FString SelectedSessionId; 
 
+	UPROPERTY(BlueprintReadWrite)
+	bool bPleaseRecompileThisHeaderFile = false;
 protected:
 
 	virtual bool Initialize() override;
@@ -73,7 +75,6 @@ protected:
 
 private:
 
-	// New property to store session search results
 	TArray<FOnlineSessionSearchResult> SearchResults;
 
 	UPROPERTY(meta = (BindWidget))

@@ -36,6 +36,9 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Components")
 		UChildActorComponent* LockButton;
 
+	UFUNCTION()
+	void OnRep_bIsOpen();
+	
 protected:
 
 	virtual void BeginPlay() override;
@@ -43,7 +46,7 @@ protected:
 public:	
 
 	virtual void Tick(float DeltaTime) override;
-	UPROPERTY(BlueprintReadOnly, Replicated)
+	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_bIsOpen)
 	bool bIsOpen = false;
 	UPROPERTY(BlueprintReadOnly, Replicated)
 	bool bKnobTurning = false;

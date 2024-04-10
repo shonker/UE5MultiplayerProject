@@ -109,14 +109,36 @@ void UMenu::FindSessionsButtonClicked()
 
 void UMenu::OnFindSessions(const TArray<FOnlineSessionSearchResult>& SessionResults, bool bWasSuccessful)
 {
-	UE_LOG(LogTemp, Log, TEXT("Found %d sessions."), SessionResults.Num());
+	if (GEngine)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, FString::Printf(TEXT("Found %d sessions."), SessionResults.Num()));
+	}
+
+	// Clear previous search results
+	SearchResults.Empty();
 
 	if (bWasSuccessful && SessionResults.Num() > 0)
 	{
+		// Populate the SearchResults array for future reference, such as joining a session
+		SearchResults = SessionResults;
+
 		TArray<FBlueprintSessionInfo> BlueprintSessions;
 		for (const FOnlineSessionSearchResult& SearchResult : SessionResults)
 		{
-			UE_LOG(LogTemp, Log, TEXT("Session ID: %s, Owner: %s"), *SearchResult.GetSessionIdStr(), *SearchResult.Session.OwningUserName);
+			if (GEngine)
+			{
+				GEngine->AddOnScreenDebugMessage(
+					-1,
+					10.f,
+					FColor::Red,
+					FString::Printf(
+						TEXT("Session ID: %s, Owner: %s"),
+						*SearchResult.GetSessionIdStr(),
+						*SearchResult.Session.OwningUserName
+					)
+				);
+			}
+
 			FBlueprintSessionInfo Info;
 			Info.SessionName = SearchResult.GetSessionIdStr();
 			Info.OwningUserName = SearchResult.Session.OwningUserName;
@@ -125,8 +147,6 @@ void UMenu::OnFindSessions(const TArray<FOnlineSessionSearchResult>& SessionResu
 
 			BlueprintSessions.Add(Info);
 		}
-        
-		// Assuming CreateSessionList() properly handles the populated array.
 		CreateSessionList(BlueprintSessions);
 	}
 	else
@@ -137,29 +157,39 @@ void UMenu::OnFindSessions(const TArray<FOnlineSessionSearchResult>& SessionResu
 
 void UMenu::JoinButtonClicked()
 {
-	JoinSelectedSession(SelectedSessionID);
+	if (bPleaseRecompileThisHeaderFile)
+	{
+		return;
+	}
+	JoinSelectedSession(SelectedSessionId);//this is the index, not the ID you nincompoop
 }
 
-
-void UMenu::JoinSelectedSession(int32 SelectedIndex)
+void UMenu::JoinSelectedSession(const FString& SessionId)
 {
-	if (MultiplayerSessionsSubsystem && SearchResults.IsValidIndex(SelectedIndex))
+	if (MultiplayerSessionsSubsystem)
 	{
-		MultiplayerSessionsSubsystem->JoinSession(SearchResults[SelectedIndex]);
-	}
-	else
-	{
+		// Find the session by ID
+		for (const FOnlineSessionSearchResult& SearchResult : SearchResults)
+		{
+			if (SearchResult.GetSessionIdStr() == SessionId)
+			{
+				MultiplayerSessionsSubsystem->JoinSession(SearchResult);
+				return;
+			}
+		}
+
 		if (GEngine)
 		{
 			GEngine->AddOnScreenDebugMessage(
 				-1,
 				15.f,
 				FColor::Red,
-				FString(TEXT("Failed to find selected session index: %i=d"), SelectedIndex)
+				FString::Printf(TEXT("Failed to find selected session ID: %s"), *SessionId)
 			);
 		}
 	}
 }
+
 
 void UMenu::OnJoinSession(EOnJoinSessionCompleteResult::Type Result)
 {

@@ -3,6 +3,7 @@
 #include "Components/WidgetComponent.h"
 #include "Components/SphereComponent.h"
 #include "Components/BoxComponent.h"
+#include "Engine/Engine.h"
 
 AMyButton::AMyButton()
 {
@@ -52,7 +53,10 @@ void AMyButton::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor
         ABlasterCharacter* BlasterCharacter = Cast<ABlasterCharacter>(OtherActor);
         if (BlasterCharacter)
         {
-            ///UE_LOG(LogTemp, Log, TEXT("overlap detected in button on server"));
+            if (GEngine)
+            {
+                GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("server: overlap detected"));
+            }
             BlasterCharacter->SetOverlappingButton(this);
         }
     }
@@ -86,6 +90,11 @@ void AMyButton::MulticastOnInitPress_Implementation()
 void AMyButton::ServerOnInitPress_Implementation()
 {
     OnButtonPressed.Broadcast();
+    if (GEngine)
+    {
+        GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("serveroninitpress_implementation"));
+    }
+
    //MulticastOnInitPress();
 }
 
@@ -93,6 +102,8 @@ void AMyButton::OnInitPress()
 {
    /* if (HasAuthority())
     {*/
+    if (HasAuthority()) GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("serveroninitpress_implementation"));
+
     OnButtonPressed.Broadcast();
     //   // MulticastOnInitPress();
     //}
@@ -130,6 +141,10 @@ void AMyButton::ServerOnRelease_Implementation()
 
 void AMyButton::OnRelease()
 {
+    if (GEngine)
+    {
+        GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("button: onrelease"));
+    }
     if (HasAuthority())
     {
         MulticastOnRelease();
