@@ -14,21 +14,21 @@ void AStartupPlayerController::BeginPlay()
 {
 	Super::BeginPlay();
 
-	TArray<AActor*> FoundCameras;
-	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ACameraActor::StaticClass(), FoundCameras);
+	//TArray<AActor*> FoundCameras;
+	//UGameplayStatics::GetAllActorsOfClass(GetWorld(), ACameraActor::StaticClass(), FoundCameras);
 
-	if (FoundCameras.Num() > 0)
-	{
-		FindACamera();
-	}
-	else
-	{
-		FTimerHandle PosessCameraTimer;
-		GetWorld()->GetTimerManager().SetTimer(PosessCameraTimer, this, &AStartupPlayerController::FindACamera, 1.F, false);
-	}
-
-	bShowMouseCursor = true;
-	SetInputMode(FInputModeUIOnly());
+	// if (FoundCameras.Num() > 0)
+	// {
+	// 	FindACamera();
+	// }
+	// else
+	// {
+	// 	FTimerHandle PosessCameraTimer;
+	// 	GetWorld()->GetTimerManager().SetTimer(PosessCameraTimer, this, &AStartupPlayerController::FindACamera, 1.F, false);
+	// }
+	//
+	 bShowMouseCursor = false;
+	 SetInputMode(FInputModeGameOnly());
 
 	if (StartupUIWidgetClass) // Ensure this class is set, typically via the editor or in the constructor
 	{
@@ -38,7 +38,6 @@ void AStartupPlayerController::BeginPlay()
 			MyUI->AddToViewport();
 		}
 	}
-
 }
 
 void AStartupPlayerController::FindACamera()

@@ -52,8 +52,6 @@ public:
 	UPROPERTY(BlueprintReadWrite)
 	FString SelectedSessionId; 
 
-	UPROPERTY(BlueprintReadWrite)
-	bool bPleaseRecompileThisHeaderFile = false;
 protected:
 
 	virtual bool Initialize() override;
