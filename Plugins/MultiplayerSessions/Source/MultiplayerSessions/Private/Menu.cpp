@@ -95,7 +95,7 @@ void UMenu::OnCreateSession(bool bWasSuccessful)
 				FString(TEXT("Failed to create session!"))
 			);
 		}
-		HostButton->SetIsEnabled(true);
+		HostButton->SetIsEnabled(false);
 	}
 }
 
@@ -169,7 +169,7 @@ void UMenu::JoinButtonClicked()
 	}
 	UE_LOG(LogTemp, Error, TEXT("JOIN BUTTON CLICKED"));
 
-	JoinSelectedSession(SelectedSessionId);//this is the index, not the ID you nincompoop
+	JoinSelectedSession(SelectedSessionId);
 }
 
 void UMenu::JoinSelectedSession(const FString& SessionId)
