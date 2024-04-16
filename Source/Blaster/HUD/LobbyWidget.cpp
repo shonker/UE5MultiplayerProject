@@ -15,19 +15,19 @@
 void ULobbyWidget::LobbySetup(FString MenuPath)
 {
 	PathToMenu = MenuPath;
-	AddToViewport();
-	SetVisibility(ESlateVisibility::Visible);
-	bIsFocusable = true;
-
-	APlayerController* OwningPlayer = GetOwningPlayer();
-	if (OwningPlayer)
-	{
-		FInputModeUIOnly InputModeData;
-		InputModeData.SetWidgetToFocus(TakeWidget());
-		InputModeData.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
-		OwningPlayer->SetInputMode(InputModeData);
-		OwningPlayer->SetShowMouseCursor(true);
-	}
+	// AddToViewport();
+	// SetVisibility(ESlateVisibility::Visible);
+	// bIsFocusable = true;
+	//
+	// APlayerController* OwningPlayer = GetOwningPlayer();
+	// if (OwningPlayer)
+	// {
+	// 	FInputModeUIOnly InputModeData;
+	// 	InputModeData.SetWidgetToFocus(TakeWidget());
+	// 	InputModeData.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
+	// 	OwningPlayer->SetInputMode(InputModeData);
+	// 	OwningPlayer->SetShowMouseCursor(true);
+	// }
 }
 
 bool ULobbyWidget::Initialize()
@@ -72,7 +72,7 @@ void ULobbyWidget::StartButtonClicked()
 	if (LobbyGameMode) //this will only ever pass on the server
 	{
 		LobbyGameMode->StartGame();
-		MenuTearDown();
+		//MenuTearDown();
 	}
 }
 
@@ -118,7 +118,7 @@ void ULobbyWidget::ClientReturnToMenu()
 	FString Command = FString::Printf(TEXT("Open %s"), *PathToMenu);
 	OwningPlayer->ClientTravel(Command, ETravelType::TRAVEL_Absolute);
 
-	MenuTearDown();
+	//MenuTearDown();
 }
 
 void ULobbyWidget::MenuTearDown()

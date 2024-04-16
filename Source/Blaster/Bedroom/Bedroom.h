@@ -19,6 +19,7 @@ protected:
 
 public:
 	void SpawnLobbyCharacter(APlayerController* NewPlayer);
+	UPROPERTY(BlueprintReadWrite)
 	 TArray<class ALobbyCharacter*> LobbyCharacters;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Spawn")

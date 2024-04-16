@@ -27,17 +27,17 @@ void ALobbyPlayerController::BeginPlay()
         GetWorld()->GetTimerManager().SetTimer(PosessCameraTimer, this, &ALobbyPlayerController::FindACamera, 1.F, false);
     }
 
-    bShowMouseCursor = true;
-    SetInputMode(FInputModeUIOnly());
+    // bShowMouseCursor = true;
+    // SetInputMode(FInputModeUIOnly());
 
-    if (LobbyUIWidgetClass) // Ensure this class is set, typically via the editor or in the constructor
-    {
-        UUserWidget* MyUI = CreateWidget<UUserWidget>(this, LobbyUIWidgetClass);
-        if (MyUI)
-        {
-            MyUI->AddToViewport();
-        }
-    }
+    // if (LobbyUIWidgetClass) // Ensure this class is set, typically via the editor or in the constructor
+    // {
+    //     UUserWidget* MyUI = CreateWidget<UUserWidget>(this, LobbyUIWidgetClass);
+    //     if (MyUI)
+    //     {
+    //         MyUI->AddToViewport();
+    //     }
+    // }
 
 }
 

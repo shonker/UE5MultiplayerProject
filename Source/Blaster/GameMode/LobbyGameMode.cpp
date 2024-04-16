@@ -46,7 +46,7 @@ void ALobbyGameMode::PostLogin(APlayerController* NewPlayer)
 {
     Super::PostLogin(NewPlayer); 
 
-    if (FoundBedroom != nullptr)
+    if (FoundBedroom != nullptr && HasAuthority())
     {
         FoundBedroom->SpawnLobbyCharacter(NewPlayer);
     }

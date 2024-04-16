@@ -13,15 +13,14 @@ ABedroom::ABedroom()
 void ABedroom::BeginPlay()
 {
     Super::BeginPlay();
-
 }
 
 void ABedroom::SpawnLobbyCharacter(APlayerController* NewPlayer)
 {
     if (!GetWorld() || !LobbyCharacterBP) return; // Safety check
 
-    FVector SpawnLocation = FVector(0.0f, 0.0f, 0.0f); // Default spawn location
-    FRotator SpawnRotation = FRotator::ZeroRotator; // Default rotation
+    FVector SpawnLocation = FVector(0.0f, 0.0f, 0.0f); 
+    FRotator SpawnRotation = FRotator::ZeroRotator; 
     FActorSpawnParameters SpawnParams;
 
     ALobbyCharacter* SpawnedCharacter = GetWorld()->SpawnActor<ALobbyCharacter>(LobbyCharacterBP, SpawnLocation, SpawnRotation, SpawnParams);
