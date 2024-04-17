@@ -17,6 +17,15 @@ AProcNeighborhood::AProcNeighborhood()
 	PrimaryActorTick.bCanEverTick = false;
 }
 
+void AProcNeighborhood::SpawnItemManager()
+{
+	if (!ItemManager) return;
+	FVector Location(0,0,0);
+	FRotator Rotation(0,0,0);
+	AAProcActor* ItemManagerProcActor = SpawnAt(ItemManager, Location, Rotation);
+	if (ItemManagerProcActor) ItemManagerProcActor->RS = RS;
+}
+
 // Called when the game starts or when spawned
 void AProcNeighborhood::BeginPlay()
 {
@@ -38,6 +47,7 @@ void AProcNeighborhood::ProcGen(uint32 randomSeed)
 	GenerateHouses();
 	GenerateMiscellaneousLocations();
 	SpawnFinishedNeighborhood();
+	SpawnItemManager();
 }
 
 AAProcActor* AProcNeighborhood::SpawnAt(TSubclassOf<AActor> Actor, FVector& Location, FRotator& Rotation) 

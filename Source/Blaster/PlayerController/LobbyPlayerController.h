@@ -16,6 +16,7 @@ class BLASTER_API ALobbyPlayerController : public APlayerController
 	
 public:
 	virtual void BeginPlay() override;
+	UFUNCTION(BlueprintCallable)
 	void FindACamera();
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI")

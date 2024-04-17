@@ -9,13 +9,25 @@
 /**
  * 
  */
+
+
+UENUM(BlueprintType)
+enum class ECurseLevel : uint8
+{
+	Curse0,
+	Curse1,
+	Curse2,
+	Curse3
+};
+
 UCLASS()
 class BLASTER_API AItem : public AWeapon
 {
 	GENERATED_BODY()
 	
 public:
-
+	ECurseLevel CurseLevel = ECurseLevel::Curse0;
+	
 protected:
 	virtual void BeginPlay() override;
 	void PlaySoundCueAtRandomLocation(USoundCue* SoundCue);
@@ -23,7 +35,7 @@ protected:
 	/*
 		CURSES
 	*/
-	//HARD
+	//HARD Curse3
 	UPROPERTY(EditAnywhere, Category = Curses)
 		bool bBlindness = false;
 	UPROPERTY(EditAnywhere, Category = Curses)
@@ -35,7 +47,7 @@ protected:
 	UPROPERTY(EditAnywhere, Category = Curses)
 		bool bActivateKisser = false;
 		
-	//MEDIUM
+	//MEDIUM Curse2
 	UPROPERTY(EditAnywhere, Category = Curses)
 		bool bFetus = false;
 	UPROPERTY(EditAnywhere, Category = Curses)
@@ -47,7 +59,7 @@ protected:
 	UPROPERTY(EditAnywhere, Category = Curses)
 		bool bShiftMovementControls = false;
 
-	//EASY
+	//EASY Curse1
 	UPROPERTY(EditAnywhere, Category = Curses)
 		bool bKnocking = false;
 	UPROPERTY(EditAnywhere, Category = Curses)
@@ -63,7 +75,7 @@ protected:
 	UPROPERTY(EditAnywhere, Category = Curses)
 		bool bAutomaticDecapitation = false;
 
-	//ACTIVATION TRAITS/INDICATORS
+	//ACTIVATION TRAITS/INDICATORS on some Curse 2 and Curse 3
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = CurseActivations)
 		bool bSingleScreenShake = false;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = CurseActivations)

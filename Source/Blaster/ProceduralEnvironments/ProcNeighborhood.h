@@ -51,6 +51,7 @@ class BLASTER_API AProcNeighborhood : public AActor
 
 public:
 	AProcNeighborhood();
+	void SpawnItemManager();
 	void ProcGen(uint32 randomSeed);
 	class AAProcActor* SpawnAt(TSubclassOf<AActor> Actor, FVector& Location, FRotator& Rotation);
 	FRandomStream RS;
@@ -66,6 +67,11 @@ protected:
 	static const int32 GridSize = 16;
 	static const float CellSize;
 
+	/*
+	 *	ITEM MANAGEMENT
+	 */
+	UPROPERTY(EditDefaultsOnly, Category = "Items")
+	TSubclassOf<AActor> ItemManager;
 	/*
 		ROADS
 	*/
