@@ -23,7 +23,11 @@ void AProcNeighborhood::SpawnItemManager()
 	FVector Location(0,0,0);
 	FRotator Rotation(0,0,0);
 	AAProcActor* ItemManagerProcActor = SpawnAt(ItemManager, Location, Rotation);
-	if (ItemManagerProcActor) ItemManagerProcActor->RS = RS;
+	if (ItemManagerProcActor)
+	{
+		ItemManagerProcActor->RS = RS;
+		ItemManagerProcActor->ProcGen();
+	}
 }
 
 // Called when the game starts or when spawned

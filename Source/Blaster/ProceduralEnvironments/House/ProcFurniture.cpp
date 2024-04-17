@@ -16,7 +16,7 @@ void AProcFurniture::GenerateFurniture()
 	TArray<int32> AvailableIndices;
 	for (int32 i = 0; i < NumTransforms; ++i) AvailableIndices.Add(i);
 	const int32 ObjectsToSpawn = CalculateObjectsToSpawn(NumTransforms);
-	UE_LOG(LogTemp, Warning, TEXT("obj to spawn:%i"), ObjectsToSpawn);
+	//UE_LOG(LogTemp, Warning, TEXT("obj to spawn:%i"), ObjectsToSpawn);
 
 	for (int32 i = 0; i < ObjectsToSpawn && AvailableIndices.Num() > 0; ++i)
 	{

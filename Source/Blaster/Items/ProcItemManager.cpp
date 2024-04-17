@@ -210,5 +210,10 @@ void AProcItemManager::SpawnItems()
 	    }
 	}
 	
-	UE_LOG(LogTemp, Warning, TEXT("Curse0Tally: %i, Curse1Tally: %i, Curse2Tally: %i, Curse3Tally: %i"), Curse0Tally, Curse1Tally, Curse2Tally, Curse3Tally);
+	UE_LOG(LogTemp, Error, TEXT("Curse0Tally: %i, Curse1Tally: %i, Curse2Tally: %i, Curse3Tally: %i"), Curse0Tally, Curse1Tally, Curse2Tally, Curse3Tally);
+	UE_LOG(LogTemp, Error, TEXT("Curse0Tally: %i, Curse1Tally: %i, Curse2Tally: %i, Curse3Tally: %i"), Curse0Tally, Curse1Tally, Curse2Tally, Curse3Tally);
+	UE_LOG(LogTemp, Error, TEXT("Curse0Tally: %i, Curse1Tally: %i, Curse2Tally: %i, Curse3Tally: %i"), Curse0Tally, Curse1Tally, Curse2Tally, Curse3Tally);
+	UE_LOG(LogTemp, Error, TEXT("Curse0Tally: %i, Curse1Tally: %i, Curse2Tally: %i, Curse3Tally: %i"), Curse0Tally, Curse1Tally, Curse2Tally, Curse3Tally);
+	UE_LOG(LogTemp, Error, TEXT("Curse0Tally: %i, Curse1Tally: %i, Curse2Tally: %i, Curse3Tally: %i"), Curse0Tally, Curse1Tally, Curse2Tally, Curse3Tally);
+	UE_LOG(LogTemp, Error, TEXT("Curse0Tally: %i, Curse1Tally: %i, Curse2Tally: %i, Curse3Tally: %i"), Curse0Tally, Curse1Tally, Curse2Tally, Curse3Tally);
 }

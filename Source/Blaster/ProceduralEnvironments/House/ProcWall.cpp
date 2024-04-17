@@ -124,20 +124,20 @@ void AProcWall::GetLifetimeReplicatedProps(TArray< FLifetimeProperty >& OutLifet
 void AProcWall::OnComponentHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
     float ImpulseLength = NormalImpulse.Size();
-    UE_LOG(LogTemp, Warning, TEXT("Impulse Length: %f"), ImpulseLength);
+    //UE_LOG(LogTemp, Warning, TEXT("Impulse Length: %f"), ImpulseLength);
 
     if (bIsBroken) return;
-    UE_LOG(LogTemp, Log, TEXT("been hit"));
+   // UE_LOG(LogTemp, Log, TEXT("been hit"));
     ABlasterCharacter* BlasterChar = Cast<ABlasterCharacter>(OtherActor);
     if (BlasterChar)
     {
-        UE_LOG(LogTemp, Log, TEXT("by a blasterchar"));
+       // UE_LOG(LogTemp, Log, TEXT("by a blasterchar"));
         return;
     }
 
     if (NormalImpulse.Size() > 9000.f)
     {
-        UE_LOG(LogTemp, Log, TEXT("force > 9k"));
+       // UE_LOG(LogTemp, Log, TEXT("force > 9k"));
         BreakWindow();
         return;
     }
@@ -145,7 +145,7 @@ void AProcWall::OnComponentHit(UPrimitiveComponent* HitComponent, AActor* OtherA
     ALimb* Limb = Cast<ALimb>(OtherActor);
     if (!Limb && NormalImpulse.Size() > 500.f)
     {
-        UE_LOG(LogTemp, Log, TEXT("by not limb"));
+        //UE_LOG(LogTemp, Log, TEXT("by not limb"));
         BreakWindow();
     }
 }
@@ -192,7 +192,7 @@ void AProcWall::OnRep_bIsBroken()
 
 void AProcWall::TakeWallDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType, AController* InstigatedBy, AActor* DamageCauser)
 {
-    UE_LOG(LogTemp, Log, TEXT("my leg: %f"), Damage);
+   // UE_LOG(LogTemp, Log, TEXT("my leg: %f"), Damage);
     if (bIsBroken) return;
 
     WallHealth -= Damage;
