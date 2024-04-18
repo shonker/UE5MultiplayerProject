@@ -12,12 +12,12 @@ AProcRoads::AProcRoads()
 	RoadMesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Block);
 
 	// Create and attach spawn point components
-	for (int32 i = 0; i < 8; ++i)
-	{
-		USceneComponent* NewSpawnPoint = CreateDefaultSubobject<USceneComponent>(FName("SpawnPoint" + FString::FromInt(i)));
-		NewSpawnPoint->SetupAttachment(RootComponent);
-		SpawnPoints.Add(NewSpawnPoint);
-	}
+	// for (int32 i = 0; i < 8; ++i)
+	// {
+	// 	USceneComponent* NewSpawnPoint = CreateDefaultSubobject<USceneComponent>(FName("SpawnPoint" + FString::FromInt(i)));
+	// 	NewSpawnPoint->SetupAttachment(RootComponent);
+	// 	SpawnPoints.Add(NewSpawnPoint);
+	// }
 }
 
 void AProcRoads::BeginPlay()
@@ -27,23 +27,23 @@ void AProcRoads::BeginPlay()
 
 void AProcRoads::ProcGen()
 {
-    if (SpawnableObjects.Num() == 0 || SpawnPoints.Num() == 0)
-        return;
-
-    // Random chance distribution
-    TArray<int32> ChanceDistribution = { 50, 40, 10, 5, 2, 1 }; // Represents 0, 1, 2, 3, 4, 5 spawns
-    int32 SpawnCount = ChooseSpawnCount(ChanceDistribution);
-
-    TArray<USceneComponent*> ChosenSpawnPoints;
-    while (ChosenSpawnPoints.Num() < SpawnCount)
-    {
-        USceneComponent* SelectedPoint = SpawnPoints[RS.RandRange(0, SpawnPoints.Num() - 1)];
-        if (!ChosenSpawnPoints.Contains(SelectedPoint))
-        {
-            ChosenSpawnPoints.Add(SelectedPoint);
-            SpawnObjectAtPoint(SelectedPoint);
-        }
-    }
+    // if (SpawnableObjects.Num() == 0 || SpawnPoints.Num() == 0)
+    //     return;
+    //
+    // // Random chance distribution
+    // TArray<int32> ChanceDistribution = { 50, 40, 10, 5, 2, 1 }; // Represents 0, 1, 2, 3, 4, 5 spawns
+    // int32 SpawnCount = ChooseSpawnCount(ChanceDistribution);
+    //
+    // TArray<USceneComponent*> ChosenSpawnPoints;
+    // while (ChosenSpawnPoints.Num() < SpawnCount)
+    // {
+    //     USceneComponent* SelectedPoint = SpawnPoints[RS.RandRange(0, SpawnPoints.Num() - 1)];
+    //     if (!ChosenSpawnPoints.Contains(SelectedPoint))
+    //     {
+    //         ChosenSpawnPoints.Add(SelectedPoint);
+    //         SpawnObjectAtPoint(SelectedPoint);
+    //     }
+    // }
 }
 
 int32 AProcRoads::ChooseSpawnCount(const TArray<int32>& Distribution)

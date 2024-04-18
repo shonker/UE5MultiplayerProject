@@ -103,7 +103,7 @@ void AProcNeighborhood::GenerateRoads()
 	Straightness = RS.RandRange(1, 2);
 	int32 StartCol = GridSize/2;
 	int32 StartRow = GridSize/2;
-	UE_LOG(LogTemp, Display, TEXT("Seed ~ Lifetime: %i StartCol: %i StartRow: %i"), Lifetime, StartCol, StartRow);
+	//UE_LOG(LogTemp, Display, TEXT("Seed ~ Lifetime: %i StartCol: %i StartRow: %i"), Lifetime, StartCol, StartRow);
 
 	EDirection CurrentDirection = EDirection::Down;
 	//ChangeDirection(CurrentDirection);
@@ -113,7 +113,7 @@ void AProcNeighborhood::GenerateRoads()
 	{
 		if (RS.RandRange(1, 100) <= BranchingFrequency)
 		{
-			UE_LOG(LogTemp, Log, TEXT("Branch ~ Lifetime: %i StartCol: %i StartRow: %i"), Lifetime, StartCol, StartRow);
+			//UE_LOG(LogTemp, Log, TEXT("Branch ~ Lifetime: %i StartCol: %i StartRow: %i"), Lifetime, StartCol, StartRow);
 			GenerateRoadBranch(StartCol, StartRow, Lifetime, CurrentDirection);
 		}
 		if (RS.RandRange(0,Straightness) > 0)
@@ -136,7 +136,7 @@ void AProcNeighborhood::GenerateRoadBranch(int32 StartCol, int32 StartRow, int32
 	{
 		if (RS.RandRange(1, 100) <= BranchingFrequency)
 		{
-			UE_LOG(LogTemp, Log, TEXT("Branch ~ Lifetime: %i StartCol: %i StartRow: %i"), Lifetime, StartCol, StartRow);
+		//	UE_LOG(LogTemp, Log, TEXT("Branch ~ Lifetime: %i StartCol: %i StartRow: %i"), Lifetime, StartCol, StartRow);
 			GenerateRoadBranch(StartCol, StartRow, Lifetime, CurrentDirection);
 		}
 		if (RS.RandRange(0, Straightness) > 0)
@@ -432,18 +432,7 @@ void AProcNeighborhood::GenerateMiscellaneousLocations()
 					if (GridCellTypes[Col][Row - 1] == CellType::Road) ConnectedDown = true;
 				}
 				uint8 ConnectionCount = ConnectedRight + ConnectedLeft + ConnectedDown + ConnectedUp;
-
-				/*
-				origin is D3
-				6|
-				5|
-				4|    
-				3|        
-				2|		  
-				1|___________________
-				  A  B  C  D  E  F  G
-				*/
-
+				
 				if (ConnectionCount == 1)
 				{
 					if (!bParkGenerated)

@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "AProcActor.h"
+#include "Blaster/ProceduralEnvironments/AProcActor.h"
 #include "ProcRoads.generated.h"
 
 UCLASS()

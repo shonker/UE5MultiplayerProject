@@ -92,11 +92,11 @@ void AProcItemManager::AssignPredeterminedLocations()
 int AProcItemManager::GetPredeterminedPointsForCurseLevel(const ECurseLevel& CurseLevel)
 {
     if (CurseLevel == ECurseLevel::Curse1)
-        return 6;
+        return 3;
     else if (CurseLevel == ECurseLevel::Curse2)
-        return 12;
+        return 9;
     else if (CurseLevel == ECurseLevel::Curse3)
-        return 25;
+        return 12;
     return 0; // ECurseLevel::Curse0 or default case
 }
 
@@ -113,24 +113,24 @@ void AProcItemManager::CalculateItemDistribution()
         const int RandPercentage = RS.RandRange(0, 99); 
         TArray<FSpawnableItems>* SelectedArray = nullptr;
 
-        if (RandPercentage < 50) // 50% chance for an ANY item
+        if (RandPercentage < 70)//any
         {
             SelectedArray = (RS.RandRange(0, 99) < 80) ? &SpawnableSometimesCursed : &SpawnableAlwaysCursed;
 			if (SelectedArray == &SpawnableSometimesCursed)
 			{
-				CurseLevelProbabilities = {50, 80, 95, 100};  //Curse0, Curse1, Curse2, Curse3
+				CurseLevelProbabilities = {65, 85, 95, 100};  //Curse0, Curse1, Curse2, Curse3
 			}
         	if (SelectedArray == &SpawnableAlwaysCursed)
         	{
-        		CurseLevelProbabilities = {0, 50, 90, 100};  //Curse0, Curse1, Curse2, Curse3
+        		CurseLevelProbabilities = {0, 70, 95, 100};  //Curse0, Curse1, Curse2, Curse3
         	}
         }
-        else if (RandPercentage < 90) // 40% chance for always cursed
+        else if (RandPercentage < 95) //always
         {
             SelectedArray = &SpawnableAlwaysCursed;
-            CurseLevelProbabilities = {0, 50, 90, 100}; //Curse0, Curse1, Curse2, Curse3
+            CurseLevelProbabilities = {0, 85, 95, 100}; //Curse0, Curse1, Curse2, Curse3
         }
-        else // 10% chance, always cursed
+        else 
         {
             SelectedArray = (RS.RandRange(0, 99) < 50) ? &SpawnableSometimesCursed : &SpawnableAlwaysCursed;
             CurseLevelProbabilities = {0, 0, 0, 100};  //Curse0, Curse1, Curse2, Curse3
@@ -210,10 +210,5 @@ void AProcItemManager::SpawnItems()
 	    }
 	}
 	
-	UE_LOG(LogTemp, Error, TEXT("Curse0Tally: %i, Curse1Tally: %i, Curse2Tally: %i, Curse3Tally: %i"), Curse0Tally, Curse1Tally, Curse2Tally, Curse3Tally);
-	UE_LOG(LogTemp, Error, TEXT("Curse0Tally: %i, Curse1Tally: %i, Curse2Tally: %i, Curse3Tally: %i"), Curse0Tally, Curse1Tally, Curse2Tally, Curse3Tally);
-	UE_LOG(LogTemp, Error, TEXT("Curse0Tally: %i, Curse1Tally: %i, Curse2Tally: %i, Curse3Tally: %i"), Curse0Tally, Curse1Tally, Curse2Tally, Curse3Tally);
-	UE_LOG(LogTemp, Error, TEXT("Curse0Tally: %i, Curse1Tally: %i, Curse2Tally: %i, Curse3Tally: %i"), Curse0Tally, Curse1Tally, Curse2Tally, Curse3Tally);
-	UE_LOG(LogTemp, Error, TEXT("Curse0Tally: %i, Curse1Tally: %i, Curse2Tally: %i, Curse3Tally: %i"), Curse0Tally, Curse1Tally, Curse2Tally, Curse3Tally);
 	UE_LOG(LogTemp, Error, TEXT("Curse0Tally: %i, Curse1Tally: %i, Curse2Tally: %i, Curse3Tally: %i"), Curse0Tally, Curse1Tally, Curse2Tally, Curse3Tally);
 }
