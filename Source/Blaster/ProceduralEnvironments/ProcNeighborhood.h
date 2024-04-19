@@ -52,6 +52,7 @@ class BLASTER_API AProcNeighborhood : public AActor
 public:
 	AProcNeighborhood();
 	void SpawnItemManager();
+	void SpawnRoadObjectManager();
 	void ProcGen(uint32 randomSeed);
 	class AAProcActor* SpawnAt(TSubclassOf<AActor> Actor, FVector& Location, FRotator& Rotation);
 	FRandomStream RS;
@@ -75,10 +76,9 @@ protected:
 	/*
 		ROADS
 	*/
-
 	UPROPERTY(EditDefaultsOnly, Category = "Road Generation")
-		TSubclassOf<AActor> ProceduralActor;
-
+	TSubclassOf<AActor> RoadObjectManager;
+	
 	UPROPERTY(EditDefaultsOnly, Category = "Road Generation")
 		int32 BranchingFrequency = 4; //percent
 
@@ -89,9 +89,6 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Road Generation")
 		int32 MaxLifetime = 10;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Road Generation")
-		TSubclassOf<AActor> RoadClass;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Road Generation")
 		TSubclassOf<AActor> DeadEndBlueprint;

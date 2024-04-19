@@ -17,19 +17,6 @@ AProcNeighborhood::AProcNeighborhood()
 	PrimaryActorTick.bCanEverTick = false;
 }
 
-void AProcNeighborhood::SpawnItemManager()
-{
-	if (!ItemManager) return;
-	FVector Location(0,0,0);
-	FRotator Rotation(0,0,0);
-	AAProcActor* ItemManagerProcActor = SpawnAt(ItemManager, Location, Rotation);
-	if (ItemManagerProcActor)
-	{
-		ItemManagerProcActor->RS = RS;
-		ItemManagerProcActor->ProcGen();
-	}
-}
-
 // Called when the game starts or when spawned
 void AProcNeighborhood::BeginPlay()
 {
@@ -51,8 +38,37 @@ void AProcNeighborhood::ProcGen(uint32 randomSeed)
 	GenerateHouses();
 	GenerateMiscellaneousLocations();
 	SpawnFinishedNeighborhood();
-	SpawnItemManager();
+	SpawnRoadObjectManager();
+	SpawnItemManager();//consider the importance of doing this last
 }
+
+
+void AProcNeighborhood::SpawnItemManager()
+{
+	if (!ItemManager) return;
+	FVector Location(0,0,0);
+	FRotator Rotation(0,0,0);
+	AAProcActor* ItemManagerProcActor = SpawnAt(ItemManager, Location, Rotation);
+	if (ItemManagerProcActor)
+	{
+		ItemManagerProcActor->RS = RS;
+		ItemManagerProcActor->ProcGen();
+	}
+}
+
+void AProcNeighborhood::SpawnRoadObjectManager()
+{
+	if (!RoadObjectManager) return;
+	FVector Location(0,0,0);
+	FRotator Rotation(0,0,0);
+	AAProcActor* RoadManagerProcActor = SpawnAt(RoadObjectManager, Location, Rotation);
+	if (RoadManagerProcActor)
+	{
+		RoadManagerProcActor->RS = RS;
+		RoadManagerProcActor->ProcGen();
+	}
+}
+
 
 AAProcActor* AProcNeighborhood::SpawnAt(TSubclassOf<AActor> Actor, FVector& Location, FRotator& Rotation) 
 {
