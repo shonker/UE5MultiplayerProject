@@ -60,5 +60,5 @@ void ARoadSpawnablesManager::SpawnRoadObjects()
 		{
 			SpawnedProcActor->ProcGen();//as of now this wont do anything
 		}
-	}
+	} 
 }
