@@ -183,29 +183,29 @@ void ABlasterGameMode::Tick(float DeltaTime)
 void ABlasterGameMode::PlayerEliminated(
 	class ABlasterCharacter* ElimmedCharacter,
 	class ABlasterPlayerController* VictimController,
-	class ABlasterPlayerController* AttackerController)
+	class AController* AttackerController)
 {
-	ABlasterPlayerState* AttackerPlayerState =
-		AttackerController ?
-		Cast<ABlasterPlayerState>(AttackerController->PlayerState)
-		: nullptr;
-	ABlasterPlayerState* VictimPlayerState =
-		VictimController ?
-		Cast<ABlasterPlayerState>(VictimController->PlayerState)
-		: nullptr;
-
-	ABlasterGameState* BlasterGameState = GetGameState<ABlasterGameState>();
-
-	if (AttackerPlayerState && AttackerPlayerState != VictimPlayerState && BlasterGameState)
-	{
-		AttackerPlayerState->AddToScore(6.66f);
-		BlasterGameState->UpdateTopScore(AttackerPlayerState);
-	}
-	
-	if (VictimPlayerState)
-	{
-		VictimPlayerState->AddToDebt(666);
-	}
+	// ABlasterPlayerState* AttackerPlayerState =
+	// 	AttackerController ?
+	// 	Cast<ABlasterPlayerState>(AttackerController->PlayerState)
+	// 	: nullptr;
+	// ABlasterPlayerState* VictimPlayerState =
+	// 	VictimController ?
+	// 	Cast<ABlasterPlayerState>(VictimController->PlayerState)
+	// 	: nullptr;
+	//
+	// ABlasterGameState* BlasterGameState = GetGameState<ABlasterGameState>();
+	//
+	// if (AttackerPlayerState && AttackerPlayerState != VictimPlayerState && BlasterGameState)
+	// {
+	// 	AttackerPlayerState->AddToScore(6.66f);
+	// 	BlasterGameState->UpdateTopScore(AttackerPlayerState);
+	// }
+	//
+	// if (VictimPlayerState)
+	// {
+	// 	VictimPlayerState->AddToDebt(666);
+	// }
 
 	if (ElimmedCharacter)
 	{

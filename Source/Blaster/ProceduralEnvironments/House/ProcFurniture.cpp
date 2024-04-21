@@ -50,6 +50,6 @@ int32 AProcFurniture::CalculateObjectsToSpawn(int32 NumTransforms) const
 	int32 RandomInt = RS.RandRange(0.0f, NumTransforms);
 	int32 NewRandomInt = RS.RandRange(0,RandomInt);
 
-	UE_LOG(LogTemp, Warning, TEXT("%i"), NewRandomInt);
+	//UE_LOG(LogTemp, Warning, TEXT("%i"), NewRandomInt);
 	return NewRandomInt;
 }

@@ -95,7 +95,7 @@ void ARoamingChaser::OnPerceptionUpdated(const TArray<AActor*>& UpdatedActors)
                 AIController = AIController ? AIController : Cast<AAIController>(GetController());
                 if (AIController)  AIController->MoveToLocation(GetActorLocation());
 
-                UE_LOG(LogTemp, Log, TEXT("i have detected the player"));
+                //UE_LOG(LogTemp, Log, TEXT("i have detected the player"));
                 GetWorldTimerManager().ClearTimer(MovementTimer);
 
                 GetWorldTimerManager().SetTimer(IdleReturnTimer, this, &ARoamingChaser::ReturnToIdle, 5.0f, false);
@@ -132,7 +132,7 @@ void ARoamingChaser::CheckPlayerLineOfSight()
         AIController = AIController ? AIController : Cast<AAIController>(GetController());
         if (AIController)
         {
-            UE_LOG(LogTemp, Log, TEXT("i have decided the player sees me and am chasing the player"));
+           // UE_LOG(LogTemp, Log, TEXT("i have decided the player sees me and am chasing the player"));
             AIController->MoveToActor(DetectedPlayer, 5.f, true, true, true, 0, true);
         }
         GetWorldTimerManager().SetTimer(ChaseDurationTimer,
@@ -219,10 +219,12 @@ void ARoamingChaser::OnDamageSphereOverlap(UPrimitiveComponent* OverlappedCompon
                     true // Auto destroy
                 );
             }
-        }  
-
-        if (HasAuthority() && AIController)
+        }
+        
+        AIController = AIController ? AIController : Cast<AAIController>(GetController());
+        if (AIController)
         {
+            UE_LOG(LogTemp, Warning, TEXT("apply damage"));
             UGameplayStatics::ApplyDamage(
                 HitChar,
                 24.f,
@@ -231,7 +233,7 @@ void ARoamingChaser::OnDamageSphereOverlap(UPrimitiveComponent* OverlappedCompon
                 UDamageType::StaticClass()
             );
         }
-
+        
         if (StabSoundCue)
         {
             UGameplayStatics::PlaySoundAtLocation(this, StabSoundCue, GetActorLocation());
@@ -251,7 +253,7 @@ void ARoamingChaser::CheckAttackResult()
         bInitiateAttack = false;
         bLaughing = true;
 
-        UE_LOG(LogTemp, Log, TEXT("i hit the blaster character"));
+       // UE_LOG(LogTemp, Log, TEXT("i hit the blaster character"));
         ServerSetAIState(EAIState::Laughing);
         GetWorldTimerManager().ClearTimer(ChaseDurationTimer);  
         GetWorldTimerManager().SetTimer(IdleReturnTimer, this, &ARoamingChaser::ReturnToIdle, 5.0f, false);
@@ -261,7 +263,7 @@ void ARoamingChaser::CheckAttackResult()
     AIController = AIController ? AIController : Cast<AAIController>(GetController());
     if (AIController && DetectedPlayer)
     {
-        UE_LOG(LogTemp, Log, TEXT("i missed an attack and am retargeting"));
+       // UE_LOG(LogTemp, Log, TEXT("i missed an attack and am retargeting"));
         AIController->MoveToActor(DetectedPlayer, 5.f, true, true, true, 0, true);
     }
 }
@@ -281,7 +283,7 @@ FVector ARoamingChaser::ChooseFleeLocation()
 
 void ARoamingChaser::ReturnToIdle()
 {
-    UE_LOG(LogTemp, Log, TEXT(" i return to idle"));
+  //  UE_LOG(LogTemp, Log, TEXT(" i return to idle"));
     ServerSetAIState(EAIState::Idle);
 
     bLaughing = false;

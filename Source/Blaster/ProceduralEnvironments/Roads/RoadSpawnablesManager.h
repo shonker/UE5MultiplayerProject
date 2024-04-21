@@ -35,17 +35,26 @@ class BLASTER_API ARoadSpawnablesManager : public AAProcActor
 	GENERATED_BODY()
 
 protected:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spawn Points") 
-	TArray<TSubclassOf<AAProcActor>> CommonRoadObjects;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Road Objects") 
+	TArray<TSubclassOf<AAProcActor>> SidewalkRoadObjects;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Road Objects") 
+	TArray<TSubclassOf<AAProcActor>> MiddleOfTheRoadObjects;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Road Objects") 
+	TArray<TSubclassOf<AAProcActor>> RoadLightSources;
 	
 private:
 
 	UPROPERTY()
-	TArray<ARoadSpawnPoint*> SpawnPoints;
+	TArray<ARoadSpawnPoint*> SidewalkSpawnPoints;
+	TArray<ARoadSpawnPoint*> MiddleOfRoadSpawnPoints;
 	TArray<FSelectedRoadObjects> SelectedSpawns;
 	
 	virtual void ProcGen() override;
 	void FindRoadSpawns();
-	void CalculateItemDistribution();
+	void DetermineRoadObjectsAndSpawnPoints();
+	void DetermineRoadLightsAndSpawnPoints();
+	void PopulateObjectsToSpawnArray();
 	void SpawnRoadObjects();
 };

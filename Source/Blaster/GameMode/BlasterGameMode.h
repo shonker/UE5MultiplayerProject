@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Blaster/Character/BlasterCharacter.h"
 #include "GameFramework/GameMode.h"
 #include "BlasterGameMode.generated.h"
 
@@ -24,9 +25,9 @@ public:
 	ABlasterGameMode();
 	virtual void Tick(float DeltaTime) override;
 	virtual void PlayerEliminated(
-		class ABlasterCharacter* ElimmedCharacter,
-		class ABlasterPlayerController* VictimController,
-		class ABlasterPlayerController* AttackerController
+		ABlasterCharacter* ElimmedCharacter,
+		ABlasterPlayerController* VictimController,
+		AController* AttackerController
 	);
 	virtual void RequestRespawn(
 		class ACharacter* ElimmedCharacter,

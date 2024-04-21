@@ -488,16 +488,16 @@ void ABlasterCharacter::ReceiveDamage(
 	AActor* DamageCauser)
 {
 	//GIVE BLOOD FOR HITS
-	ABlasterPlayerController* AttackerController = Cast<ABlasterPlayerController>(InstigatorController);
-	if (!AttackerController) return;
-	ABlasterPlayerState* AttackerPlayerState =
-		AttackerController ?
-		Cast<ABlasterPlayerState>(AttackerController->PlayerState)
-		: nullptr;
-	if (AttackerPlayerState)
-	{
-			AttackerPlayerState->AddToScore(1.666f);
-	}
+	// ABlasterPlayerController* AttackerController = Cast<ABlasterPlayerController>(InstigatorController);
+	// if (!AttackerController) return;
+	// ABlasterPlayerState* AttackerPlayerState =
+	// 	AttackerController ?
+	// 	Cast<ABlasterPlayerState>(AttackerController->PlayerState)
+	// 	: nullptr;
+	// if (AttackerPlayerState)
+	// {
+	// 		AttackerPlayerState->AddToScore(1.666f);
+	// }
 
 	//UPDATE HEALTH
 	Health = FMath::Clamp(Health - Damage, 0.f, MaxHealth);
@@ -513,7 +513,7 @@ void ABlasterCharacter::ReceiveDamage(
 		if (BlasterGameMode)
 		{
 			BlasterPlayerController = BlasterPlayerController == nullptr ? Cast<ABlasterPlayerController>(Controller) : BlasterPlayerController;
-			BlasterGameMode->PlayerEliminated(this, BlasterPlayerController, AttackerController);
+			BlasterGameMode->PlayerEliminated(this, BlasterPlayerController, InstigatorController);
 		}
 	}
 }
