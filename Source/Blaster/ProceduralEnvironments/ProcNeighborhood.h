@@ -53,6 +53,7 @@ public:
 	AProcNeighborhood();
 	void SpawnItemManager();
 	void SpawnRoadObjectManager();
+	void SpawnMonsterManager();
 	void ProcGen(uint32 randomSeed);
 	class AAProcActor* SpawnAt(TSubclassOf<AActor> Actor, FVector& Location, FRotator& Rotation);
 	FRandomStream RS;
@@ -73,6 +74,11 @@ protected:
 	 */
 	UPROPERTY(EditDefaultsOnly, Category = "Items")
 	TSubclassOf<AActor> ItemManager;
+	/*
+		MONSTERS
+	*/
+	UPROPERTY(EditDefaultsOnly, Category = "Monsters")
+	TSubclassOf<AActor> MonsterManager;
 	/*
 		ROADS
 	*/
