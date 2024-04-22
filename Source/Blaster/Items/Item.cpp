@@ -433,28 +433,36 @@ void AItem::Laughing(EWeaponState State)
 	switch (State)
 	{
 	case EWeaponState::EWS_PickedUp:
-		if (BlasterOwnerCharacter)
-		{
-			int32 RandomTime = FMath::RandRange(15, 30);
-			int32 LaughType = FMath::RandRange(0, 2);
+			if (BlasterOwnerCharacter && BlasterOwnerCharacter->IsValidLowLevel())
+			{
+				int32 RandomTime = FMath::RandRange(15, 30);
+				int32 LaughType = FMath::RandRange(0, 2);
 
-			// SetTimer using a lambda function
-			BlasterOwnerCharacter->GetWorld()->GetTimerManager().SetTimer(
-				LaughingSoundTimerHandle,
-				[this, LaughType]() { this->PlayLaughingSound(LaughType); },
-				RandomTime,
-				true,
-				1.0f
-			);
-		}
+				BlasterOwnerCharacter->GetWorld()->GetTimerManager().SetTimer(
+					LaughingSoundTimerHandle,
+					[this, LaughType]() {
+						if (this->BlasterOwnerCharacter && this->BlasterOwnerCharacter->IsValidLowLevel())
+						{
+							this->PlayLaughingSound(LaughType);
+						}
+					},
+					RandomTime,
+					true,
+					1.0f
+				);
+			}
 		break;
 
 	case EWeaponState::EWS_Dropped:
-		BlasterOwnerCharacter->GetWorld()->GetTimerManager().ClearTimer(LaughingSoundTimerHandle);
+		if (BlasterOwnerCharacter && BlasterOwnerCharacter->IsValidLowLevel())
+		{
+			BlasterOwnerCharacter->GetWorld()->GetTimerManager().ClearTimer(LaughingSoundTimerHandle);
+		}
 		break;
 
 	case EWeaponState::EWS_Stored:
 		break;
+	default: ;
 	}
 }
 
