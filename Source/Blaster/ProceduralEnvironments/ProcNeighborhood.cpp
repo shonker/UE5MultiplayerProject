@@ -5,7 +5,10 @@
 #include "Kismet/GameplayStatics.h"
 #include "DrawDebugHelpers.h"
 #include "AProcActor.h"
+#include "NavigationSystem.h"
 #include "AI/NavigationSystemBase.h"
+#include "NavMesh/NavMeshBoundsVolume.h"
+
 
 const float AProcNeighborhood::CellSize = 100.f * 20.f;
 //const float AProcNeighborhood::CenterLocOffset = GridSize * CellSize / 2;
@@ -125,7 +128,7 @@ void AProcNeighborhood::PlaceHomeBase()
 void AProcNeighborhood::GenerateRoads()
 {
 	int32 Lifetime = RS.RandRange(MinLifetime, MaxLifetime);
-	Straightness = RS.RandRange(1, 2);
+	Straightness = RS.RandRange(1, 4);
 	int32 StartCol = GridSize/2;
 	int32 StartRow = GridSize/2;
 	//UE_LOG(LogTemp, Display, TEXT("Seed ~ Lifetime: %i StartCol: %i StartRow: %i"), Lifetime, StartCol, StartRow);
@@ -141,7 +144,7 @@ void AProcNeighborhood::GenerateRoads()
 			//UE_LOG(LogTemp, Log, TEXT("Branch ~ Lifetime: %i StartCol: %i StartRow: %i"), Lifetime, StartCol, StartRow);
 			GenerateRoadBranch(StartCol, StartRow, Lifetime, CurrentDirection);
 		}
-		if (RS.RandRange(0,Straightness) > 0)
+		if (RS.RandRange(0,Straightness) > 1)
 		{
 			MoveInDirection(CurrentDirection, StartCol, StartRow);
 		}
@@ -164,7 +167,7 @@ void AProcNeighborhood::GenerateRoadBranch(int32 StartCol, int32 StartRow, int32
 		//	UE_LOG(LogTemp, Log, TEXT("Branch ~ Lifetime: %i StartCol: %i StartRow: %i"), Lifetime, StartCol, StartRow);
 			GenerateRoadBranch(StartCol, StartRow, Lifetime, CurrentDirection);
 		}
-		if (RS.RandRange(0, Straightness) > 0)
+		if (RS.RandRange(0, Straightness) > 1)
 		{
 			MoveInDirection(CurrentDirection, StartCol, StartRow);
 		}
@@ -183,7 +186,7 @@ void AProcNeighborhood::MoveInDirection(EDirection Direction, int32& Col, int32&
 	switch (Direction)
 	{
 	case EDirection::Up:
-		if (Row + 1 <= GridSize - 1) ChangeDirection(Direction);
+		if (Row + 1 >= GridSize - 1) ChangeDirection(Direction);
 		break;
 	case EDirection::Down:
 		if (Row - 1 <= 1) ChangeDirection(Direction);
@@ -530,15 +533,56 @@ bool AProcNeighborhood::CheckAndFill(int32 Col, int32 Row, const TArray<FIntPoin
 	return true;
 }
 
+void AProcNeighborhood::SpawnNavMeshVolumeAtLocation(const FVector& Location, const FVector& VolumeSize)
+{
+	// UWorld* World = GetWorld();
+	// if (!World) return;
+	//
+	// ANavMeshBoundsVolume* NavVolume = World->SpawnActor<ANavMeshBoundsVolume>(ANavMeshBoundsVolume::StaticClass(), Location, FRotator::ZeroRotator);
+	// if (NavVolume)
+	// {
+	// 	FVector Scale = VolumeSize / 200.f; // Default brush size is 200x200x200
+	// 	NavVolume->SetActorScale3D(Scale);
+	//
+	// 	// Get the navigation system
+	// 	UNavigationSystemV1* NavSys = FNavigationSystem::GetCurrent<UNavigationSystemV1>(World);
+	// 	if (NavSys)
+	// 	{
+	// 		// Calculate the extent of the dirty area
+	// 	//	FVector BoxExtent = VolumeSize / 2;
+	// 		//FBox DirtyBox(Location - BoxExtent, Location + BoxExtent);
+	// 	//	NavSys->AddDirtyArea(DirtyBox, ENavigationDirtyFlag::All);
+	//
+	// 		// Optionally force a rebuild if immediate update is necessary
+	// 		//NavSys->Build();
+	// 	}
+	// }
+}
+
+
 void AProcNeighborhood::SpawnFinishedNeighborhood()
 {
 	for (int32 Col = 0; Col < GridSize; ++Col)
 	{
 		for (int32 Row = 0; Row < GridSize; Row++)
 		{
+
+			
 			TSubclassOf<AActor> RoadBlueprint = nullptr;
 			float CenterLocOffset = GridSize * CellSize / 2;
 			FVector SpawnLocation = GetActorLocation() + FVector(Col * CellSize - CenterLocOffset, -Row * CellSize + CenterLocOffset, 0.0f);
+			//DrawDebugSphere(GetWorld(),SpawnLocation, 500.f, 12, FColor::Blue, true);
+
+			// if (GridCellTypes[Col][Row] != CellType::Empty)
+			// {
+			// 	const float NavMeshOverflow = 100.f;
+			// 	const float NavMeshCellLength = CellSize + NavMeshOverflow;
+			// 	FVector VolumeSize(NavMeshCellLength, NavMeshCellLength, NavMeshCellLength);
+			// 	FVector NavMeshLocation = SpawnLocation;
+			// 	NavMeshLocation.Z = NavMeshLocation.Z - 100.f;
+			// 	SpawnNavMeshVolumeAtLocation(NavMeshLocation, VolumeSize);
+			// }
+			//
 			UWorld* World = GetWorld();
 			if (World)
 			{
@@ -633,13 +677,17 @@ void AProcNeighborhood::SpawnFinishedNeighborhood()
 
 				break;
 				case CellType::Reserved:
-					//DrawDebugSphere(GetWorld(),SpawnLocation, 1000.f, 12, FColor::Blue, true);
+					//DrawDebugSphere(GetWorld(),SpawnLocation, 500.f, 12, FColor::Blue, true);
 				break;
 
 				}
 			}
 		}
-	}	
+	}
+	UNavigationSystemV1* NavSys = FNavigationSystem::GetCurrent<UNavigationSystemV1>(GetWorld());
+	if (NavSys)
+	{
+		NavSys->Build();
+	}
 }
-
 

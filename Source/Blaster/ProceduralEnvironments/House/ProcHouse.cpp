@@ -50,7 +50,7 @@ void AProcHouse::ChooseHouseType()
 	TMap<EHouseType, float> Weights = {
 		{EHouseType::WhiteWood, 0.5f},
 		//{EHouseType::BrownWood, 0.3f},
-		{EHouseType::Spikes, 0.05f},
+		{EHouseType::Spikes, 0.005f},
 		{EHouseType::Water, 0.1f},
 		//{EHouseType::Hito, 0.05f},
 	};

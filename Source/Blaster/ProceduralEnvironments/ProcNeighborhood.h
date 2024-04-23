@@ -164,5 +164,6 @@ protected:
 		TSubclassOf<AActor> HomeBaseBlueprintClass;
 
 	bool CheckAndFill(int32 Col, int32 Row, const TArray<FIntPoint>& RelativePositions, CellType InitialType, CellType FillType);
+	void SpawnNavMeshVolumeAtLocation(const FVector& Location, const FVector& VolumeSize);
 	void GenerateMiscellaneousLocations();
 };
