@@ -1,4 +1,6 @@
 #include "MonsterManager.h"
+
+#include "EngineUtils.h"
 #include "TimerManager.h"
 #include "Engine/World.h"
 #include "MonsterFactory.h"
@@ -6,16 +8,17 @@
 #include "Blaster/GameMode/BlasterGameMode.h"
 #include "GameFramework/GameStateBase.h"
 
-AMonsterManager::AMonsterManager()
-{
-	GameDuration = 900.0f; // Default duration of 15 minutes, adjust as necessary.
-	MaxMonsterCount = 50; // Set according to game design requirements.
-	MaxSimultaneouslySpawnedCount = 5; // Example value, adjust as needed.
-}
-
 void AMonsterManager::BeginPlay()
 {
 	Super::BeginPlay();
+
+	if (!HasAuthority())
+	{
+		DestroyAllMonsterSpawnPoints();
+		Destroy();
+		return;
+	}
+	
 	SpawnMonsterFactory();
 	GetWorld()->GetTimerManager().SetTimer(MonsterCheckTimer, this, &AMonsterManager::CheckAndSpawnMonsters, 30.0f, true);
 }
@@ -67,7 +70,6 @@ void AMonsterManager::CheckAndSpawnMonsters()
 
 void AMonsterManager::UpdateMonsterCountTargets(float IntensityFactor)
 {
-	// Use the intensity factor to scale the target count
 	CurrentTargetMonsterCount = FMath::Lerp(0.0f, static_cast<float>(MaxMonsterCount), IntensityFactor);
 }
 
@@ -83,4 +85,16 @@ void AMonsterManager::SpawnMonsters(int Count)
 	}
 }
 
-
+//you may think: why was any of this spawned in the first place?
+//the answer:: its not that expensive and I need to maintain random stream consistency during procedural generation
+void AMonsterManager::DestroyAllMonsterSpawnPoints()
+{
+	for (TActorIterator<AMonsterSpawnPoint> It(GetWorld()); It; ++It)
+	{
+		AMonsterSpawnPoint* SpawnPoint = *It;
+		if (SpawnPoint)
+		{
+			SpawnPoint->Destroy();
+		}
+	}
+}

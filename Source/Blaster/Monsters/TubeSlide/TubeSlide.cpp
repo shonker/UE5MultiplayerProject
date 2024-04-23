@@ -71,7 +71,7 @@ void ATubeSlide::Tick(float DeltaTime)
 
 	if (bAttacking)
 	{
-		if (TargetCharacter!= nullptr) AttackTarget = TargetCharacter->GetActorLocation();
+		if (TargetCharacter != nullptr) AttackTarget = TargetCharacter->GetActorLocation();
 	}
 
 }

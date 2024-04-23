@@ -13,8 +13,7 @@ class BLASTER_API AMonsterManager : public AActor
 	GENERATED_BODY()
 
 public:
-	AMonsterManager();
-
+	void DestroyAllMonsterSpawnPoints();
 	virtual void BeginPlay() override;
 	void SpawnMonsterFactory();
 	void ValidateExistingMonsters();
@@ -38,14 +37,12 @@ private:
 	class AMonsterFactory* MonsterFactory;
 
 	UPROPERTY(EditAnywhere, Category = "Monster Management")
-	int32 MaxMonsterCount;
+	int32 MaxMonsterCount = 7;
 
 	UPROPERTY(EditAnywhere, Category = "Monster Management")
-	int32 MaxSimultaneouslySpawnedCount;
+	int32 MaxSimultaneouslySpawnedCount = 2;
 
 	float CurrentTargetMonsterCount;
 
 	float GameDuration;
-
-	void AdjustMonsterTargets();
 };

@@ -72,7 +72,6 @@ void AProcNeighborhood::SpawnRoadObjectManager()
 
 void AProcNeighborhood::SpawnMonsterManager()
 {
-	if (!HasAuthority()) return;
 	if (!MonsterManager) return;
 	const FVector Location(0,0,0);
 	const FRotator Rotation(0,0,0);
