@@ -1,18 +1,42 @@
+
+.idea
 .vs
 .vscode
 Binaries
 Build
-Content/Characters
-Content/AnimStarterPack
-Content/Collections
-Content/Developers
-Content/LevelPrototyping
-Content/Maps
-Content/MilitaryWeapSilver
+#Content/Characters
+#Content/AnimStarterPack
+#Content/Collections
+#Content/Developers
+#Content/LevelPrototyping
+#Content/Maps
+#Content/MilitaryWeapSilver
 DerivedDataCache
 Intermediate
 Saved
-Script
-Plugins/MultiplayerSessions/Content
-Plugins/MultiplayerSessions/Intermediate
+#Script
+#Plugins/MultiplayerSessions/Content
+#Plugins/MultiplayerSessions/Intermediate
 
+#################################
+# Visual Studio Generated Files #
+#################################
+# Cache Directory
+.vs
+# User Specific Files
+*.rsuser
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+# CPP Cache Files
+*.VC.db
+*.opendb
+*.opensdf
+*.sdf
+# Solution Files
+*.sln
+# VSCode Cache Directory
+.vscode
+# VSCode History Files
+**/.history
