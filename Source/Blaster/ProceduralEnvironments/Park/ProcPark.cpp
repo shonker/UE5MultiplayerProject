@@ -23,6 +23,7 @@ AProcPark::AProcPark()
 void AProcPark::ProcGen()
 {
     InitializePark();
+    SpawnGroundObjects();
 }
 
 
@@ -113,4 +114,35 @@ bool AProcPark::IsWithinDistance(const FVector& Position) const
     bool bIsAboveGround = Position.Z > -400.f;
 
     return bIsWithinDistance && bIsAboveGround;
+}
+
+
+/*
+        GROUND OBJECTS
+ */
+
+
+void AProcPark::SpawnGroundObjects()
+{
+    const int32 NumTransforms = GroundObjectTransforms.Num();
+    TArray<int32> AvailableIndices;
+    for (int32 i = 0; i < NumTransforms; ++i) AvailableIndices.Add(i);
+    const int32 ObjectsToSpawn = (RS.RandRange(NumTransforms/2, NumTransforms));
+
+    for (int32 i = 0; i < ObjectsToSpawn && AvailableIndices.Num() > 0; ++i)
+    {
+        if (SpawnableGroundObjects.Num() > 0)
+        {
+            const int32 ObjectIndex = RS.RandRange(0, SpawnableGroundObjects.Num() - 1);
+            const int32 TransformIndex = RS.RandRange(0, AvailableIndices.Num() - 1);
+
+            FTransform SpawnTransform = GroundObjectTransforms[AvailableIndices[TransformIndex]];
+            FVector Location = GetActorLocation()+ SpawnTransform.GetLocation();// + GetActorRotation().RotateVector(SpawnTransform.GetLocation());
+            FRotator Rotation = GetActorRotation() + SpawnTransform.GetRotation().Rotator();
+            Rotation.Yaw -= 90.0f;
+
+            AAProcActor* Spawn = SpawnAt(SpawnableGroundObjects[ObjectIndex], Location, Rotation);
+            AvailableIndices.RemoveAt(TransformIndex);
+        }
+    }
 }

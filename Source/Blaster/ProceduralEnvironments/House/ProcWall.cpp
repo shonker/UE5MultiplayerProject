@@ -42,6 +42,7 @@ void AProcWall::InitializeRandomSpawning()
     }
     // Else, nothing is spawned
 }
+
 void AProcWall::SpawnWideObject()
 {
     if (SpawnableWideObjects.Num() > 0 && WideObjectTransforms.Num() > 0)

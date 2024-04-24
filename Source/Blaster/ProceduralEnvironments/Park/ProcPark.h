@@ -16,6 +16,12 @@ public:
     AProcPark();
     virtual void ProcGen() override;
 
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ground Objects")
+    TArray<TSubclassOf<AAProcActor>> SpawnableGroundObjects;
+    
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ground Objects")
+    TArray<FTransform> GroundObjectTransforms;
+    
 protected:
     virtual void BeginPlay() override;
 
@@ -34,6 +40,7 @@ private:
     
     void SpawnNextObject(const FTransform& CurrentTransform);
     bool IsWithinDistance(const FVector& Position) const;
+    void SpawnGroundObjects();
     TArray<FTransform> AvailableTransforms;
     FVector Origin;
     const float MaxDistance = 2000.f;
