@@ -69,5 +69,8 @@ protected:
 private:
 	float CountdownTime = 0.f;
 public:
+	UFUNCTION(BlueprintCallable)
 	FORCEINLINE float GetCountdownTime() const { return CountdownTime; }
+	UFUNCTION(BlueprintCallable)
+	FORCEINLINE FName GetMatchStateVirtual() const { return MatchState; }
 };

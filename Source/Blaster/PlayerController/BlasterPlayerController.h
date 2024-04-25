@@ -43,6 +43,7 @@ public:
 	
 	void CheckTimeSync(float DeltaTime);
 
+	UFUNCTION(BlueprintCallable)
 	virtual float GetServerTime(); //synced w/ server world clock
 	virtual void ReceivedPlayer() override;//sync w/ server clock asap
 
