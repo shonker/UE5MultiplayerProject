@@ -117,5 +117,6 @@ private:
 	
 	FString GetUserAssignedInputFor(const FName ActionName);
 
-
+public:
+	FORCEINLINE FName GetMatchState() const {return MatchState; }
 }; 

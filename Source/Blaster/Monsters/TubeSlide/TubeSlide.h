@@ -32,7 +32,7 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = "Worm Mesh")
 		USkeletalMeshComponent* WormMesh;
-	UPROPERTY(EditAnywhere, Category = "Tube Slide")
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Tube Slide")
 		UStaticMeshComponent* TubeSlide;
 
 protected:
