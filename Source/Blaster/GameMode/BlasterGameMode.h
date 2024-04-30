@@ -9,7 +9,11 @@
 
 namespace MatchState
 {
-	extern BLASTER_API const FName Cooldown; //Match dieration has been reached. Display winner and begin cooldown timer
+	extern BLASTER_API const FName PreDream; 
+	extern BLASTER_API const FName Dreaming; 
+	extern BLASTER_API const FName Judgement; 
+	extern BLASTER_API const FName GameOver;
+	extern BLASTER_API const FName Cooldown; //Match duration has been reached. Display winner and begin cooldown timer
 }
 
 /**
@@ -33,8 +37,12 @@ public:
 		class ACharacter* ElimmedCharacter,
 		AController* ElimmedController
 	);
+	UPROPERTY()
 	class AHomeBase* HomeBase;
+	UPROPERTY()
 	class AMama* Mama;
+	UPROPERTY()
+	class AKnight* Knight;
 	
 	/*
 		Best not to confuse yourself, and

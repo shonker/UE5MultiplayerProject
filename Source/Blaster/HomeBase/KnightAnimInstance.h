@@ -17,10 +17,31 @@ class BLASTER_API UKnightAnimInstance : public UAnimInstance
 	virtual void NativeInitializeAnimation() override;
 	virtual void NativeUpdateAnimation(float DeltaSeconds) override;
 
-	class ABlasterPlayerController* BlasterPC;
-
-	FName MatchState;
 	
-	bool bIsGameInProgress = false;
-	float CountdownTime;
+	FName MatchState;
+
+	void IncrementAnimation();
+	FTimerHandle AnimationIncrementTimer;
+
+public:
+	UPROPERTY(BlueprintReadWrite)
+	int32 AnimStage = 0;
+	UPROPERTY(BlueprintReadWrite)
+	bool bIsHeld = false;
+	UPROPERTY(BlueprintReadWrite)
+	bool bIsInserted = false;
+	
+	UPROPERTY(BlueprintReadWrite)
+	bool bResetKnight = false;
+	
+	UFUNCTION()
+	void ActivateKnight(float MatchTime);
+	
+	UFUNCTION(BlueprintCallable)
+	void ResetKnight();
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void StartShaking();
+	UFUNCTION(BlueprintImplementableEvent)
+	void StopShaking();
 };

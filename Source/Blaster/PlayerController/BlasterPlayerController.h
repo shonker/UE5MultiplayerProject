@@ -46,12 +46,27 @@ public:
 	UFUNCTION(BlueprintCallable)
 	virtual float GetServerTime(); //synced w/ server world clock
 	virtual void ReceivedPlayer() override;//sync w/ server clock asap
+	void HandleMatchChange();
 
 	void OnMatchStateSet(FName State);
+	
 	void HandleMatchHasStarted();
+	void HandleMatchDreaming();
 	void HandleCooldown();
 
 	bool bClientFinishedProceduralGeneration = false;
+
+	/*
+	 *	HOME BASE REFS
+	 */
+	UPROPERTY()
+	class AHomeBase* HomeBase;
+	UPROPERTY()
+	class AMama* Mama;
+	UPROPERTY()
+	class AKnight* KnightActor;
+	void InitializeKnightSequence();
+	
 protected:
 	virtual void BeginPlay() override;
 	void SetHUDTime();
@@ -99,6 +114,7 @@ private:
 
 	UFUNCTION()
 	void OnRep_MatchState();
+	void InitializeBlasterHUD();
 
 	UPROPERTY()
 	class UCharacterOverlay* CharacterOverlay;

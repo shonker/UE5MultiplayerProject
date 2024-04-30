@@ -52,5 +52,7 @@ public:
 		AMama* MamaActor;
 	void ActivateMama();
 	void MamaStarved();
-
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Gameplay")
+	class AKnight* KnightActor;
 };

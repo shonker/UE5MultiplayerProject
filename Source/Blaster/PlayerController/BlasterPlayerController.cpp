@@ -17,7 +17,11 @@
 #include "Blaster/ProceduralEnvironments/ProcNeighborhood.h"
 #include "GameFramework/InputSettings.h"
 #include "TimerManager.h"
+#include "Blaster/HomeBase/Knight.h"
+#include "Blaster/HomeBase/HomeBase.h"
+#include "Blaster/HomeBase/Mama.h"
 #include "EngineUtils.h"
+
 
 void ABlasterPlayerController::BeginPlay()
 {
@@ -25,7 +29,15 @@ void ABlasterPlayerController::BeginPlay()
 
 	BlasterHUD = Cast<ABlasterHUD>(GetHUD());
 	ServerCheckMatchState();
+
 	
+	for (TActorIterator<AHomeBase> It(GetWorld()); It; ++It)
+	{
+		HomeBase = *It;
+		Mama = HomeBase->MamaActor;
+		KnightActor = HomeBase->KnightActor;
+		break;
+	}
 }
 
 void ABlasterPlayerController::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -42,11 +54,6 @@ void ABlasterPlayerController::Tick(float DeltaTime)
 	PollInit();
 }
 
-/*
----/////---/////---/////---/////---/////
----/////
----/////
-*/
 void ABlasterPlayerController::ServerClientFinishedProcGen_Implementation()
 {
 	bClientFinishedProceduralGeneration = true;
@@ -97,11 +104,6 @@ void ABlasterPlayerController::PostInitializeComponents()
 	}
 }
 
-/*
-* ---/////
-* ---/////
----/////---/////---/////---/////---/////
-*/
 void ABlasterPlayerController::CheckTimeSync(float DeltaTime)
 {
 	TimeSyncRunningTime += DeltaTime;
@@ -124,12 +126,12 @@ void ABlasterPlayerController::ServerCheckMatchState_Implementation() //make sur
 		CooldownTime = GameMode->CooldownTime;
 		MatchState = GameMode->GetMatchState();
 		ClientJoinMidgame(MatchState, WarmupTime, MatchTime, CooldownTime, LevelStartingTime);
-		if (BlasterHUD 
-			&& MatchState == MatchState::WaitingToStart
-			&& BlasterHUD->Announcement == nullptr)
-		{
-			BlasterHUD->AddAnnouncement();
-		}
+		// if (BlasterHUD 
+		// 	&& MatchState == MatchState::WaitingToStart
+		// 	&& BlasterHUD->Announcement == nullptr)
+		// {
+		// 	BlasterHUD->AddAnnouncement();
+		// }
 	}
 }
 
@@ -165,6 +167,19 @@ void ABlasterPlayerController::OnPossess(APawn* InPawn)
 	}
 }
 
+void ABlasterPlayerController::InitializeBlasterHUD()
+{
+	BlasterHUD = BlasterHUD == nullptr ? Cast<ABlasterHUD>(GetHUD()) : BlasterHUD;
+	if (BlasterHUD)
+	{
+		if (BlasterHUD->CharacterOverlay == nullptr) BlasterHUD->AddCharacterOverlay();
+		if (BlasterHUD->Announcement)
+		{
+			BlasterHUD->Announcement->SetVisibility(ESlateVisibility::Hidden);
+		}
+	}
+}
+
 void ABlasterPlayerController::SetHUDHealth(float Health, float MaxHealth)
 {
 	BlasterHUD = BlasterHUD == nullptr ? Cast<ABlasterHUD>(GetHUD()) : BlasterHUD;
@@ -190,7 +205,6 @@ void ABlasterPlayerController::SetHUDHealth(float Health, float MaxHealth)
 		HUDMaxHealth = MaxHealth;
 	}
 }
-
 
 void ABlasterPlayerController::SetHUDScore(float Score)
 {
@@ -229,7 +243,6 @@ void ABlasterPlayerController::SetHUDDebt(float Debt)
 		HUDDebt = Debt;
 	}
 }
-
 
 // ABlasterPlayerController.cpp
 FString ABlasterPlayerController::GetUserAssignedInputFor(const FName ActionName)
@@ -342,7 +355,6 @@ void ABlasterPlayerController::BlinkTimerFinished()
 	BlasterHUD->CharacterOverlay->MatchCountdownText->SetVisibility(ESlateVisibility::Hidden);
 }
 
-
 void ABlasterPlayerController::SetHUDAnnouncementCountdown(float CountdownTime)
 {
 	BlasterHUD = BlasterHUD == nullptr ? Cast<ABlasterHUD>(GetHUD()) : BlasterHUD;
@@ -365,6 +377,7 @@ void ABlasterPlayerController::SetHUDAnnouncementCountdown(float CountdownTime)
 	}
 }
 
+//todo: match state inprogress -> dreaming
 void ABlasterPlayerController::SetHUDTime()
 {
 	float TimeLeft = 0.f;
@@ -390,7 +403,7 @@ void ABlasterPlayerController::SetHUDTime()
 		{
 			SetHUDAnnouncementCountdown(TimeLeft);
 		}
-		if (MatchState == MatchState::InProgress)
+		if (MatchState == MatchState::InProgress)//todo:dreaming
 		{
 			SetHUDMatchCountdownText(TimeLeft);
 		}
@@ -444,26 +457,34 @@ void ABlasterPlayerController::ReceivedPlayer()
 	}
 }
 
+/*
+ *	MATCH STATE MANAGEMENT
+ */
+
+//here  is where we are informed the match state by the game mode on the server 
 void ABlasterPlayerController::OnMatchStateSet(FName State)
 {
-	MatchState = State; //// HEY YOU!!!! This all needs to also be handled in the onRep function below
-
-	if (MatchState == MatchState::InProgress)
-	{
-		HandleMatchHasStarted();
-	}
-	else if (MatchState == MatchState::Cooldown)
-	{
-		HandleCooldown();
-	}
+	MatchState = State;
+	//// HEY YOU!!!! This all needs to also be handled in the onRep function below
+	HandleMatchChange();
 }
 
 void ABlasterPlayerController::OnRep_MatchState()
 {
+	HandleMatchChange();
+}
 
+void ABlasterPlayerController::HandleMatchChange()
+{
 	if (MatchState == MatchState::InProgress)
 	{
+		UE_LOG(LogTemp, Warning, TEXT("match state == in progress"));
 		HandleMatchHasStarted();
+	}
+	else if (MatchState == MatchState::Dreaming)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("match state == dreaming"));
+		HandleMatchDreaming();
 	}
 	else if (MatchState == MatchState::Cooldown)
 	{
@@ -471,16 +492,22 @@ void ABlasterPlayerController::OnRep_MatchState()
 	}
 }
 
-void 	ABlasterPlayerController::HandleMatchHasStarted()
+void ABlasterPlayerController::HandleMatchHasStarted()
 {
-	BlasterHUD = BlasterHUD == nullptr ? Cast<ABlasterHUD>(GetHUD()) : BlasterHUD;
-	if (BlasterHUD)
+	InitializeBlasterHUD();
+}
+
+void ABlasterPlayerController::HandleMatchDreaming()
+{
+	InitializeKnightSequence();
+}
+
+void ABlasterPlayerController::InitializeKnightSequence()
+{
+	if (IsValid(KnightActor))
 	{
-		if (BlasterHUD->CharacterOverlay == nullptr) BlasterHUD->AddCharacterOverlay();
-		if (BlasterHUD->Announcement)
-		{
-			BlasterHUD->Announcement->SetVisibility(ESlateVisibility::Hidden);
-		}
+		UE_LOG(LogTemp, Warning, TEXT("player controller informing knight to wake up"));
+		KnightActor->SetKnightAnimationTime(MatchTime);
 	}
 }
 

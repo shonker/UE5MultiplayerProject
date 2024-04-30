@@ -12,6 +12,8 @@ AHomeBase::AHomeBase()
 	RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("RootComponent"));
 
 	// Initialize the box component
+	//this is weird. I think I made this so the game would start when you left home base but its not implemented correctly or intended for that OG purpose.
+	//may repurpose for identifying when people enter home base to cure curses or kill enemies
 	OverlapComponent = CreateDefaultSubobject<UBoxComponent>(TEXT("OverlapComponent"));
 	OverlapComponent->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 	OverlapComponent->SetCollisionObjectType(ECollisionChannel::ECC_WorldStatic);
@@ -23,6 +25,7 @@ void AHomeBase::BeginPlay()
 {
 	Super::BeginPlay();
 	MamaActor->SetHomeBase(this);
+	StartMatchCountdown();
 }
 
 void AHomeBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -45,7 +48,7 @@ void AHomeBase::OnRep_ActivateLights()
 
 void AHomeBase::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	StartMatchCountdown();
+	
 }
 
 void AHomeBase::StartMatchCountdown()
@@ -62,6 +65,7 @@ void AHomeBase::BeginJudgement()
 	bLights = true;
 	ActivateLights();
 	FTimerHandle MamaTimer;
+	//takes 6 seconds for all the lights to come on
 	GetWorldTimerManager().SetTimer(MamaTimer, this, &AHomeBase::ActivateMama, 6.0f, false);	
 }
 

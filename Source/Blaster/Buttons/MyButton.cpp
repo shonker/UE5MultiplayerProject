@@ -13,8 +13,6 @@ AMyButton::AMyButton()
     SetRootComponent(AreaBox);
     AreaBox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
-   // InteractWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("InteractWidget"));
-    //InteractWidget->SetupAttachment(RootComponent);
     bReplicates = true;
 }
 
@@ -31,11 +29,6 @@ void AMyButton::BeginPlay()
     }
     AreaBox->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
     AreaBox->SetCollisionResponseToChannel(ECollisionChannel::ECC_Visibility, ECollisionResponse::ECR_Block);
-
-    // if (InteractWidget)
-    // {
-    //     InteractWidget->SetVisibility(false);
-    // }
 
     OwningActor = GetOwner();
 }
@@ -90,27 +83,11 @@ void AMyButton::MulticastOnInitPress_Implementation()
 void AMyButton::ServerOnInitPress_Implementation()
 {
     OnButtonPressed.Broadcast();
-    if (GEngine)
-    {
-        GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("serveroninitpress_implementation"));
-    }
-
-   //MulticastOnInitPress();
 }
 
 void AMyButton::OnInitPress()
 {
-   /* if (HasAuthority())
-    {*/
-    if (HasAuthority()) GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("serveroninitpress_implementation"));
-
     OnButtonPressed.Broadcast();
-    //   // MulticastOnInitPress();
-    //}
-    //else
-    //{
-    //    ServerOnInitPress();
-    //}
 }
 
 void AMyButton::MulticastWhileHeld_Implementation()
@@ -120,12 +97,12 @@ void AMyButton::MulticastWhileHeld_Implementation()
 
 void AMyButton::ServerWhileHeld_Implementation()
 {
+    
 }
 
 void AMyButton::WhileHeld()
 {
-    //not really necessarry
-   // OnButtonHeld.Broadcast();
+   OnButtonHeld.Broadcast();
 }
 
 void AMyButton::MulticastOnRelease_Implementation()

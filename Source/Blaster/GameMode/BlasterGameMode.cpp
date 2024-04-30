@@ -12,13 +12,17 @@
 #include "GameFramework/GameSession.h"
 #include "Blaster/GameState/BlasterGameState.h"
 #include "Blaster/HomeBase/HomeBase.h"
+#include "Blaster/HomeBase/Knight.h"
 #include "Blaster/HomeBase/Mama.h"
 
 namespace MatchState 
 {
-	const FName Cooldown = FName("Cooldown");
+	
+	const FName PreDream = FName("PreDream");
+	const FName Dreaming = FName("Dreaming");
 	const FName Judgement = FName("Judgement");
 	const FName GameOver = FName("GameOver");
+	const FName Cooldown = FName("Cooldown");
 }
 
 ABlasterGameMode::ABlasterGameMode()
@@ -93,13 +97,20 @@ void ABlasterGameMode::BeginPlay()
 	for (TActorIterator<AHomeBase> It(GetWorld()); It; ++It)
 	{
 		HomeBase = *It;
+		Mama = HomeBase->MamaActor;
+		Knight = HomeBase->KnightActor;
 		break;
 	}
-	for (TActorIterator<AMama> It(GetWorld()); It; ++It)
-	{
-		Mama = *It;
-		break;
-	}
+	// for (TActorIterator<AMama> It(GetWorld()); It; ++It)
+	// {
+	// 	Mama = *It;
+	// 	break;
+	// }
+	// for (TActorIterator<AKnight> It(GetWorld()); It; ++It)
+	// {
+	// 	Knight = *It;
+	// 	break;
+	// }
 }
 
 void ABlasterGameMode::OnMatchStateSet()
@@ -130,7 +141,6 @@ void ABlasterGameMode::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 		
-	//cant be switch case ????
 	if (MatchState == MatchState::WaitingToStart)
 	{
 		CountdownTime = WarmupTime - GetWorld()->GetTimeSeconds() + LevelStartingTime;
@@ -142,18 +152,28 @@ void ABlasterGameMode::Tick(float DeltaTime)
 	}
 	else if (MatchState == MatchState::InProgress)
 	{
-		CountdownTime = WarmupTime + MatchTime - GetWorld()->GetTimeSeconds() + LevelStartingTime;
-			if (CountdownTime < 0.f)
+		if (IsValid(Knight))
+		{
+			//happens when sword is stabbed
+			if (Knight->bIsAwake)
 			{
-				if (HomeBase)
-				{
-					HomeBase->BeginJudgement();
-				}
-				SetMatchState(MatchState::Judgement);
+				UE_LOG(LogTemp, Warning, TEXT("match state set to dreaming"));
+				SetMatchState(MatchState::Dreaming);
 			}
+		}
 	}
-	//consider if this setmatchstate can be simply callable from mama's state change
-	//instead of being checked here every tick lol
+	else if (MatchState == MatchState::Dreaming)
+	{
+		CountdownTime = WarmupTime + MatchTime - GetWorld()->GetTimeSeconds() + LevelStartingTime;
+		if (CountdownTime < 0.f)
+		{
+			if (HomeBase)
+			{
+				HomeBase->BeginJudgement();
+			}
+			SetMatchState(MatchState::Judgement);
+		}
+	}
 	else if (MatchState == MatchState::Judgement)
 	{
 		if (Mama) 

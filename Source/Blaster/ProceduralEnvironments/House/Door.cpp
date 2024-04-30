@@ -15,21 +15,16 @@ ADoor::ADoor()
 	SetRootComponent(DoorMesh);
 	DoorMesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Block);
 
-		DoorKnobButtonComponent = CreateDefaultSubobject<UChildActorComponent>(TEXT("Door Knob Button"));
-		DoorKnobButtonComponent->SetupAttachment(DoorMesh, FName("DoorKnobsSocket"));
-		DoorKnobButtonComponent->SetChildActorClass(AMyButton::StaticClass());
-		DoorKnobButtonComponent->SetIsReplicated(true);
-		
-		LockButton = CreateDefaultSubobject<UChildActorComponent>(TEXT("Slide Lock Button"));
-		LockButton->SetupAttachment(DoorMesh, FName("LockSocket"));
-		LockButton->SetChildActorClass(AMyButton::StaticClass());
-		LockButton->SetIsReplicated(true);
-
-	/*	LockButtonComponent = CreateDefaultSubobject<UChildActorComponent>(TEXT("Lock Button"));
-		LockButtonComponent->SetupAttachment(DoorMesh, FName("LockSocket"));
-		LockButtonComponent->SetChildActorClass(AMyButton::StaticClass());
-		LockButtonComponent->SetIsReplicated(true);*/
-
+	DoorKnobButtonComponent = CreateDefaultSubobject<UChildActorComponent>(TEXT("Door Knob Button"));
+	DoorKnobButtonComponent->SetupAttachment(DoorMesh, FName("DoorKnobsSocket"));
+	DoorKnobButtonComponent->SetChildActorClass(AMyButton::StaticClass());
+	DoorKnobButtonComponent->SetIsReplicated(true);
+	
+	LockButton = CreateDefaultSubobject<UChildActorComponent>(TEXT("Slide Lock Button"));
+	LockButton->SetupAttachment(DoorMesh, FName("LockSocket"));
+	LockButton->SetChildActorClass(AMyButton::StaticClass());
+	LockButton->SetIsReplicated(true);
+	
 }
 
 // Called when the game starts or when spawned

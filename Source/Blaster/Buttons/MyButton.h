@@ -79,5 +79,6 @@ public:
     virtual void OnDragOff();
     AActor* OwningActor;
 private:
+    
     bool IsActivelyPressed = false;
 };
